@@ -1,0 +1,48 @@
+# System files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Dependencies and build output
+node_modules/
+public/
+prof/
+tsconfig.tsbuildinfo
+.quartz-cache/
+.quartz/
+quartz/cli/tui/dist/
+
+# Local editor/app state
+.obsidian/
+.vscode/
+.idea/
+
+# Local runtime and environment files
+.env
+.env.*
+!.env.example
+*.local
+
+# Secrets and credentials
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+*.token
+*token*
+*secret*
+*credential*
+
+# Private or unreviewed local material
+private/
+local/
+tmp/
+temp/
+
+# Replit
+.replit
+replit.nix
