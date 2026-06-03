@@ -1,0 +1,29 @@
+{
+  "name": "@group-vault/quartz-latex",
+  "version": "0.1.0",
+  "description": "Minimal KaTeX math rendering plugin for Quartz",
+  "type": "module",
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.js",
+  "sideEffects": false,
+  "quartz": {
+    "name": "latex",
+    "displayName": "LaTeX",
+    "category": "transformer",
+    "version": "0.1.0",
+    "quartzVersion": ">=5.0.0",
+    "requiresInstall": false,
+    "dependencies": [],
+    "defaultOrder": 45,
+    "defaultEnabled": true,
+    "defaultOptions": {
+      "renderEngine": "katex"
+    }
+  }
+}
