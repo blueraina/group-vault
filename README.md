@@ -92,6 +92,15 @@ content/维护时间线.md
 
 待填写：管理员昵称 / QQ / GitHub 用户名。
 
+## 授权协议
+
+本仓库采用双协议：
+
+- 代码、构建脚本、Quartz 配置和本地插件按 MIT License 授权，见 [LICENSE-CODE.txt](LICENSE-CODE.txt)。
+- 原创笔记、教程、文档、模板和知识库文字内容按 Creative Commons Attribution-ShareAlike 4.0 International 授权，见 [LICENSE-CONTENT.md](LICENSE-CONTENT.md)。
+
+协作者头像、商标、截图和第三方材料不自动包含在上述内容授权中，除非文件或笔记中另有说明。
+
 ## 后续机器人接入预留
 
 本阶段不接入 AstrBot、QQ 群机器人或自动 RAG。未来可以让 AstrBot 定时 `git pull` 本仓库，扫描 `content/` 下的 Markdown，并建立知识库索引，用于 QQ 群问答。
