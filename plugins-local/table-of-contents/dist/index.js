@@ -842,6 +842,17 @@ var defaultOptions2 = {
   collapseByDefault: false
 };
 var slugAnchor = new BananaSlug();
+function toTocDisplayText(node2) {
+  if (!node2 || typeof node2 !== "object") return "";
+  const typedNode = node2;
+  if (typedNode.type === "inlineMath") return `$${String(typedNode.value ?? "")}$`;
+  if (typedNode.type === "math") return `$$${String(typedNode.value ?? "")}$$`;
+  if (typeof typedNode.value === "string") return typedNode.value;
+  if (Array.isArray(typedNode.children)) {
+    return typedNode.children.map((child) => toTocDisplayText(child)).join("");
+  }
+  return "";
+}
 var TableOfContentsTransformer = (userOpts) => {
   const opts = { ...defaultOptions2, ...userOpts };
   return {
@@ -858,12 +869,13 @@ var TableOfContentsTransformer = (userOpts) => {
               let highestDepth = opts.maxDepth;
               visit(tree, "heading", (node2) => {
                 if (node2.depth <= opts.maxDepth) {
-                  const text = toString(node2);
+                  const slugText = toString(node2);
+                  const text = toTocDisplayText(node2);
                   highestDepth = Math.min(highestDepth, node2.depth);
                   toc.push({
                     depth: node2.depth,
                     text,
-                    slug: slugAnchor.slug(text)
+                    slug: slugAnchor.slug(slugText)
                   });
                 }
               });

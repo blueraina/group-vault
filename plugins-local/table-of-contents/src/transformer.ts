@@ -26,6 +26,26 @@ export interface TocEntry {
 }
 
 const slugAnchor = new Slugger();
+
+function toTocDisplayText(node: unknown): string {
+  if (!node || typeof node !== "object") return "";
+
+  const typedNode = node as {
+    type?: string;
+    value?: unknown;
+    children?: unknown[];
+  };
+
+  if (typedNode.type === "inlineMath") return `$${String(typedNode.value ?? "")}$`;
+  if (typedNode.type === "math") return `$$${String(typedNode.value ?? "")}$$`;
+  if (typeof typedNode.value === "string") return typedNode.value;
+  if (Array.isArray(typedNode.children)) {
+    return typedNode.children.map((child) => toTocDisplayText(child)).join("");
+  }
+
+  return "";
+}
+
 export const TableOfContentsTransformer: QuartzTransformerPlugin<
   Partial<TableOfContentsTransformerOptions>
 > = (userOpts) => {
@@ -44,12 +64,13 @@ export const TableOfContentsTransformer: QuartzTransformerPlugin<
               let highestDepth: number = opts.maxDepth;
               visit(tree, "heading", (node) => {
                 if (node.depth <= opts.maxDepth) {
-                  const text = toString(node);
+                  const slugText = toString(node);
+                  const text = toTocDisplayText(node);
                   highestDepth = Math.min(highestDepth, node.depth);
                   toc.push({
                     depth: node.depth,
                     text,
-                    slug: slugAnchor.slug(text),
+                    slug: slugAnchor.slug(slugText),
                   });
                 }
               });
