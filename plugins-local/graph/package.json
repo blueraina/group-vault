@@ -1,0 +1,145 @@
+{
+  "name": "@quartz-community/graph",
+  "version": "0.1.0",
+  "description": "Interactive graph visualization component for Quartz - visualize your content as a network graph.",
+  "type": "module",
+  "license": "MIT",
+  "author": "Quartz Community",
+  "homepage": "https://quartz.jzhao.xyz",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/quartz-community/graph"
+  },
+  "keywords": [
+    "quartz",
+    "quartz-plugin",
+    "graph",
+    "visualization",
+    "network",
+    "d3",
+    "pixi"
+  ],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./types": {
+      "types": "./dist/types.d.ts",
+      "import": "./dist/types.js"
+    },
+    "./components": {
+      "types": "./dist/components/index.d.ts",
+      "import": "./dist/components/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "lint": "eslint . --max-warnings=0",
+    "format": "prettier . --check",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "check": "npm run typecheck && npm run lint && npm run format && npm run test"
+  },
+  "peerDependencies": {
+    "preact": "^10.0.0"
+  },
+  "peerDependenciesMeta": {
+    "preact": {
+      "optional": false
+    }
+  },
+  "dependencies": {
+    "@quartz-community/types": "github:quartz-community/types",
+    "@quartz-community/utils": "github:quartz-community/utils"
+  },
+  "devDependencies": {
+    "@types/hast": "^3.0.4",
+    "@types/mdast": "^4.0.4",
+    "@types/node": "^24.10.0",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "github-slugger": "^2.0.0",
+    "hast-util-to-jsx-runtime": "^2.3.6",
+    "preact": "^10.28.2",
+    "prettier": "^3.6.2",
+    "sass": "^1.97.3",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.3",
+    "vitest": "^2.1.9"
+  },
+  "quartz": {
+    "name": "graph",
+    "displayName": "Graph",
+    "category": "component",
+    "version": "1.0.0",
+    "quartzVersion": ">=5.0.0",
+    "dependencies": [],
+    "defaultOrder": 50,
+    "defaultEnabled": true,
+    "defaultOptions": {
+      "localGraph": {
+        "drag": true,
+        "zoom": true,
+        "depth": 1,
+        "scale": 1.1,
+        "repelForce": 0.5,
+        "centerForce": 0.3,
+        "linkDistance": 30,
+        "fontSize": 0.6,
+        "opacityScale": 1,
+        "showTags": true,
+        "removeTags": [],
+        "focusOnHover": false,
+        "enableRadial": false
+      },
+      "globalGraph": {
+        "drag": true,
+        "zoom": true,
+        "depth": -1,
+        "scale": 0.9,
+        "repelForce": 0.5,
+        "centerForce": 0.2,
+        "linkDistance": 30,
+        "fontSize": 0.6,
+        "opacityScale": 1,
+        "showTags": true,
+        "removeTags": [],
+        "focusOnHover": true,
+        "enableRadial": true
+      }
+    },
+    "components": {
+      "Graph": {
+        "displayName": "Graph",
+        "defaultPosition": "right",
+        "defaultPriority": 10
+      }
+    },
+    "optionSchema": {
+      "localGraph": {
+        "type": "object"
+      },
+      "globalGraph": {
+        "type": "object"
+      }
+    }
+  },
+  "engines": {
+    "node": ">=22",
+    "npm": ">=10.9.2"
+  }
+}

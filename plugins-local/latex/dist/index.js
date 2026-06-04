@@ -1,11 +1,25 @@
 import remarkMath from "remark-math"
 import rehypeKatex from "rehype-katex"
 
+const singleLineDisplayMath = /(^|\r?\n)([ \t]*)\$\$([^\r\n]*?)\$\$[ \t]*(?=\r?\n|$)/g
+
+function normalizeSingleLineDisplayMath(src) {
+  return src.replace(singleLineDisplayMath, (match, prefix, indent, value) => {
+    const math = value.trim()
+    if (!math) return match
+
+    return `${prefix}${indent}$$\n${indent}${math}\n${indent}$$`
+  })
+}
+
 export const Latex = (opts = {}) => {
   const macros = opts.customMacros ?? {}
 
   return {
     name: "Latex",
+    textTransform(_ctx, src) {
+      return normalizeSingleLineDisplayMath(src)
+    },
     markdownPlugins() {
       return [remarkMath]
     },
