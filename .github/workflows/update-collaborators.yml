@@ -42,13 +42,13 @@ jobs:
 
       - name: Commit collaborator list
         run: |
-          if git diff --quiet -- README.md data/collaborators.json content/协作者.md content/assets/collaborators; then
+          if git diff --quiet -- README.md data/collaborators.json content/协作者.md content/维护时间线.md content/assets/collaborators; then
             echo "No collaborator changes."
             exit 0
           fi
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add README.md data/collaborators.json content/协作者.md content/assets/collaborators
+          git add README.md data/collaborators.json content/协作者.md content/维护时间线.md content/assets/collaborators
           git commit -m "chore: update collaborators"
           git push

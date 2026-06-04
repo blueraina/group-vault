@@ -7,8 +7,12 @@ const root = process.cwd()
 const readmePath = path.join(root, "README.md")
 const dataPath = path.join(root, "data", "collaborators.json")
 const pagePath = path.join(root, "content", "协作者.md")
+const timelinePath = path.join(root, "content", "维护时间线.md")
 const avatarDir = path.join(root, "content", "assets", "collaborators")
 const apiVersion = "2022-11-28"
+const timelineStart = "<!-- timeline:start -->"
+const timelineEnd = "<!-- timeline:end -->"
+const timezone = process.env.TIMELINE_TIMEZONE || "Asia/Shanghai"
 
 function parseRepository() {
   if (process.env.GITHUB_REPOSITORY) {
@@ -89,6 +93,70 @@ async function writeIfChanged(filePath, content) {
   await fs.mkdir(path.dirname(filePath), { recursive: true })
   await fs.writeFile(filePath, content)
   return true
+}
+
+async function readExistingCollaboratorLogins() {
+  try {
+    const data = JSON.parse(await fs.readFile(dataPath, "utf8"))
+    return (data.collaborators || []).map((user) => user.login).filter(Boolean).sort()
+  } catch {
+    return []
+  }
+}
+
+function sameLogins(previous, next) {
+  if (previous.length !== next.length) return false
+  return previous.every((login, index) => login === next[index])
+}
+
+function localDateParts(date) {
+  const formatter = new Intl.DateTimeFormat("zh-CN", {
+    timeZone: timezone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  })
+
+  const parts = Object.fromEntries(formatter.formatToParts(date).map((part) => [part.type, part.value]))
+  return {
+    date: `${parts.year}-${parts.month}-${parts.day}`,
+    dateTime: `${parts.year}-${parts.month}-${parts.day} ${parts.hour}:${parts.minute}`,
+  }
+}
+
+async function updateCollaboratorTimeline(collaborators) {
+  let content
+  try {
+    content = await fs.readFile(timelinePath, "utf8")
+  } catch {
+    return false
+  }
+
+  if (!content.includes(timelineStart) || !content.includes(timelineEnd)) return false
+
+  const { date, dateTime } = localDateParts(new Date())
+  const logins = collaborators.map((user) => `@${user.login}`).join("、")
+  const entry = `- ${dateTime} · GitHub Actions · 更新协作者 · [[协作者]] · ${logins}`
+  const startIndex = content.indexOf(timelineStart)
+  const endIndex = content.indexOf(timelineEnd)
+  const currentBlock = content.slice(startIndex + timelineStart.length, endIndex).trim()
+  const currentEntries =
+    currentBlock && !/^暂无记录[。.]$/.test(currentBlock)
+      ? currentBlock.split(/\r?\n/).map((line) => line.trim()).filter((line) => line && !/^暂无记录[。.]$/.test(line))
+      : []
+
+  const nextBody = [entry, ...currentEntries].join("\n")
+  const nextContent = content
+    .replace(/^updated:\s*\d{4}-\d{2}-\d{2}/m, `updated: ${date}`)
+    .replace(
+      new RegExp(`${timelineStart}[\\s\\S]*?${timelineEnd}`),
+      `${timelineStart}\n${nextBody}\n${timelineEnd}`,
+    )
+
+  return writeIfChanged(timelinePath, nextContent)
 }
 
 async function writeCircularAvatar(collaborator) {
@@ -224,6 +292,7 @@ async function updateDataFile(repository, collaborators) {
 async function main() {
   const { owner, repo } = parseRepository()
   const repository = `${owner}/${repo}`
+  const previousLogins = await readExistingCollaboratorLogins()
   let rawCollaborators
 
   try {
@@ -250,6 +319,7 @@ async function main() {
   }
 
   const collaborators = Array.from(byLogin.values()).sort((a, b) => a.login.localeCompare(b.login))
+  const nextLogins = collaborators.map((user) => user.login).sort()
 
   await fs.mkdir(avatarDir, { recursive: true })
   await Promise.all(collaborators.map(writeCircularAvatar))
@@ -257,6 +327,9 @@ async function main() {
   await updateDataFile(repository, collaborators)
   await writeIfChanged(pagePath, renderCollaboratorsPage(collaborators))
   await updateReadme(collaborators)
+  if (!sameLogins(previousLogins, nextLogins)) {
+    await updateCollaboratorTimeline(collaborators)
+  }
 
   console.log(`Updated ${collaborators.length} collaborator(s): ${collaborators.map((u) => u.login).join(", ")}`)
 }
