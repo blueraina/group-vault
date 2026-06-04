@@ -4,6 +4,8 @@ created: 2026-06-02
 updated: 2026-06-02
 tags:
   - 首页
+authors:
+  - 管理员
 status: stable
 owner: 管理员
 ---

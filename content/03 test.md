@@ -1,3 +1,15 @@
+---
+title: 三对角行列式
+created: 2026-06-04
+updated: 2026-06-04
+tags:
+  - 数学
+status: draft
+authors:
+  - 管理员
+owner: 管理员
+---
+
 
 
 对于三对角行列式
@@ -80,4 +92,3 @@ $$J = \begin{pmatrix} \lambda & 1 \\ 0 & \lambda \end{pmatrix} \implies J^k = \b
 $$\begin{aligned} A^k &= P J^k P^{-1} \\ &= \begin{pmatrix} \lambda & 1 \\ 1 & 0 \end{pmatrix} \begin{pmatrix} \lambda^k & k\lambda^{k-1} \\ 0 & \lambda^k \end{pmatrix} \begin{pmatrix} 0 & 1 \\ 1 & -\lambda \end{pmatrix} \\ &= \begin{pmatrix} \lambda^{k+1} & k\lambda^k + \lambda^k \\ \lambda^k & k\lambda^{k-1} \end{pmatrix} \begin{pmatrix} 0 & 1 \\ 1 & -\lambda \end{pmatrix} \\ &= \begin{pmatrix} (k+1)\lambda^k & -k\lambda^{k+1} \\ k\lambda^{k-1} & -k\lambda^k + \lambda^k \end{pmatrix} \end{aligned}$$
 将 $A^{n-1}$ 代回 $T_n$ 的表达式，最终得到
 $$\boldsymbol{T_n = (n+1)\lambda_1^n }$$
-

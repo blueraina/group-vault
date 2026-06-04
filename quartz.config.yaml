@@ -183,6 +183,7 @@ plugins:
       includeAll: false
       includedProperties:
         - tags
+        - authors
         - status
         - owner
       excludedProperties: []
