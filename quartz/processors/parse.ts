@@ -44,6 +44,10 @@ export function createHtmlProcessor(ctx: BuildCtx): QuartzHtmlProcessor {
   )
 }
 
+function normalizeEmptyCalloutTypes(markdown: string): string {
+  return markdown.replace(/^(\s*>\s*)\[!\s*\]/gmu, "$1[!note]")
+}
+
 function* chunks<T>(arr: T[], n: number) {
   for (let i = 0; i < arr.length; i += n) {
     yield arr.slice(i, i + n)
@@ -93,6 +97,7 @@ export function createFileParser(ctx: BuildCtx, fps: FilePath[]) {
 
         // strip leading and trailing whitespace
         file.value = file.value.toString().trim()
+        file.value = normalizeEmptyCalloutTypes(file.value)
 
         // Text -> Text transforms
         for (const plugin of cfg.plugins.transformers.filter((p) => p.textTransform)) {

@@ -118,6 +118,8 @@ plugins:
     options:
       localGraph:
         showTags: false
+        fontSize: 0.45
+        textOpacity: 0.85
       globalGraph:
         showTags: false
     layout:
