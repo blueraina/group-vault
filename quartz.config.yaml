@@ -115,6 +115,11 @@ plugins:
       priority: 50
   - source: ./plugins-local/graph
     enabled: true
+    options:
+      localGraph:
+        showTags: false
+      globalGraph:
+        showTags: false
     layout:
       position: right
       priority: 10

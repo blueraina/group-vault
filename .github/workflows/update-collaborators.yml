@@ -1,0 +1,54 @@
+name: Update collaborators
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 19 * * *"
+  push:
+    branches:
+      - main
+    paths:
+      - "scripts/update-collaborators.mjs"
+      - ".github/workflows/update-collaborators.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: collaborators
+  cancel-in-progress: false
+
+jobs:
+  update-collaborators:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Update collaborators
+        env:
+          GITHUB_TOKEN: ${{ secrets.COLLABORATORS_TOKEN || github.token }}
+        run: node scripts/update-collaborators.mjs
+
+      - name: Commit collaborator list
+        run: |
+          if git diff --quiet -- README.md data/collaborators.json content/协作者.md content/assets/collaborators; then
+            echo "No collaborator changes."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md data/collaborators.json content/协作者.md content/assets/collaborators
+          git commit -m "chore: update collaborators"
+          git push
