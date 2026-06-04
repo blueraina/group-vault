@@ -99,7 +99,7 @@ content/维护时间线.md
 - 代码、构建脚本、Quartz 配置和本地插件按 MIT License 授权，见 [LICENSE-CODE.txt](LICENSE-CODE.txt)。
 - 原创笔记、教程、文档、模板和知识库文字内容按 Creative Commons Attribution-ShareAlike 4.0 International 授权，见 [LICENSE-CONTENT.md](LICENSE-CONTENT.md)。
 
-协作者头像、商标、截图和第三方材料不自动包含在上述内容授权中，除非文件或笔记中另有说明。
+知识库原创内容采用 CC BY-SA 4.0 协议发布。你可以自由转载、分享、改编和商用这些内容，但需要注明来源；如果基于这些内容进行改编，也需要使用相同协议继续开放。第三方材料、头像、商标和截图不自动包含在此授权中。
 
 ## 后续机器人接入预留
 
