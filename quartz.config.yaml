@@ -79,7 +79,7 @@ plugins:
     options:
       renderEngine: katex
     order: 45
-  - source: github:quartz-community/table-of-contents
+  - source: ./plugins-local/table-of-contents
     enabled: true
     order: 50
     layout:

@@ -1,0 +1,132 @@
+{
+  "name": "@quartz-community/table-of-contents",
+  "version": "0.1.0",
+  "description": "Table of Contents component for Quartz",
+  "type": "module",
+  "license": "MIT",
+  "author": "Quartz Community",
+  "homepage": "https://github.com/quartz-community/table-of-contents",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/quartz-community/table-of-contents"
+  },
+  "keywords": [
+    "quartz",
+    "quartz-plugin",
+    "table-of-contents",
+    "toc",
+    "component"
+  ],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./components": {
+      "types": "./dist/components/index.d.ts",
+      "import": "./dist/components/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "lint": "eslint . --max-warnings=0",
+    "format": "prettier . --check",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "check": "npm run typecheck && npm run lint && npm run format && npm run test"
+  },
+  "peerDependencies": {
+    "preact": "^10.0.0"
+  },
+  "peerDependenciesMeta": {
+    "preact": {
+      "optional": false
+    }
+  },
+  "dependencies": {
+    "@quartz-community/types": "github:quartz-community/types",
+    "@quartz-community/utils": "github:quartz-community/utils"
+  },
+  "devDependencies": {
+    "@types/mdast": "^4.0.4",
+    "@types/node": "^24.10.0",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "github-slugger": "^2.0.0",
+    "mdast": "^3.0.0",
+    "mdast-util-to-string": "^4.0.0",
+    "preact": "^10.28.2",
+    "prettier": "^3.6.2",
+    "sass": "^1.97.3",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.3",
+    "unist-util-visit": "^5.0.0",
+    "vfile": "^6.0.3",
+    "vitest": "^2.1.9"
+  },
+  "engines": {
+    "node": ">=22",
+    "npm": ">=10.9.2"
+  },
+  "quartz": {
+    "name": "table-of-contents",
+    "displayName": "Table of Contents",
+    "category": [
+      "transformer",
+      "component"
+    ],
+    "version": "1.0.0",
+    "quartzVersion": ">=5.0.0",
+    "dependencies": [],
+    "defaultOrder": 50,
+    "defaultEnabled": true,
+    "defaultOptions": {
+      "maxDepth": 3,
+      "minEntries": 1,
+      "showByDefault": true,
+      "collapseByDefault": false,
+      "layout": "modern"
+    },
+    "components": {
+      "TableOfContents": {
+        "displayName": "Table of Contents",
+        "defaultPosition": "right",
+        "defaultPriority": 50
+      }
+    },
+    "optionSchema": {
+      "maxDepth": {
+        "type": "number"
+      },
+      "minEntries": {
+        "type": "number"
+      },
+      "showByDefault": {
+        "type": "boolean"
+      },
+      "collapseByDefault": {
+        "type": "boolean"
+      },
+      "layout": {
+        "type": "enum",
+        "values": [
+          "modern",
+          "legacy"
+        ]
+      }
+    }
+  }
+}
