@@ -4,6 +4,14 @@ import fs from "fs"
 import { glob } from "../../util/glob"
 import { dirname } from "path"
 
+function staticDestination(output: string, fp: string): FilePath {
+  if (fp.startsWith("_") && !fp.includes("/")) {
+    return joinSegments(output, fp) as FilePath
+  }
+
+  return joinSegments(output, "static", fp) as FilePath
+}
+
 export const Static: QuartzEmitterPlugin = () => ({
   name: "Static",
   async *emit({ argv, cfg }) {
@@ -13,7 +21,7 @@ export const Static: QuartzEmitterPlugin = () => ({
     await fs.promises.mkdir(outputStaticPath, { recursive: true })
     for (const fp of fps) {
       const src = joinSegments(staticPath, fp) as FilePath
-      const dest = joinSegments(outputStaticPath, fp) as FilePath
+      const dest = staticDestination(argv.output, fp)
       await fs.promises.mkdir(dirname(dest), { recursive: true })
       await fs.promises.copyFile(src, dest)
       yield dest
