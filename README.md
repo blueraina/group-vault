@@ -24,6 +24,25 @@ content/维护时间线.md
 
 有仓库权限的群友可以本地克隆仓库，用 Obsidian、GitHub Desktop、命令行 Git 或 Obsidian Git 插件编辑。普通群友也可以通过 GitHub Issue 投稿，由管理员整理。
 
+## Collaborators / 协作者
+
+<!-- collaborators:start -->
+
+这些 GitHub 账号拥有本仓库协作权限。
+
+<table>
+<tr>
+<td align="center">
+  <a href="https://github.com/blueraina">
+    <img src="content/assets/collaborators/blueraina.png" width="64" height="64" alt="@blueraina" />
+  </a>
+  <br />
+  <sub><b>@blueraina</b></sub>
+</td>
+</tr>
+</table>
+
+<!-- collaborators:end -->
 ## 本地打开 Obsidian vault
 
 1. 安装 Obsidian 和 Git。
