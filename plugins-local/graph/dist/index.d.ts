@@ -10,6 +10,11 @@ interface D3Config {
     linkDistance: number;
     fontSize: number;
     opacityScale: number;
+    nodeSize: number;
+    linkWidth: number;
+    showArrows: boolean;
+    textOpacity: number;
+    linkStrength: number;
     removeTags: string[];
     showTags: boolean;
     focusOnHover?: boolean;
