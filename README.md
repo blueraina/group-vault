@@ -1,12 +1,24 @@
 # 群知识库
 
-这是一个由群友共同维护的长期 Obsidian Markdown 知识库。内容通过 Git 记录历史，通过 Pull Request 审核后进入 `main` 分支，并由 Quartz 构建为静态网站发布到 Cloudflare Pages。
+这是一个由群友共同维护的长期 Obsidian Markdown 知识库。内容通过 Git 记录历史，进入 `main` 分支后由 Quartz 构建为静态网站发布到 Cloudflare Pages。
 
 ## 这个仓库是什么
 
 本仓库存放本群沉淀下来的正式知识、教程、规则、经验和待整理投稿。正式内容放在 `content/`，临时投稿和待整理材料放在 `inbox/`，图片统一放在 `assets/images/`。
 
 本方案使用 GitHub 私有仓库 + Quartz + Cloudflare Pages，不使用 Obsidian Sync 或 Obsidian Publish 作为主同步和发布方案。
+
+## 发布机制
+
+仓库配置了 GitHub Action 自动维护 `content/维护时间线.md`。有人修改 `content/` 内笔记并推送到 `main` 后，Action 会记录“谁在什么时候新增、修改、删除或重命名了哪篇笔记”，再提交维护时间线。
+
+Cloudflare Pages 建议配置 Build watch paths，只监听：
+
+```text
+content/维护时间线.md
+```
+
+这样普通笔记提交不会立即部署，等维护时间线自动更新后再部署一次，网页会同时包含笔记改动和维护记录。
 
 ## 谁可以编辑
 

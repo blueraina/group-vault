@@ -242,7 +242,7 @@ Git: Commit-and-sync
 它会尽量完成：
 
 ```text
-pull 最新内容 -> commit 本地修改 -> push 到 GitHub -> Cloudflare 自动部署
+pull 最新内容 -> commit 本地修改 -> push 到 GitHub -> GitHub Action 更新时间线 -> Cloudflare 部署
 ```
 
 ## 九、哪些目录可以改
@@ -398,7 +398,7 @@ session
 你执行 `Git: Commit-and-sync` 后，流程是：
 
 ```text
-Obsidian -> GitHub -> Cloudflare Pages -> 网站
+Obsidian -> GitHub -> 维护时间线自动更新 -> Cloudflare Pages -> 网站
 ```
 
 通常需要几十秒到几分钟。
@@ -409,13 +409,15 @@ Obsidian -> GitHub -> Cloudflare Pages -> 网站
 2. 按 `Ctrl + F5` 强制刷新网页。
 3. 确认你修改的是 `content/` 里的文件。
 4. 确认 Obsidian Git 没有显示 `ahead 1`。
-5. 如果仍然没更新，联系管理员检查 Cloudflare 部署记录。
+5. 确认 GitHub Actions 里的 `Update maintenance timeline` 已完成。
+6. 如果仍然没更新，联系管理员检查 Cloudflare 部署记录。
 
 注意：
 
 - 修改 `content/` 会发布到网站。
 - 修改 `inbox/` 通常不会显示到网站。
 - 只 commit 不 push，不会更新网站。
+- 普通笔记提交会先触发维护时间线自动更新，然后由 `content/维护时间线.md` 触发 Cloudflare 部署。
 
 ## 十三、常见问题
 
@@ -549,7 +551,7 @@ Ctrl + P -> Git: Commit-and-sync -> 等同步完成
 用 Obsidian 打开 group-vault
 只改 content / inbox / templates / assets/images / docs
 写完执行 Git: Commit-and-sync
-等待 Cloudflare 自动更新网站
+等待维护时间线和 Cloudflare 自动更新网站
 ```
 
 不要提交隐私、密钥、私人聊天记录和未授权内容。

@@ -46,8 +46,11 @@ git -c http.curloptResolve=+github.com:443:140.82.112.3 -c http.version=HTTP/1.1
    - Framework preset：`None`
    - Build command：`npx quartz plugin install && npx quartz build`
    - Build output directory：`public`
-7. 点击部署。
-8. 部署完成后记录 `*.pages.dev` 地址，并写回 `README.md`。
+7. 在 Build watch paths 中设置：
+   - Include paths：`content/维护时间线.md`
+   - Exclude paths：留空
+8. 点击部署。
+9. 部署完成后记录 `*.pages.dev` 地址，并写回 `README.md`。
 
 通常不需要环境变量。如果 Cloudflare 报 Node 版本不足，添加：
 
@@ -73,12 +76,14 @@ git push -u origin test/update-homepage
 
 然后：
 
-1. 在 GitHub 创建 Pull Request。
-2. 检查修改内容。
-3. 合并到 `main`。
-4. 打开 Cloudflare Pages，确认出现新部署。
-5. 打开网页，确认内容已更新。
-6. 运行 `git log --oneline`，确认能看到测试提交。
+1. 将修改合并或同步到 `main`。
+2. 打开 GitHub Actions，确认 `Update maintenance timeline` 工作流运行成功。
+3. 确认工作流自动提交了 `content/维护时间线.md`。
+4. 打开 Cloudflare Pages，确认只因为维护时间线提交出现新部署。
+5. 打开网页，确认内容和维护时间线都已更新。
+6. 运行 `git log --oneline`，确认能看到测试提交和 `chore: update maintenance timeline`。
+
+注意：如果只修改普通笔记但还没有自动更新时间线，Cloudflare 应跳过部署。这是为了减少构建次数。
 
 ## 群友简短教程
 
@@ -110,7 +115,7 @@ git push -u origin test/update-homepage
 - Markdown 链接和 Obsidian 双链是否有效。
 - 首页、分类或索引是否需要同步更新。
 
-确认无误后再合并。合并后等待 Cloudflare Pages 自动部署。
+确认无误后再合并。合并后等待 GitHub Action 自动更新维护时间线，再由 Cloudflare Pages 部署。
 
 ## 整理 inbox
 
