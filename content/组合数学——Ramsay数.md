@@ -311,21 +311,18 @@ $$
 43 \le R(5,5) \le 49,\qquad 102 \le R(6,6) \le 165.
 $$
 
-Ramsey 数的下界
 
->[!theorem] 
->定理（Erdős, 1947：
+>[!theorem] Ramsey 数的下界
+>定理（Erdős, 1947)：
 >$$
- R(p,p) \ge 2^{p/2}.
- $$
+R(p,p) \ge 2^{p/2}.
+$$
 
 2026 年5月最新研究进展：
 研究对象：
 
 $$
-
 R(\ell, C\ell)
-
 $$
 
 新的下界。
@@ -340,36 +337,25 @@ $$
 对于任意常数 $C>1$ 和充分大的 $\ell$，证明了 Ramsey 数
 
 $$
-
 r(\ell, C\ell)
-
 $$
 存在新的下界。
 具体地，存在 $\varepsilon=\varepsilon(C)>0$，使得
 
 $$
-
 r(\ell, C\ell)
-
 \ge
-
 \left(p_C^{-1/2}+\varepsilon\right)^\ell,
-
 $$
 其中
-
 $$
-
 p_C \in (0,1/2)
-
 $$
 
 是满足
 
 $$
-
 C=\frac{\log p_C}{\log(1-p_C)}
-
 $$
 
 的唯一数。这给出了对 Erdős 1947 年经典下界的首次指数级改进。
