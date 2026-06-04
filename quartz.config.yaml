@@ -146,7 +146,7 @@ plugins:
     layout:
       position: left
       priority: 10
-  - source: github:quartz-community/darkmode
+  - source: ./plugins-local/darkmode
     enabled: true
     layout:
       position: left

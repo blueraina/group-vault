@@ -1,0 +1,42 @@
+{
+  "name": "@group-vault/darkmode",
+  "version": "0.1.0",
+  "description": "Local multi-theme switcher for the group vault Quartz site.",
+  "type": "module",
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./components": {
+      "types": "./dist/components/index.d.ts",
+      "import": "./dist/components/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
+  "peerDependencies": {
+    "preact": "^10.0.0"
+  },
+  "quartz": {
+    "name": "darkmode",
+    "displayName": "Theme Switcher",
+    "category": "component",
+    "version": "1.0.0",
+    "quartzVersion": ">=5.0.0",
+    "dependencies": [],
+    "defaultOrder": 50,
+    "defaultEnabled": true,
+    "defaultOptions": {},
+    "components": {
+      "Darkmode": {
+        "displayName": "Theme Switcher",
+        "defaultPosition": "left",
+        "defaultPriority": 30
+      }
+    }
+  }
+}
