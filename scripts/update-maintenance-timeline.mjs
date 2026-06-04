@@ -1,7 +1,8 @@
 import { execFileSync } from "node:child_process"
 import { existsSync, readFileSync, writeFileSync } from "node:fs"
 
-const timelinePath = "content/维护时间线.md"
+const timelinePath = "content/其他信息/维护时间线.md"
+const legacyTimelinePath = "content/维护时间线.md"
 const timelineStart = "<!-- timeline:start -->"
 const timelineEnd = "<!-- timeline:end -->"
 const timezone = process.env.TIMELINE_TIMEZONE || "Asia/Shanghai"
@@ -77,7 +78,11 @@ const commitsForRange = (range) => {
   return output ? output.split(/\r?\n/).filter(Boolean) : []
 }
 
-const markdownNote = (filePath) => filePath.startsWith("content/") && filePath.endsWith(".md") && filePath !== timelinePath
+const markdownNote = (filePath) =>
+  filePath.startsWith("content/") &&
+  filePath.endsWith(".md") &&
+  filePath !== timelinePath &&
+  filePath !== legacyTimelinePath
 
 const noteStem = (filePath) => filePath.replace(/^content\//, "").replace(/\.md$/, "")
 
@@ -151,8 +156,9 @@ const replaceTimelineBody = (content, entries) => {
       ? content.slice(startIndex + timelineStart.length, endIndex).trim()
       : ""
 
+  const emptyTimelinePattern = /^暂无记录[。.]$/
   const currentEntries =
-    currentBlock && currentBlock !== "暂无记录."
+    currentBlock && !emptyTimelinePattern.test(currentBlock)
       ? currentBlock.split(/\r?\n/).map((line) => line.trim()).filter(Boolean)
       : []
 
@@ -161,7 +167,7 @@ const replaceTimelineBody = (content, entries) => {
   if (newEntries.length === 0 && existsSync(timelinePath)) return null
 
   const nextEntries = [...newEntries, ...currentEntries].slice(0, maxEntries)
-  const body = nextEntries.length > 0 ? nextEntries.join("\n") : "暂无记录."
+  const body = nextEntries.length > 0 ? nextEntries.join("\n") : "暂无记录。"
   const updatedContent = content
     .replace(/^updated:\s*\d{4}-\d{2}-\d{2}/m, `updated: ${today()}`)
     .replace(

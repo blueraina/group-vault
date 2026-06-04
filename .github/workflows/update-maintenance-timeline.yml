@@ -7,6 +7,7 @@ on:
     paths:
       - "content/**"
       - "!content/维护时间线.md"
+      - "!content/其他信息/维护时间线.md"
 
 permissions:
   contents: write
@@ -34,13 +35,13 @@ jobs:
 
       - name: Commit maintenance timeline
         run: |
-          if git diff --quiet -- content/维护时间线.md; then
+          if git diff --quiet -- content/其他信息/维护时间线.md; then
             echo "No maintenance timeline changes."
             exit 0
           fi
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add content/维护时间线.md
+          git add content/其他信息/维护时间线.md
           git commit -m "chore: update maintenance timeline"
           git push

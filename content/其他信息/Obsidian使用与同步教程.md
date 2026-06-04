@@ -34,7 +34,7 @@ owner: 管理员
 Obsidian 本地修改
 -> Git: Commit-and-sync
 -> 推送到 GitHub
--> 自动更新 content/维护时间线.md
+-> 自动更新 content/其他信息/维护时间线.md
 -> Cloudflare Pages 部署
 -> 网站更新
 ```

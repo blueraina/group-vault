@@ -6,8 +6,8 @@ import sharp from "sharp"
 const root = process.cwd()
 const readmePath = path.join(root, "README.md")
 const dataPath = path.join(root, "data", "collaborators.json")
-const pagePath = path.join(root, "content", "协作者.md")
-const timelinePath = path.join(root, "content", "维护时间线.md")
+const pagePath = path.join(root, "content", "其他信息", "协作者.md")
+const timelinePath = path.join(root, "content", "其他信息", "维护时间线.md")
 const avatarDir = path.join(root, "content", "assets", "collaborators")
 const apiVersion = "2022-11-28"
 const timelineStart = "<!-- timeline:start -->"
@@ -139,7 +139,7 @@ async function updateCollaboratorTimeline(collaborators) {
 
   const { date, dateTime } = localDateParts(new Date())
   const logins = collaborators.map((user) => `@${user.login}`).join("、")
-  const entry = `- ${dateTime} · GitHub Actions · 更新协作者 · [[协作者]] · ${logins}`
+  const entry = `- ${dateTime} · GitHub Actions · 更新协作者 · [[其他信息/协作者|协作者]] · ${logins}`
   const startIndex = content.indexOf(timelineStart)
   const endIndex = content.indexOf(timelineEnd)
   const currentBlock = content.slice(startIndex + timelineStart.length, endIndex).trim()
@@ -252,7 +252,7 @@ async function updateReadme(collaborators) {
 function renderCollaboratorsPage(collaborators) {
   const cards = collaborators
     .map((user) => {
-      const avatarPath = `assets/collaborators/${user.login.toLowerCase()}.png`
+      const avatarPath = `../assets/collaborators/${user.login.toLowerCase()}.png`
       return [
         `<a href="${user.htmlUrl}" target="_blank" rel="noopener noreferrer" style="display:flex;min-height:150px;align-items:center;justify-content:center;flex-direction:column;gap:0.65rem;padding:1rem;border:1px solid var(--lightgray);border-radius:8px;background:color-mix(in srgb, var(--light) 92%, var(--secondary));text-decoration:none;">`,
         `  <img src="${avatarPath}" alt="@${user.login}" width="96" height="96" style="display:block;border-radius:50%;box-shadow:0 0 0 3px color-mix(in srgb, var(--secondary) 25%, transparent);" />`,
