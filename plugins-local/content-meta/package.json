@@ -1,0 +1,61 @@
+{
+  "name": "@group-vault/content-meta",
+  "version": "0.1.0",
+  "description": "Local content metadata component with reading time and note word count.",
+  "type": "module",
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./components": {
+      "types": "./dist/components/index.d.ts",
+      "import": "./dist/components/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
+  "peerDependencies": {
+    "preact": "^10.0.0"
+  },
+  "quartz": {
+    "name": "content-meta",
+    "displayName": "Content Meta",
+    "category": "component",
+    "version": "1.0.0",
+    "quartzVersion": ">=5.0.0",
+    "dependencies": [],
+    "defaultOrder": 50,
+    "defaultEnabled": true,
+    "defaultOptions": {
+      "showReadingTime": true,
+      "showWordCount": true,
+      "showComma": true,
+      "wordsPerMinute": 200
+    },
+    "components": {
+      "ContentMeta": {
+        "displayName": "Content Meta",
+        "defaultPosition": "beforeBody",
+        "defaultPriority": 20
+      }
+    },
+    "optionSchema": {
+      "showReadingTime": {
+        "type": "boolean"
+      },
+      "showWordCount": {
+        "type": "boolean"
+      },
+      "showComma": {
+        "type": "boolean"
+      },
+      "wordsPerMinute": {
+        "type": "number"
+      }
+    }
+  }
+}

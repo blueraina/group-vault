@@ -141,7 +141,7 @@ plugins:
     layout:
       position: beforeBody
       priority: 10
-  - source: github:quartz-community/content-meta
+  - source: ./plugins-local/content-meta
     enabled: true
     layout:
       position: beforeBody
