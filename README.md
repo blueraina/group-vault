@@ -53,6 +53,13 @@ content/维护时间线.md
   <br />
   <sub><b>@llc-byte</b></sub>
 </td>
+<td align="center">
+  <a href="https://github.com/VesperaZephyr">
+    <img src="content/assets/collaborators/vesperazephyr.png" width="64" height="64" alt="@VesperaZephyr" />
+  </a>
+  <br />
+  <sub><b>@VesperaZephyr</b></sub>
+</td>
 </tr>
 </table>
 
