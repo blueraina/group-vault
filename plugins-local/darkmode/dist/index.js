@@ -3,6 +3,7 @@ import { h } from "preact"
 const themes = [
   { id: "light", label: "浅色", swatch: "#faf8f8" },
   { id: "dark", label: "深色", swatch: "#161618" },
+  { id: "night", label: "夜蓝", swatch: "#0b1220" },
   { id: "academic", label: "学术", swatch: "#f7f9fc" },
   { id: "notion", label: "Notion", swatch: "#fbfaf8" },
   { id: "paper", label: "暖纸", swatch: "#f5ead6" },
@@ -11,10 +12,11 @@ const themes = [
 const cx = (...parts) => parts.filter(Boolean).join(" ")
 
 const beforeDOMLoaded = `
-const themeOptions = ["light", "dark", "academic", "notion", "paper"];
+const themeOptions = ["light", "dark", "night", "academic", "notion", "paper"];
 const themeLabels = {
   light: "浅色",
   dark: "深色",
+  night: "夜蓝",
   academic: "学术",
   notion: "Notion",
   paper: "暖纸",
@@ -224,16 +226,32 @@ const styles = `
   width: 14px;
 }
 
-:root[saved-theme="dark"] {
+:root[saved-theme="dark"],
+:root[saved-theme="night"] {
   color-scheme: dark;
 }
 
-:root:not([saved-theme="dark"]),
+:root:not([saved-theme="dark"]):not([saved-theme="night"]),
 :root[saved-theme="light"],
 :root[saved-theme="academic"],
 :root[saved-theme="notion"],
 :root[saved-theme="paper"] {
   color-scheme: light;
+}
+
+:root[saved-theme="night"] {
+  --light: #0b1220;
+  --lightgray: #18243a;
+  --gray: #8294ad;
+  --darkgray: #c7d2e5;
+  --dark: #eef5ff;
+  --secondary: #7db7ff;
+  --tertiary: #8fb8d8;
+  --highlight: rgba(125, 183, 255, 0.16);
+  --textHighlight: rgba(96, 165, 250, 0.28);
+  --accent-h: 212;
+  --accent-s: 92%;
+  --accent-l: 72%;
 }
 
 :root[saved-theme="academic"] {
