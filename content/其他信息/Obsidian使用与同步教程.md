@@ -336,11 +336,16 @@ $$
 
 ````md
 ```tikz
+\usepackage{tikz}
+\begin{document}
+
 \begin{tikzpicture}
   \draw[->] (0,0) -- (2,0) node[right] {$x$};
   \draw[->] (0,0) -- (0,2) node[above] {$y$};
   \draw[blue, thick] (0,0) circle (1);
 \end{tikzpicture}
+
+\end{document}
 ```
 ````
 
@@ -350,6 +355,9 @@ $$
 
 ````md
 ```tikz
+\usepackage{tikz}
+\begin{document}
+
 \begin{tikzpicture}
   \node (A) at (0,1) {$A$};
   \node (B) at (2,1) {$B$};
@@ -360,16 +368,17 @@ $$
   \draw[->] (B) -- (D);
   \draw[->] (C) -- (D);
 \end{tikzpicture}
+
+\end{document}
 ```
 ````
 
 注意事项：
 
 - 代码块语言必须写成 `tikz`，不要写成 `tex`、`latex` 或 `tikzpicture`。
-- 一般从 `\begin{tikzpicture}` 写到 `\end{tikzpicture}` 即可，不需要写 `\documentclass`。
-- Obsidian 本地编辑时可能只显示代码块；网页发布后才会渲染成图象。
+- 推荐写成完整结构：先写 `\usepackage{tikz}`，再写 `\begin{document}`，中间放 `\begin{tikzpicture}` 到 `\end{tikzpicture}`，最后写 `\end{document}`。这样更兼容 Obsidian 本地预览。
 - 首次打开含 TikZ 图象的网页时，浏览器需要加载 TikZJax，可能会比普通笔记慢一点。
-- 太复杂的 TikZ 包、外部图片、系统字体或需要完整 LaTeX 环境的代码不一定能渲染。
+- 太复杂的 TikZ 包、外部图片、系统字体或依赖完整 LaTeX 编译环境的代码不一定能渲染。网页端尤其不建议使用 `decorations.pathmorphing`、`snake` 这类装饰路径；可以先用普通箭头、虚线、双线替代。
 - 如果网页没有渲染，先检查代码块上下的三个反引号是否完整，以及代码块第一行是否写成 `tikz`。
 
 ## 十四、脚注
