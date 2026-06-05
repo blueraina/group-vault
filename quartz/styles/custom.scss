@@ -68,3 +68,30 @@
 #quartz-root .graph-settings-panel .graph-setting-row input[type="checkbox"]:checked::before {
   transform: translateX(1.1rem);
 }
+
+#quartz-root .collaborator-profile {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 0.85rem 0 1.1rem;
+}
+
+#quartz-root .collaborator-avatar {
+  display: block;
+  width: 5.25rem;
+  height: 5.25rem;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--secondary) 24%, transparent);
+}
+
+#quartz-root .collaborator-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  color: var(--gray);
+}
+
+#quartz-root .collaborator-meta a {
+  font-weight: 700;
+}

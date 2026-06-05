@@ -30,19 +30,27 @@ jobs:
         with:
           node-version: 22
 
+      - name: Install dependencies
+        run: npm ci
+
       - name: Update maintenance timeline
         run: node scripts/update-maintenance-timeline.mjs
 
-      - name: Commit maintenance timeline
+      - name: Update collaborator note index
+        env:
+          GITHUB_TOKEN: ${{ secrets.COLLABORATORS_TOKEN || github.token }}
+        run: node scripts/update-collaborators.mjs
+
+      - name: Commit generated pages
         run: |
-          if git diff --quiet -- content/其他信息/维护时间线.md; then
-            echo "No maintenance timeline changes."
+          if git diff --quiet -- README.md data/collaborators.json content/其他信息/协作者.md content/其他信息/维护时间线.md content/assets/collaborators; then
+            echo "No generated page changes."
             exit 0
           fi
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add content/其他信息/维护时间线.md
-          git commit -m "chore: update maintenance timeline"
+          git add README.md data/collaborators.json content/其他信息/协作者.md content/其他信息/维护时间线.md content/assets/collaborators
+          git commit -m "chore: update generated pages"
           git pull --rebase origin main
           git push

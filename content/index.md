@@ -5,9 +5,9 @@ updated: 2026-06-05
 tags:
   - 首页
 authors:
-  - 管理员
+  - blueraina
 status: stable
-owner: 管理员
+owner: blueraina
 ---
 
 # 群知识库

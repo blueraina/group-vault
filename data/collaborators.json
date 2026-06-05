@@ -4,21 +4,25 @@
   "collaborators": [
     {
       "login": "blueraina",
+      "displayName": "蓝语",
       "htmlUrl": "https://github.com/blueraina",
       "avatarUrl": "https://avatars.githubusercontent.com/u/92630522?v=4"
     },
     {
       "login": "libinyam",
+      "displayName": "libinyam",
       "htmlUrl": "https://github.com/libinyam",
       "avatarUrl": "https://avatars.githubusercontent.com/u/251160820?v=4"
     },
     {
       "login": "llc-byte",
+      "displayName": "llc-byte",
       "htmlUrl": "https://github.com/llc-byte",
       "avatarUrl": "https://avatars.githubusercontent.com/u/185471723?v=4"
     },
     {
       "login": "VesperaZephyr",
+      "displayName": "VesperaZephyr",
       "htmlUrl": "https://github.com/VesperaZephyr",
       "avatarUrl": "https://avatars.githubusercontent.com/u/204538172?v=4"
     }

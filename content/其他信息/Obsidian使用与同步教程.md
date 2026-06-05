@@ -7,9 +7,9 @@ tags:
   - Obsidian
   - 同步
 authors:
-  - 管理员
+  - blueraina
 status: stable
-owner: 管理员
+owner: blueraina
 ---
 
 # Obsidian 使用与同步教程

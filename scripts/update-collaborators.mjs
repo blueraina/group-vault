@@ -2,10 +2,12 @@ import { execFileSync } from "node:child_process"
 import fs from "node:fs/promises"
 import path from "node:path"
 import sharp from "sharp"
+import YAML from "yaml"
 
 const root = process.cwd()
 const readmePath = path.join(root, "README.md")
 const dataPath = path.join(root, "data", "collaborators.json")
+const contentDir = path.join(root, "content")
 const pagePath = path.join(root, "content", "其他信息", "协作者.md")
 const timelinePath = path.join(root, "content", "其他信息", "维护时间线.md")
 const avatarDir = path.join(root, "content", "assets", "collaborators")
@@ -13,6 +15,13 @@ const apiVersion = "2022-11-28"
 const timelineStart = "<!-- timeline:start -->"
 const timelineEnd = "<!-- timeline:end -->"
 const timezone = process.env.TIMELINE_TIMEZONE || "Asia/Shanghai"
+const legacyAuthorAliases = new Map([
+  ["管理员", "blueraina"],
+  ["蓝语", "blueraina"],
+])
+const collaboratorDisplayNames = new Map([
+  ["blueraina", "蓝语"],
+])
 
 function parseRepository() {
   if (process.env.GITHUB_REPOSITORY) {
@@ -74,8 +83,9 @@ async function getUser(login) {
 function normalizeCollaborator(user) {
   return {
     login: user.login,
-    htmlUrl: user.html_url || `https://github.com/${user.login}`,
-    avatarUrl: user.avatar_url || `https://github.com/${user.login}.png`,
+    displayName: collaboratorDisplayNames.get(user.login.toLowerCase()) || user.displayName || user.name || user.login,
+    htmlUrl: user.html_url || user.htmlUrl || `https://github.com/${user.login}`,
+    avatarUrl: user.avatar_url || user.avatarUrl || `https://github.com/${user.login}.png`,
   }
 }
 
@@ -99,6 +109,15 @@ async function readExistingCollaboratorLogins() {
   try {
     const data = JSON.parse(await fs.readFile(dataPath, "utf8"))
     return (data.collaborators || []).map((user) => user.login).filter(Boolean).sort()
+  } catch {
+    return []
+  }
+}
+
+async function readExistingCollaborators() {
+  try {
+    const data = JSON.parse(await fs.readFile(dataPath, "utf8"))
+    return (data.collaborators || []).filter((user) => user.login)
   } catch {
     return []
   }
@@ -196,6 +215,161 @@ async function removeStaleAvatars(collaborators) {
   )
 }
 
+function noteFileName(relPath) {
+  return path.basename(relPath, ".md")
+}
+
+function toPosixPath(filePath) {
+  return filePath.split(path.sep).join("/")
+}
+
+async function collectMarkdownFiles(dir) {
+  const entries = await fs.readdir(dir, { withFileTypes: true })
+  const files = []
+
+  for (const entry of entries) {
+    const entryPath = path.join(dir, entry.name)
+    if (entry.isDirectory()) {
+      if (["assets", ".obsidian"].includes(entry.name)) continue
+      files.push(...(await collectMarkdownFiles(entryPath)))
+    } else if (entry.isFile() && entry.name.endsWith(".md")) {
+      files.push(entryPath)
+    }
+  }
+
+  return files
+}
+
+function parseFrontmatter(markdown) {
+  const match = markdown.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?/)
+  const body = match ? markdown.slice(match[0].length) : markdown
+  if (!match) return { data: {}, body }
+
+  try {
+    return { data: YAML.parse(match[1]) || {}, body }
+  } catch {
+    return { data: {}, body }
+  }
+}
+
+function firstHeading(body) {
+  const match = body.match(/^#\s+(.+)$/m)
+  return match?.[1]?.trim()
+}
+
+function valueList(value) {
+  if (Array.isArray(value)) return value.flatMap(valueList)
+  if (value == null) return []
+  return String(value)
+    .split(/[，,、]/)
+    .map((item) => item.trim())
+    .filter(Boolean)
+}
+
+function authorAliasMap(collaborators) {
+  const aliases = new Map(legacyAuthorAliases)
+  for (const user of collaborators) {
+    const values = [user.login, `@${user.login}`, user.displayName]
+    for (const value of values) {
+      if (value) aliases.set(String(value).trim().toLowerCase(), user.login)
+    }
+  }
+  return aliases
+}
+
+function canonicalAuthor(value, aliases) {
+  const raw = String(value).trim()
+  if (!raw) return undefined
+  const normalized = raw.replace(/^@/, "")
+  return aliases.get(raw.toLowerCase()) || aliases.get(normalized.toLowerCase())
+}
+
+function noteDate(data, stats) {
+  const raw = data.updated || data.modified || data.created
+  const parsed = raw instanceof Date ? raw : raw ? new Date(raw) : undefined
+  return parsed && !Number.isNaN(parsed.getTime()) ? parsed : stats.mtime
+}
+
+function formatDate(date) {
+  return localDateParts(date).date
+}
+
+function noteGroup(relPath) {
+  const [firstPart] = relPath.split("/")
+  return relPath.includes("/") ? firstPart : "根目录"
+}
+
+function wikiLink(relPath, title) {
+  const target = relPath.replace(/\.md$/i, "")
+  const safeTitle = title.replace(/\|/g, "｜")
+  return `[[${target}|${safeTitle}]]`
+}
+
+async function collectNotesByCollaborator(collaborators) {
+  const aliases = authorAliasMap(collaborators)
+  const notesByLogin = new Map(collaborators.map((user) => [user.login.toLowerCase(), []]))
+  const markdownFiles = await collectMarkdownFiles(contentDir)
+
+  for (const filePath of markdownFiles) {
+    const relPath = toPosixPath(path.relative(contentDir, filePath))
+    if (relPath === "其他信息/协作者.md") continue
+
+    const [markdown, stats] = await Promise.all([fs.readFile(filePath, "utf8"), fs.stat(filePath)])
+    const { data, body } = parseFrontmatter(markdown)
+    const authors = Array.from(
+      new Set(
+        valueList(data.authors)
+          .map((author) => canonicalAuthor(author, aliases))
+          .filter(Boolean),
+      ),
+    )
+
+    if (authors.length === 0) continue
+
+    const date = noteDate(data, stats)
+    const note = {
+      title: data.title || firstHeading(body) || noteFileName(relPath),
+      relPath,
+      group: noteGroup(relPath),
+      date,
+      dateText: formatDate(date),
+    }
+
+    for (const author of authors) {
+      const key = author.toLowerCase()
+      if (notesByLogin.has(key)) notesByLogin.get(key).push(note)
+    }
+  }
+
+  for (const notes of notesByLogin.values()) {
+    notes.sort((a, b) => b.date.getTime() - a.date.getTime() || a.title.localeCompare(b.title, "zh-CN"))
+  }
+
+  return notesByLogin
+}
+
+function renderNoteGroups(notes) {
+  if (notes.length === 0) {
+    return "暂无参与笔记。"
+  }
+
+  const groups = new Map()
+  for (const note of notes) {
+    if (!groups.has(note.group)) groups.set(note.group, [])
+    groups.get(note.group).push(note)
+  }
+
+  return Array.from(groups.entries())
+    .sort(([, aNotes], [, bNotes]) => bNotes[0].date.getTime() - aNotes[0].date.getTime())
+    .map(([group, groupNotes]) => {
+      const items = groupNotes
+        .map((note) => `- ${wikiLink(note.relPath, note.title)} · ${note.dateText}`)
+        .join("\n")
+      return [`### ${group}`, "", items].join("\n")
+    })
+    .join("\n\n")
+}
+
 function renderReadmeSection(collaborators) {
   const cells = collaborators.map((user) => {
     const avatarPath = `content/assets/collaborators/${user.login.toLowerCase()}.png`
@@ -249,23 +423,37 @@ async function updateReadme(collaborators) {
   return writeIfChanged(readmePath, `${readme.trimEnd()}\n\n${section}`)
 }
 
-function renderCollaboratorsPage(collaborators) {
-  const cards = collaborators
+function renderCollaboratorHeader(user, notes) {
+  const avatarPath = `../assets/collaborators/${user.login.toLowerCase()}.png`
+  const display = user.displayName && user.displayName !== user.login ? `${user.displayName}（@${user.login}）` : `@${user.login}`
+  return [
+    `## ${display}`,
+    "",
+    '<div class="collaborator-profile">',
+    `  <a href="${user.htmlUrl}" target="_blank" rel="noopener noreferrer">`,
+    `    <img class="collaborator-avatar" src="${avatarPath}" alt="@${user.login}" width="96" height="96" />`,
+    "  </a>",
+    '  <div class="collaborator-meta">',
+    `    <a href="${user.htmlUrl}" target="_blank" rel="noopener noreferrer">@${user.login}</a>`,
+    `    <span>参与 ${notes.length} 篇笔记</span>`,
+    "  </div>",
+    "</div>",
+  ].join("\n")
+}
+
+function renderCollaboratorsPage(collaborators, notesByLogin) {
+  const { date } = localDateParts(new Date())
+  const sections = collaborators
     .map((user) => {
-      const avatarPath = `../assets/collaborators/${user.login.toLowerCase()}.png`
-      return [
-        `<a href="${user.htmlUrl}" target="_blank" rel="noopener noreferrer" style="display:flex;min-height:150px;align-items:center;justify-content:center;flex-direction:column;gap:0.65rem;padding:1rem;border:1px solid var(--lightgray);border-radius:8px;background:color-mix(in srgb, var(--light) 92%, var(--secondary));text-decoration:none;">`,
-        `  <img src="${avatarPath}" alt="@${user.login}" width="96" height="96" style="display:block;border-radius:50%;box-shadow:0 0 0 3px color-mix(in srgb, var(--secondary) 25%, transparent);" />`,
-        `  <span style="color:var(--dark);font-weight:700;">@${user.login}</span>`,
-        "</a>",
-      ].join("\n")
+      const notes = notesByLogin.get(user.login.toLowerCase()) || []
+      return [renderCollaboratorHeader(user, notes), "", renderNoteGroups(notes)].join("\n")
     })
-    .join("\n")
+    .join("\n\n---\n\n")
 
   return `---
 title: 协作者
 created: 2026-06-04
-updated: 2026-06-04
+updated: ${date}
 tags:
   - 协作
 ---
@@ -274,9 +462,9 @@ tags:
 
 这些 GitHub 账号拥有本仓库协作权限。
 
-<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:1rem;margin:1.25rem 0;">
-${cards}
-</div>
+每篇正式笔记的 \`authors\` 字段请填写 GitHub 用户名；中文名只作为页面展示名使用。多人共同完成的笔记可以在 \`authors\` 中写多个 GitHub 用户名，它会同时出现在每位作者名下。
+
+${sections}
 `
 }
 
@@ -305,13 +493,22 @@ async function main() {
       throw error
     }
 
-    console.warn(`Could not list collaborators without a token. Falling back to repository owner: ${owner}`)
-    rawCollaborators = [await getUser(owner)]
+    const existingCollaborators = await readExistingCollaborators()
+    if (existingCollaborators.length > 0) {
+      console.warn("Could not list collaborators without a token. Falling back to data/collaborators.json.")
+      rawCollaborators = existingCollaborators
+    } else {
+      console.warn(`Could not list collaborators without a token. Falling back to repository owner: ${owner}`)
+      rawCollaborators = [await getUser(owner)]
+    }
   }
 
   const byLogin = new Map()
   for (const user of rawCollaborators) {
-    if (user?.login) byLogin.set(user.login.toLowerCase(), normalizeCollaborator(user))
+    if (user?.login) {
+      const detailedUser = user.displayName || user.name ? user : { ...user, ...(await getUser(user.login)) }
+      byLogin.set(user.login.toLowerCase(), normalizeCollaborator(detailedUser))
+    }
   }
 
   if (!byLogin.has(owner.toLowerCase())) {
@@ -324,8 +521,9 @@ async function main() {
   await fs.mkdir(avatarDir, { recursive: true })
   await Promise.all(collaborators.map(writeCircularAvatar))
   await removeStaleAvatars(collaborators)
+  const notesByLogin = await collectNotesByCollaborator(collaborators)
   await updateDataFile(repository, collaborators)
-  await writeIfChanged(pagePath, renderCollaboratorsPage(collaborators))
+  await writeIfChanged(pagePath, renderCollaboratorsPage(collaborators, notesByLogin))
   await updateReadme(collaborators)
   if (!sameLogins(previousLogins, nextLogins)) {
     await updateCollaboratorTimeline(collaborators)
