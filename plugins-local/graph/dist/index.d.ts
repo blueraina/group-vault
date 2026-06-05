@@ -4,6 +4,8 @@ interface D3Config {
     drag: boolean;
     zoom: boolean;
     depth: number;
+    showNeighborLinks: boolean;
+    neighborLinkDepth: number;
     scale: number;
     repelForce: number;
     centerForce: number;
