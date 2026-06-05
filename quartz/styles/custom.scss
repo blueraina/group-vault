@@ -1,3 +1,70 @@
 @use "./variables.scss" as *;
 
 // put your custom CSS here!
+
+#quartz-root .graph > .graph-settings-panel-local[open] {
+  max-height: min(56vh, 34rem) !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+#quartz-root .graph > .graph-settings-panel-local[open] > summary {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--light);
+}
+
+#quartz-root .graph-settings-panel .graph-setting-row:has(input[type="checkbox"]) {
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  column-gap: 0.75rem;
+}
+
+#quartz-root .graph-settings-panel .graph-setting-row:has(input[type="checkbox"]) .graph-setting-label {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+#quartz-root .graph-settings-panel .graph-setting-row input[type="checkbox"] {
+  appearance: none !important;
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: end;
+  position: relative;
+  box-sizing: border-box;
+  width: 2.35rem !important;
+  height: 1.25rem !important;
+  margin: 0 !important;
+  border: 1px solid var(--lightgray);
+  border-radius: 999px;
+  background: var(--lightgray);
+  cursor: pointer;
+  transition:
+    background-color 0.16s ease,
+    border-color 0.16s ease;
+}
+
+#quartz-root .graph-settings-panel .graph-setting-row input[type="checkbox"]::before {
+  content: "";
+  position: absolute;
+  top: 0.12rem;
+  left: 0.12rem;
+  width: 0.9rem;
+  height: 0.9rem;
+  border-radius: 50%;
+  background: var(--light);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.22);
+  transition: transform 0.16s ease;
+}
+
+#quartz-root .graph-settings-panel .graph-setting-row input[type="checkbox"]:checked {
+  border-color: var(--secondary);
+  background: var(--secondary);
+}
+
+#quartz-root .graph-settings-panel .graph-setting-row input[type="checkbox"]:checked::before {
+  transform: translateX(1.1rem);
+}
