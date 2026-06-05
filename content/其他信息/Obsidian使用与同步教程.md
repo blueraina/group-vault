@@ -328,6 +328,50 @@ $$
 
 注意：块级公式前后最好单独空一行。
 
+### TikZJax 图象
+
+网站已经支持用 TikZJax 渲染 TikZ 图象。适合画交换图、坐标轴、简单几何图、箭头关系图等数学图象。
+
+基本写法是在笔记中使用 `tikz` 代码块：
+
+````md
+```tikz
+\begin{tikzpicture}
+  \draw[->] (0,0) -- (2,0) node[right] {$x$};
+  \draw[->] (0,0) -- (0,2) node[above] {$y$};
+  \draw[blue, thick] (0,0) circle (1);
+\end{tikzpicture}
+```
+````
+
+发布到网页后，上面的代码会自动渲染成 SVG 图象。
+
+常用例子：
+
+````md
+```tikz
+\begin{tikzpicture}
+  \node (A) at (0,1) {$A$};
+  \node (B) at (2,1) {$B$};
+  \node (C) at (0,0) {$C$};
+  \node (D) at (2,0) {$D$};
+  \draw[->] (A) -- (B);
+  \draw[->] (A) -- (C);
+  \draw[->] (B) -- (D);
+  \draw[->] (C) -- (D);
+\end{tikzpicture}
+```
+````
+
+注意事项：
+
+- 代码块语言必须写成 `tikz`，不要写成 `tex`、`latex` 或 `tikzpicture`。
+- 一般从 `\begin{tikzpicture}` 写到 `\end{tikzpicture}` 即可，不需要写 `\documentclass`。
+- Obsidian 本地编辑时可能只显示代码块；网页发布后才会渲染成图象。
+- 首次打开含 TikZ 图象的网页时，浏览器需要加载 TikZJax，可能会比普通笔记慢一点。
+- 太复杂的 TikZ 包、外部图片、系统字体或需要完整 LaTeX 环境的代码不一定能渲染。
+- 如果网页没有渲染，先检查代码块上下的三个反引号是否完整，以及代码块第一行是否写成 `tikz`。
+
 ## 十四、脚注
 
 ```md
