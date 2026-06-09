@@ -57,6 +57,7 @@ Schreier 加细定理需要用到 Zassenhaus 引理。
 
 ```tikz
 \usetikzlibrary{matrix}
+\usepackage{tikz}
 \begin{document}
 \begin{tikzpicture}[
     every node/.style={inner sep=2pt, anchor=center},
