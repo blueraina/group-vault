@@ -57,18 +57,26 @@ Schreier 加细定理需要用到 Zassenhaus 引理。
 
 ```tikz
 \usepackage{tikz}
-\usetikzlibrary{matrix}
 \begin{document}
 \begin{tikzpicture}[
-    every node/.style={inner sep=2pt, anchor=center},
+    every node/.style={inner sep=2pt, anchor=center, font=\small},
     line/.style={draw, shorten >=1pt, shorten <=1pt}
 ]
-\matrix (m) [matrix of nodes, nodes in empty cells, column sep=1.5cm, row sep=1.2cm] {
-    |(m-1-1)| $A(A^*\cap B^*)$ & & |(m-1-3)| $B(A^*\cap B^*)$ \\
-    |(m-2-1)| $A(A^*\cap B)$ & |(m-2-2)| $A^*\cap B^*$ & |(m-2-3)| $B(A\cap B^*)$ \\
-    |(m-3-1)| $A$ & |(m-3-2)| $D=(A^*\cap B)(A\cap B^*)$ & |(m-3-3)| $B$ \\
-    |(m-4-1)| $A\cap B^*$ & & |(m-4-3)| $A^*\cap B$ \\
-};
+
+\node (m-1-1) at (-4.2, 0) {$A(A^*\cap B^*)$};
+\node (m-1-3) at (4.2, 0) {$B(A^*\cap B^*)$};
+
+\node (m-2-1) at (-4.2, -1.4) {$A(A^*\cap B)$};
+\node (m-2-2) at (0, -1.4) {$A^*\cap B^*$};
+\node (m-2-3) at (4.2, -1.4) {$B(A\cap B^*)$};
+
+\node (m-3-1) at (-4.2, -2.8) {$A$};
+\node (m-3-2) at (0, -2.8) {$D=(A^*\cap B)(A\cap B^*)$};
+\node (m-3-3) at (4.2, -2.8) {$B$};
+
+\node (m-4-1) at (-4.2, -4.2) {$A\cap B^*$};
+\node (m-4-3) at (4.2, -4.2) {$A^*\cap B$};
+
 % 第一行到第二行
 \draw[line] (m-1-1) -- (m-2-1);
 \draw[line] (m-1-1) -- (m-2-2);
@@ -187,4 +195,3 @@ $$ \frac{M_{i,j}}{M_{i,j+1}} \cong \frac{N_{j,i}}{N_{j,i+1}},$$
 这表明两个加细序列的因子集在双射 $(i,j) \leftrightarrow (j,i)$ 下是同构的。
 
 **Step 3.** 导出模的 Jordan-Hölder 定理。现在由加细定理，$M$ 的任意两个正规序列 $(4)$ 拥有等价的加细，而对于合成序列而言，由于其因子已是不可约模（无非平凡子模），任何加细操作仅能插入平凡项，导致加细后的非零因子集仍与原序列的因子集完全一致，因此原正规序列等价。 $\blacksquare$
-
