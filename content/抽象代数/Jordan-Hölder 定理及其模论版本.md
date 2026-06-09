@@ -60,39 +60,41 @@ Schreier 加细定理需要用到 Zassenhaus 引理。
 \begin{document}
 \begin{tikzpicture}[
     every node/.style={inner sep=2pt, anchor=center, font=\small},
-    line/.style={draw, shorten >=1pt, shorten <=1pt}
+    line/.style={draw}
 ]
 
-\node (m-1-1) at (-4.2, 0) {$A(A^*\cap B^*)$};
-\node (m-1-3) at (4.2, 0) {$B(A^*\cap B^*)$};
+\node (m11) at (-4.2, 0) {$A(A^*\cap B^*)$};
+\node (m13) at (4.2, 0) {$B(A^*\cap B^*)$};
 
-\node (m-2-1) at (-4.2, -1.4) {$A(A^*\cap B)$};
-\node (m-2-2) at (0, -1.4) {$A^*\cap B^*$};
-\node (m-2-3) at (4.2, -1.4) {$B(A\cap B^*)$};
+\node (m21) at (-4.2, -1.4) {$A(A^*\cap B)$};
+\node (m22) at (0, -1.4) {$A^*\cap B^*$};
+\node (m23) at (4.2, -1.4) {$B(A\cap B^*)$};
 
-\node (m-3-1) at (-4.2, -2.8) {$A$};
-\node (m-3-2) at (0, -2.8) {$D=(A^*\cap B)(A\cap B^*)$};
-\node (m-3-3) at (4.2, -2.8) {$B$};
+\node (m31) at (-4.2, -2.8) {$A$};
+\node (m32) at (0, -2.8) {$D=(A^*\cap B)(A\cap B^*)$};
+\node (m33) at (4.2, -2.8) {$B$};
 
-\node (m-4-1) at (-4.2, -4.2) {$A\cap B^*$};
-\node (m-4-3) at (4.2, -4.2) {$A^*\cap B$};
+\node (m41) at (-4.2, -4.2) {$A\cap B^*$};
+\node (m43) at (4.2, -4.2) {$A^*\cap B$};
 
-% 第一行到第二行
-\draw[line] (m-1-1) -- (m-2-1);
-\draw[line] (m-1-1) -- (m-2-2);
-\draw[line] (m-1-3) -- (m-2-3);
-\draw[line] (m-1-3) -- (m-2-2);
-% 第二行到第三行
-\draw[line] (m-2-1) -- (m-3-1);
-\draw[line] (m-2-1) -- (m-3-2);
-\draw[line] (m-2-2) -- (m-3-2);
-\draw[line] (m-2-3) -- (m-3-3);
-\draw[line] (m-2-3) -- (m-3-2);
-% 第三行到第四行
-\draw[line] (m-3-1) -- (m-4-1);
-\draw[line] (m-3-3) -- (m-4-3);
-\draw[line] (m-4-1) -- (m-3-2);
-\draw[line] (m-4-3) -- (m-3-2);
+% row 1 to row 2
+\draw[line] (m11) -- (m21);
+\draw[line] (m11) -- (m22);
+\draw[line] (m13) -- (m23);
+\draw[line] (m13) -- (m22);
+
+% row 2 to row 3
+\draw[line] (m21) -- (m31);
+\draw[line] (m21) -- (m32);
+\draw[line] (m22) -- (m32);
+\draw[line] (m23) -- (m33);
+\draw[line] (m23) -- (m32);
+
+% row 3 to row 4
+\draw[line] (m31) -- (m41);
+\draw[line] (m33) -- (m43);
+\draw[line] (m41) -- (m32);
+\draw[line] (m43) -- (m32);
 \end{tikzpicture}
 \end{document}
 ```
