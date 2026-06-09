@@ -160,6 +160,7 @@
 
 4.
 
+
 ```tikz
 \usepackage{tikz}
 \begin{document}
@@ -240,3 +241,41 @@
 
 \end{document}
 ```
+
+```tikz
+\usepackage{tikz}
+\usetikzlibrary{matrix}
+
+\begin{document}
+
+\begin{tikzpicture}[
+  every node/.style={inner sep=2pt, anchor=center},
+  line/.style={draw, shorten >=1pt, shorten <=1pt}
+]
+\matrix (m) [matrix of nodes, nodes in empty cells, column sep=1.5cm, row sep=1.2cm] {
+  $A(A^*\cap B^*)$ & & $B(A^*\cap B^*)$ \\
+  $A(A^*\cap B)$ & $A^*\cap B^*$ & $B(A\cap B^*)$ \\
+  $A$ & $D=(A^*\cap B)(A\cap B^*)$ & $B$ \\
+  $A\cap B^*$ & & $A^*\cap B$ \\
+};
+
+\draw[line] (m-1-1) -- (m-2-1);
+\draw[line] (m-1-1) -- (m-2-2);
+\draw[line] (m-1-3) -- (m-2-3);
+\draw[line] (m-1-3) -- (m-2-2);
+
+\draw[line] (m-2-1) -- (m-3-1);
+\draw[line] (m-2-1) -- (m-3-2);
+\draw[line] (m-2-2) -- (m-3-2);
+\draw[line] (m-2-3) -- (m-3-3);
+\draw[line] (m-2-3) -- (m-3-2);
+
+\draw[line] (m-3-1) -- (m-4-1);
+\draw[line] (m-3-3) -- (m-4-3);
+\draw[line] (m-4-1) -- (m-3-2);
+\draw[line] (m-4-3) -- (m-3-2);
+\end{tikzpicture}
+
+\end{document}
+```
+
