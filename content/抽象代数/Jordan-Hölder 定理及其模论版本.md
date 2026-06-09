@@ -56,8 +56,8 @@ Schreier 加细定理需要用到 Zassenhaus 引理。
 该引理的名称来自下面的一个示意图，虽然我并不认为这很像蝴蝶，也并不能帮助理解证明：
 
 ```tikz
-\usetikzlibrary{matrix}
 \usepackage{tikz}
+\usetikzlibrary{matrix}
 \begin{document}
 \begin{tikzpicture}[
     every node/.style={inner sep=2pt, anchor=center},
