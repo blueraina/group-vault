@@ -86,7 +86,7 @@ Schreier 加细定理需要用到 Zassenhaus 引理。
 \draw[line] (m-4-1) -- (m-3-2);
 \draw[line] (m-4-3) -- (m-3-2);
 \end{tikzpicture}
-\end{document}        
+\end{document}
 ```
 
 **证明.** 我们断言：
