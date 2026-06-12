@@ -1,0 +1,61 @@
+{
+  "name": "@group-vault/reading-state",
+  "version": "0.1.0",
+  "description": "Local read and favorite markers for the group vault Quartz site.",
+  "type": "module",
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./components": {
+      "types": "./dist/components/index.d.ts",
+      "import": "./dist/components/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
+  "peerDependencies": {
+    "preact": "^10.0.0"
+  },
+  "quartz": {
+    "name": "reading-state",
+    "displayName": "Reading State",
+    "category": "component",
+    "version": "1.0.0",
+    "quartzVersion": ">=5.0.0",
+    "dependencies": [],
+    "defaultOrder": 50,
+    "defaultEnabled": true,
+    "defaultOptions": {
+      "readLabel": "标记已读",
+      "readActiveLabel": "已读",
+      "favoriteLabel": "收藏",
+      "favoriteActiveLabel": "已收藏"
+    },
+    "components": {
+      "ReadingState": {
+        "displayName": "Reading State",
+        "defaultPosition": "beforeBody",
+        "defaultPriority": 22
+      }
+    },
+    "optionSchema": {
+      "readLabel": {
+        "type": "string"
+      },
+      "readActiveLabel": {
+        "type": "string"
+      },
+      "favoriteLabel": {
+        "type": "string"
+      },
+      "favoriteActiveLabel": {
+        "type": "string"
+      }
+    }
+  }
+}

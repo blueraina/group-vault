@@ -152,6 +152,12 @@ plugins:
     layout:
       position: beforeBody
       priority: 20
+  - source: ./plugins-local/reading-state
+    enabled: true
+    layout:
+      position: beforeBody
+      priority: 22
+      condition: not-index
   - source: github:quartz-community/page-title
     enabled: true
     layout:
@@ -222,10 +228,12 @@ layout:
     folder:
       exclude:
         - reader-mode
+        - reading-state
       positions:
         right: []
     tag:
       exclude:
         - reader-mode
+        - reading-state
       positions:
         right: []
