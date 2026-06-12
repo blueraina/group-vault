@@ -54,6 +54,22 @@ const style = `.reading-state {
   text-align: center;
 }
 
+.explorer-reading-state {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.18rem;
+  margin-left: 0.35rem;
+  color: var(--secondary);
+  font-size: 0.86em;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.explorer-reading-state .favorite-marker {
+  color: var(--tertiary);
+}
+
 @media (max-width: 600px) {
   .reading-state {
     gap: 0.4rem;
@@ -70,6 +86,8 @@ const script = `(() => {
     read: { on: "✓", off: "○" },
     favorite: { on: "★", off: "☆" },
   }
+  let explorerObserver = null
+  let explorerUpdateQueued = false
 
   function pageIdFor(root) {
     const slug = root.dataset.readingSlug
@@ -86,6 +104,30 @@ const script = `(() => {
     }
 
     return pathname.replace(/^\\/+|\\/+$/g, "").replace(/\\/index$/u, "") || "index"
+  }
+
+  function pageIdForHref(href) {
+    try {
+      const url = new URL(href, window.location.href)
+      let pathname = url.pathname
+      try {
+        pathname = decodeURIComponent(pathname)
+      } catch {}
+
+      const basepath = document.body?.dataset?.basepath ?? ""
+      if (basepath && pathname.startsWith(basepath)) {
+        pathname = pathname.slice(basepath.length)
+      }
+
+      return (
+        pathname
+          .replace(/^\\/+|\\/+$/g, "")
+          .replace(/\\.html$/u, "")
+          .replace(/\\/index$/u, "") || "index"
+      )
+    } catch {
+      return ""
+    }
   }
 
   function stateKey(action, pageId) {
@@ -143,6 +185,72 @@ const script = `(() => {
     })
   }
 
+  function directMarkerChild(link) {
+    return Array.from(link.children).find((child) =>
+      child.classList.contains("explorer-reading-state"),
+    )
+  }
+
+  function updateExplorerMarkers() {
+    document.querySelectorAll(".explorer-content a.nav-file-title").forEach((link) => {
+      const pageId = pageIdForHref(link.href)
+      if (!pageId) return
+
+      const isRead = getState("read", pageId)
+      const isFavorite = getState("favorite", pageId)
+      let marker = directMarkerChild(link)
+
+      if (!isRead && !isFavorite) {
+        marker?.remove()
+        link.removeAttribute("data-reading-read")
+        link.removeAttribute("data-reading-favorite")
+        return
+      }
+
+      if (!marker) {
+        marker = document.createElement("span")
+        marker.className = "explorer-reading-state"
+        marker.setAttribute("aria-hidden", "true")
+        link.appendChild(marker)
+      }
+
+      const readMarkup = isRead ? '<span class="read-marker">✓</span>' : ""
+      const favoriteMarkup = isFavorite ? '<span class="favorite-marker">★</span>' : ""
+      const nextHtml = \`\${readMarkup}\${favoriteMarkup}\`
+      if (marker.innerHTML !== nextHtml) marker.innerHTML = nextHtml
+
+      link.dataset.readingRead = String(isRead)
+      link.dataset.readingFavorite = String(isFavorite)
+    })
+  }
+
+  function scheduleExplorerMarkers() {
+    if (explorerUpdateQueued) return
+
+    explorerUpdateQueued = true
+    requestAnimationFrame(() => {
+      explorerUpdateQueued = false
+      updateExplorerMarkers()
+    })
+  }
+
+  function observeExplorerMarkers() {
+    explorerObserver?.disconnect()
+
+    const explorerLists = document.querySelectorAll(".explorer-ul")
+    if (explorerLists.length === 0) return
+
+    explorerObserver = new MutationObserver(scheduleExplorerMarkers)
+    explorerLists.forEach((list) => {
+      explorerObserver.observe(list, { childList: true, subtree: true })
+    })
+  }
+
+  function setupExplorerMarkers() {
+    scheduleExplorerMarkers()
+    observeExplorerMarkers()
+  }
+
   function setupRoot(root) {
     const pageId = pageIdFor(root)
     root.querySelectorAll("[data-reading-action]").forEach((button) => {
@@ -158,6 +266,7 @@ const script = `(() => {
         const nextState = !getState(action, pageId)
         setState(action, pageId, nextState)
         refreshRoot(root)
+        scheduleExplorerMarkers()
       }
 
       button.dataset.readingBound = "true"
@@ -173,6 +282,7 @@ const script = `(() => {
 
   function setupReadingState() {
     document.querySelectorAll("[data-reading-state]").forEach(setupRoot)
+    setupExplorerMarkers()
   }
 
   if (document.readyState === "loading") {
