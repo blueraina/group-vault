@@ -86,6 +86,7 @@ const script = `(() => {
     read: { on: "✓", off: "○" },
     favorite: { on: "★", off: "☆" },
   }
+  const globalStateKey = "__groupVaultReadingState"
   let explorerObserver = null
   let explorerUpdateQueued = false
   const explorerUpdateDelays = [0, 80, 250]
@@ -262,41 +263,43 @@ const script = `(() => {
     observeExplorerMarkers()
   }
 
+  function handleReadingStateClick(event) {
+    const button = event.target?.closest?.("[data-reading-action]")
+    if (!button) return
+
+    const root = button.closest("[data-reading-state]")
+    if (!root) return
+
+    const action = button.dataset.readingAction
+    if (!action) return
+
+    const pageId = pageIdFor(root)
+    const nextState = !getState(action, pageId)
+    setState(action, pageId, nextState)
+    refreshRoot(root)
+    scheduleExplorerMarkers()
+  }
+
+  function setupReadingStateClickHandler() {
+    const globalState = window[globalStateKey] ?? {}
+    if (globalState.onClick) {
+      document.removeEventListener("click", globalState.onClick)
+    }
+
+    globalState.onClick = handleReadingStateClick
+    window[globalStateKey] = globalState
+    document.addEventListener("click", handleReadingStateClick)
+  }
+
   function setupRoot(root) {
     const pageId = pageIdFor(root)
     root.querySelectorAll("[data-reading-action]").forEach((button) => {
-      if (button.dataset.readingBound === "true") {
-        updateButton(root, button, pageId)
-        return
-      }
-
-      const onClick = () => {
-        const action = button.dataset.readingAction
-        if (!action) return
-
-        const currentRoot = button.closest("[data-reading-state]") ?? root
-        const currentPageId = pageIdFor(currentRoot)
-        const nextState = !getState(action, currentPageId)
-        setState(action, currentPageId, nextState)
-        refreshRoot(currentRoot)
-        scheduleExplorerMarkers()
-      }
-
-      button.dataset.readingBound = "true"
-      button.addEventListener("click", onClick)
-
-      if (window.addCleanup) {
-        window.addCleanup(() => {
-          button.removeEventListener("click", onClick)
-          delete button.dataset.readingBound
-        })
-      }
-
       updateButton(root, button, pageId)
     })
   }
 
   function setupReadingState() {
+    setupReadingStateClickHandler()
     document.querySelectorAll("[data-reading-state]").forEach(setupRoot)
     setupExplorerMarkers()
   }
