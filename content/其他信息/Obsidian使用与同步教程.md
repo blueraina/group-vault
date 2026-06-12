@@ -6,6 +6,7 @@ tags:
   - 使用说明
   - Obsidian
   - 同步
+  - 图谱隐藏
 authors:
   - blueraina
 status: stable

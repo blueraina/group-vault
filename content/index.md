@@ -4,6 +4,7 @@ created: 2026-06-02
 updated: 2026-06-05
 tags:
   - 首页
+  - 图谱隐藏
 authors:
   - blueraina
 status: stable

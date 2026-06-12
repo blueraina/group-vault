@@ -17,6 +17,7 @@ interface D3Config {
     showArrows: boolean;
     textOpacity: number;
     linkStrength: number;
+    removeNodes: string[];
     removeTags: string[];
     showTags: boolean;
     focusOnHover?: boolean;

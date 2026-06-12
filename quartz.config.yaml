@@ -120,8 +120,12 @@ plugins:
         showTags: false
         fontSize: 0.45
         textOpacity: 0.85
+        removeNodes:
+          - 其他信息/维护时间线
       globalGraph:
         showTags: false
+        removeNodes:
+          - 其他信息/维护时间线
     layout:
       position: right
       priority: 10
