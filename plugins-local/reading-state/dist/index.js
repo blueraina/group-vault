@@ -88,6 +88,7 @@ const script = `(() => {
   }
   let explorerObserver = null
   let explorerUpdateQueued = false
+  const explorerUpdateDelays = [0, 80, 250]
 
   function pageIdFor(root) {
     const slug = root.dataset.readingSlug
@@ -224,13 +225,23 @@ const script = `(() => {
     })
   }
 
-  function scheduleExplorerMarkers() {
+  function runExplorerMarkerUpdate() {
     if (explorerUpdateQueued) return
 
     explorerUpdateQueued = true
     requestAnimationFrame(() => {
       explorerUpdateQueued = false
       updateExplorerMarkers()
+    })
+  }
+
+  function scheduleExplorerMarkers() {
+    explorerUpdateDelays.forEach((delay) => {
+      if (delay === 0) {
+        runExplorerMarkerUpdate()
+      } else {
+        window.setTimeout(runExplorerMarkerUpdate, delay)
+      }
     })
   }
 
@@ -263,9 +274,11 @@ const script = `(() => {
         const action = button.dataset.readingAction
         if (!action) return
 
-        const nextState = !getState(action, pageId)
-        setState(action, pageId, nextState)
-        refreshRoot(root)
+        const currentRoot = button.closest("[data-reading-state]") ?? root
+        const currentPageId = pageIdFor(currentRoot)
+        const nextState = !getState(action, currentPageId)
+        setState(action, currentPageId, nextState)
+        refreshRoot(currentRoot)
         scheduleExplorerMarkers()
       }
 
@@ -273,7 +286,10 @@ const script = `(() => {
       button.addEventListener("click", onClick)
 
       if (window.addCleanup) {
-        window.addCleanup(() => button.removeEventListener("click", onClick))
+        window.addCleanup(() => {
+          button.removeEventListener("click", onClick)
+          delete button.dataset.readingBound
+        })
       }
 
       updateButton(root, button, pageId)
