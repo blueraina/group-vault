@@ -50,10 +50,25 @@ function wireInteractionsAndLoop(s) {
     return best
   }
 
+  function nodeCanvasPoint(node) {
+    var T = s.getTransform()
+    return {
+      x: (node.x + cx) * T.k + T.x,
+      y: (node.y + cy) * T.k + T.y,
+    }
+  }
+
   // --- drag (with click-vs-drag discrimination) ---
   if (o.enableDrag) {
     var pickNode = function (event) {
-      return pickNodeAt(event.x, event.y)
+      var node = pickNodeAt(event.x, event.y)
+      if (!node) return null
+      var p = nodeCanvasPoint(node)
+      return {
+        x: p.x,
+        y: p.y,
+        node: node,
+      }
     }
 
     var dragBehavior = d3
@@ -66,34 +81,37 @@ function wireInteractionsAndLoop(s) {
       })
       .subject(pickNode)
       .on("start", function (event) {
-        if (!event.subject) return
+        if (!event.subject || !event.subject.node) return
+        var node = event.subject.node
         s.setDragging(true)
         event.subject.__downX = event.x
         event.subject.__downY = event.y
         event.subject.__moved = false
         if (!event.active) sim.alphaTarget(0.3).restart()
-        event.subject.fx = event.subject.x
-        event.subject.fy = event.subject.y
-        s.setHover(event.subject.id)
+        node.fx = node.x
+        node.fy = node.y
+        s.setHover(node.id)
       })
       .on("drag", function (event) {
-        if (!event.subject) return
+        if (!event.subject || !event.subject.node) return
+        var node = event.subject.node
         var dx = event.x - event.subject.__downX
         var dy = event.y - event.subject.__downY
         if (Math.sqrt(dx * dx + dy * dy) > DRAG_THRESHOLD) event.subject.__moved = true
         var T = s.getTransform()
-        event.subject.fx = (event.x - T.x) / T.k - cx
-        event.subject.fy = (event.y - T.y) / T.k - cy
+        node.fx = (event.x - T.x) / T.k - cx
+        node.fy = (event.y - T.y) / T.k - cy
       })
       .on("end", function (event) {
-        if (!event.subject) return
+        if (!event.subject || !event.subject.node) return
+        var node = event.subject.node
         if (!event.active) sim.alphaTarget(0)
-        event.subject.fx = null
-        event.subject.fy = null
+        node.fx = null
+        node.fy = null
         s.setDragging(false)
         // Only navigate when the pointer barely moved — fixes accidental jumps.
         if (!event.subject.__moved) {
-          window.location.href = urlForSlug(event.subject.id)
+          window.location.href = urlForSlug(node.id)
         } else {
           s.setHover(null)
         }
