@@ -46,7 +46,7 @@ var READING_STATE_PREFIX = "group-vault:reading-state:v1"
 var GRAPH_PROGRESS_COLORS = {
   read: "#2a9d8f",
   favorite: "#e9b44c",
-  both: "#b76ef0",
+  both: "#e84a5f",
 }
 
 function readingStateId(slug) {
