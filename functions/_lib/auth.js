@@ -227,7 +227,40 @@ export async function createSession(env, githubUser) {
     )
     .run()
 
+  await recordRegisteredUser(env, githubUser, now).catch(() => {})
+
   return { token, expires }
+}
+
+export async function recordRegisteredUser(env, githubUser, date = new Date()) {
+  const db = database(env)
+  const now = date.toISOString()
+  const login = String(githubUser.login || "").trim()
+  if (!login) return
+
+  await db
+    .prepare(
+      `INSERT INTO registered_users
+        (github_login, github_id, github_name, github_avatar_url, github_html_url, first_seen_at, last_seen_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?)
+       ON CONFLICT(github_login)
+       DO UPDATE SET
+        github_id = excluded.github_id,
+        github_name = excluded.github_name,
+        github_avatar_url = excluded.github_avatar_url,
+        github_html_url = excluded.github_html_url,
+        last_seen_at = excluded.last_seen_at`,
+    )
+    .bind(
+      login,
+      githubUser.id == null ? null : String(githubUser.id),
+      githubUser.name || null,
+      githubUser.avatar_url || null,
+      githubUser.html_url || null,
+      now,
+      now,
+    )
+    .run()
 }
 
 export function sessionCookie(request, token) {
