@@ -11,7 +11,9 @@ async function setupPixiScene(ctx) {
   var visited = ctx.visited
   var width = ctx.width
   var height = ctx.height
-  var radiusOf = ctx.radiusOf
+  var baseRadiusOf = ctx.baseRadiusOf || function (node) {
+    return ctx.radiusOf(node) / Math.max(o.nodeSize || 1, 0.01)
+  }
   var adjacency = ctx.adjacency
   var o = ctx.opts
 
@@ -59,6 +61,15 @@ async function setupPixiScene(ctx) {
     }
     return folderColors.get(folder)
   }
+  function currentRadiusOf(node) {
+    return baseRadiusOf(node) * (o.nodeSize || 1)
+  }
+  function centerForceStrength() {
+    return Math.max(0, Math.min(1, o.centerForce || 0))
+  }
+  function radialForceStrength() {
+    return Math.max(0, o.centerForce || 0) * 0.08
+  }
 
   // --- pixi app ---
   var app = new PIXI.Application()
@@ -90,9 +101,10 @@ async function setupPixiScene(ctx) {
   var sim = d3
     .forceSimulation(nodes)
     .force("charge", d3.forceManyBody().strength(-80 * o.repelForce))
-    .force("center", d3.forceCenter(0, 0).strength(o.centerForce))
+    .force("center", d3.forceCenter(0, 0).strength(centerForceStrength()))
+    .force("radial", d3.forceRadial(0, 0, 0).strength(radialForceStrength()))
     .force("link", d3.forceLink(links).distance(o.linkDistance).strength(o.linkStrength))
-    .force("collide", d3.forceCollide().radius(function (n) { return radiusOf(n) + 4 }).iterations(2))
+    .force("collide", d3.forceCollide().radius(function (n) { return currentRadiusOf(n) + 4 }).iterations(2))
     .velocityDecay(0.35)
     .alphaDecay(0.02)
 
@@ -103,10 +115,37 @@ async function setupPixiScene(ctx) {
   var dragging = false
   var transform = d3.zoomIdentity
   var introT = 0 // 0..1 fade-in
+  var settleTimer = null
+
+  function drawNode(rec) {
+    var r = currentRadiusOf(rec.node)
+    rec.radius = r
+    rec.gfx.clear()
+    rec.gfx.circle(0, 0, r)
+    rec.gfx.fill({ color: rec.baseColor })
+    if (rec.node.isTag) rec.gfx.stroke({ width: 1.5, color: hexVisited })
+  }
+
+  function applyForces() {
+    sim.force("charge").strength(-80 * o.repelForce)
+    sim.force("center").strength(centerForceStrength())
+    sim.force("radial").strength(radialForceStrength())
+    sim.force("link").distance(o.linkDistance).strength(o.linkStrength)
+    sim.force("collide").radius(function (n) { return currentRadiusOf(n) + 4 })
+  }
+
+  function reheatSimulation() {
+    if (settleTimer) clearTimeout(settleTimer)
+    sim.alphaTarget(0.24).restart()
+    settleTimer = setTimeout(function () {
+      sim.alphaTarget(0)
+      settleTimer = null
+    }, 260)
+  }
 
   for (var ni = 0; ni < nodes.length; ni++) {
     var node = nodes[ni]
-    var r = radiusOf(node)
+    var r = currentRadiusOf(node)
     var fill = colorForNode(node)
 
     var label = new PIXI.Text({
@@ -120,15 +159,13 @@ async function setupPixiScene(ctx) {
     labelLayer.addChild(label)
 
     var gfx = new PIXI.Graphics()
-    gfx.circle(0, 0, r)
-    gfx.fill({ color: fill })
-    if (node.isTag) gfx.stroke({ width: 1.5, color: hexVisited })
     gfx.eventMode = "static"
     gfx.cursor = "pointer"
     gfx.__id = node.id
     nodeLayer.addChild(gfx)
 
     var rec = { node: node, gfx: gfx, label: label, radius: r, baseColor: fill, focus: 0, targetFocus: 1 }
+    drawNode(rec)
     nodeGfx.push(rec)
     bindHover(rec)
   }
@@ -171,16 +208,64 @@ async function setupPixiScene(ctx) {
     }
   }
 
-  return wireInteractionsAndLoop({
+  function applyLiveSettings(values) {
+    var forceChanged = false
+    var sizeChanged = false
+    var fontChanged = false
+    var liveKeys = {
+      showArrows: true,
+      textOpacity: true,
+      fontSize: true,
+      nodeSize: true,
+      linkWidth: true,
+      centerForce: true,
+      repelForce: true,
+      linkStrength: true,
+      linkDistance: true,
+    }
+    for (var key in liveKeys) {
+      if (!Object.prototype.hasOwnProperty.call(values, key)) continue
+      if (o[key] === values[key]) continue
+      o[key] = values[key]
+      if (key === "centerForce" || key === "repelForce" || key === "linkStrength" || key === "linkDistance") forceChanged = true
+      if (key === "nodeSize") sizeChanged = true
+      if (key === "fontSize") fontChanged = true
+    }
+    if (fontChanged) {
+      for (var fi = 0; fi < nodeGfx.length; fi++) nodeGfx[fi].label.style.fontSize = o.fontSize * 16
+    }
+    if (sizeChanged) {
+      for (var si = 0; si < nodeGfx.length; si++) drawNode(nodeGfx[si])
+      forceChanged = true
+    }
+    if (forceChanged) {
+      applyForces()
+      reheatSimulation()
+    }
+  }
+
+  function onGraphSettingsChange(event) {
+    applyLiveSettings((event.detail && event.detail.values) || {})
+  }
+  container.addEventListener("graphsettingschange", onGraphSettingsChange)
+
+  var cleanupLoop = wireInteractionsAndLoop({
     PIXI: PIXI, d3: d3, app: app, stage: stage, container: container,
     nodes: nodes, links: links, nodeGfx: nodeGfx, linkGfx: linkGfx,
     slug: slug, width: width, height: height, sim: sim, o: o,
-    radiusOf: radiusOf,
+    radiusOf: currentRadiusOf,
     colors: { link: hexLink, text: hexText, light: hexLight },
     getHover: function () { return hovered },
     setHover: setHover,
+    getDragging: function () { return dragging },
     setDragging: function (v) { dragging = v },
     getTransform: function () { return transform },
     setTransform: function (t) { transform = t },
   })
+
+  return function cleanupScene() {
+    container.removeEventListener("graphsettingschange", onGraphSettingsChange)
+    if (settleTimer) clearTimeout(settleTimer)
+    cleanupLoop()
+  }
 }

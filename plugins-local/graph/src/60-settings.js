@@ -8,6 +8,17 @@
     textOpacity: 1, fontSize: 0.75, nodeSize: 1, linkWidth: 1,
     centerForce: 0.3, repelForce: 0.5, linkStrength: 1, linkDistance: 30,
   }
+  var liveKeys = {
+    showArrows: true,
+    textOpacity: true,
+    fontSize: true,
+    nodeSize: true,
+    linkWidth: true,
+    centerForce: true,
+    repelForce: true,
+    linkStrength: true,
+    linkDistance: true,
+  }
   var sections = [
     {
       title: "范围",
@@ -30,7 +41,7 @@
     {
       title: "力度",
       controls: [
-        { key: "centerForce", label: "图谱向心力", min: 0, max: 1, step: 0.05 },
+        { key: "centerForce", label: "图谱向心力", min: 0, max: 2, step: 0.05 },
         { key: "repelForce", label: "节点间的排斥力", min: 0.1, max: 2, step: 0.05 },
         { key: "linkStrength", label: "相连节点的吸引力", min: 0.05, max: 2, step: 0.05 },
         { key: "linkDistance", label: "连线长度", min: 10, max: 120, step: 5 },
@@ -89,14 +100,21 @@
       el.dataset.cfg = JSON.stringify(Object.assign({}, base, values))
     })
     syncControls(scope, values)
+    return values
   }
   function requestRender() { document.dispatchEvent(new CustomEvent("graphrefresh")) }
+  function requestLiveUpdate(scope, values) {
+    document.querySelectorAll(selectorFor(scope)).forEach(function (el) {
+      el.dispatchEvent(new CustomEvent("graphsettingschange", { detail: { values: values } }))
+    })
+  }
   function saveSetting(scope, def, input) {
     var next = stored(scope)
     next[def.key] = def.type === "checkbox" ? input.checked : Number(input.value)
     localStorage.setItem(storageKeys[scope], JSON.stringify(next))
-    applySettings(scope)
-    requestRender()
+    var values = applySettings(scope)
+    if (liveKeys[def.key]) requestLiveUpdate(scope, values)
+    else requestRender()
   }
   function makeControl(scope, def, values) {
     var row = document.createElement("label")

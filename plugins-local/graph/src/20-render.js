@@ -154,8 +154,11 @@ async function renderGraph(container, fullSlug, renderId) {
     bump(links[di].source.id, links[di].target.id)
     bump(links[di].target.id, links[di].source.id)
   }
+  function baseRadiusOf(node) {
+    return 2 + Math.sqrt(degree.get(node.id) || 0)
+  }
   function radiusOf(node) {
-    return (2 + Math.sqrt(degree.get(node.id) || 0)) * nodeSizeFactor
+    return baseRadiusOf(node) * nodeSizeFactor
   }
 
   return setupPixiScene({
@@ -168,6 +171,7 @@ async function renderGraph(container, fullSlug, renderId) {
     visited: visited,
     width: width,
     height: height,
+    baseRadiusOf: baseRadiusOf,
     radiusOf: radiusOf,
     adjacency: adjacency,
     opts: {
@@ -179,6 +183,7 @@ async function renderGraph(container, fullSlug, renderId) {
       linkDistance: linkDistance,
       fontSize: fontSize,
       opacityScale: opacityScale,
+      nodeSize: nodeSizeFactor,
       linkWidth: linkWidth,
       showArrows: showArrows,
       textOpacity: textOpacity,
