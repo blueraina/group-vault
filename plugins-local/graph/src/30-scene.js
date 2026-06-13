@@ -28,7 +28,7 @@ async function setupPixiScene(ctx) {
   var colorLight = resolveColor(root.getPropertyValue("--light").trim(), "#faf8f8")
   var colorRead = resolveColor(GRAPH_PROGRESS_COLORS.read, "#2a9d8f")
   var colorFavorite = resolveColor(GRAPH_PROGRESS_COLORS.favorite, "#e9b44c")
-  var colorBoth = resolveColor(GRAPH_PROGRESS_COLORS.both, "#b76ef0")
+  var colorBoth = resolveColor(GRAPH_PROGRESS_COLORS.both, "#e84a5f")
   var fontFamily = root.getPropertyValue("--bodyFont").trim() || "sans-serif"
 
   function toHex(rgb) {
@@ -184,6 +184,7 @@ async function setupPixiScene(ctx) {
     rec.gfx.fill({ color: rec.baseColor })
     if (rec.node.isTag) rec.gfx.stroke({ width: 1.5, color: hexVisited })
     else if (rec.node.id === slug) rec.gfx.stroke({ width: 2, color: hexCurrent })
+    else if (rec.node.readingState) rec.gfx.stroke({ width: 1.35, color: hexStrongText })
   }
 
   function applyForces() {
