@@ -17,12 +17,18 @@ function startGraphRuntime() {
     }
     globalCleanups = []
   }
+  function applyStoredSettings() {
+    if (typeof window.__graphApplySettings === "function") {
+      try { window.__graphApplySettings() } catch (e) { console.warn("[Graph] Settings sync failed:", e) }
+    }
+  }
 
   function renderLocal() {
     clearLocal()
     var epoch = ++currentRenderEpoch
     var slug = currentSlug()
     markVisited(simplifySlug(slug))
+    applyStoredSettings()
     var containers = document.querySelectorAll(".graph-container")
     for (var i = 0; i < containers.length; i++) {
       ;(function (el) {
@@ -60,6 +66,7 @@ function startGraphRuntime() {
   function openGlobal() {
     clearGlobal()
     var slug = currentSlug()
+    applyStoredSettings()
     for (var i = 0; i < globalOuters.length; i++) {
       var outer = globalOuters[i]
       outer.classList.add("active")

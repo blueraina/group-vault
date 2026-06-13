@@ -24,6 +24,7 @@ async function setupPixiScene(ctx) {
   var colorDefault = resolveColor(root.getPropertyValue("--gray").trim(), "#b8b8b8")
   var colorLink = resolveColor(root.getPropertyValue("--lightgray").trim(), "#e5e5e5")
   var colorText = resolveColor(root.getPropertyValue("--darkgray").trim(), "#4e4e4e")
+  var colorStrongText = resolveColor(root.getPropertyValue("--dark").trim(), "#2b2b2b")
   var colorLight = resolveColor(root.getPropertyValue("--light").trim(), "#faf8f8")
   var fontFamily = root.getPropertyValue("--bodyFont").trim() || "sans-serif"
 
@@ -37,6 +38,7 @@ async function setupPixiScene(ctx) {
   var hexDefault = toHex(colorDefault)
   var hexLink = toHex(colorLink)
   var hexText = toHex(colorText)
+  var hexStrongText = toHex(colorStrongText)
   var hexLight = toHex(colorLight)
 
   // Folder hue -> distinct node colors, blended toward the theme so they stay tasteful.
@@ -70,6 +72,12 @@ async function setupPixiScene(ctx) {
   function radialForceStrength() {
     return Math.max(0, o.centerForce || 0) * 0.08
   }
+  function centerCurrentStrength(node) {
+    return o.centerCurrentNode && node.id === slug ? 1 : 0
+  }
+  function labelFill() {
+    return (o.textOpacity || 0) > 1 ? hexStrongText : hexText
+  }
 
   // --- pixi app ---
   var app = new PIXI.Application()
@@ -102,6 +110,8 @@ async function setupPixiScene(ctx) {
     .forceSimulation(nodes)
     .force("charge", d3.forceManyBody().strength(-80 * o.repelForce))
     .force("center", d3.forceCenter(0, 0).strength(centerForceStrength()))
+    .force("currentX", d3.forceX(0).strength(centerCurrentStrength))
+    .force("currentY", d3.forceY(0).strength(centerCurrentStrength))
     .force("radial", d3.forceRadial(0, 0, 0).strength(radialForceStrength()))
     .force("link", d3.forceLink(links).distance(o.linkDistance).strength(o.linkStrength))
     .force("collide", d3.forceCollide().radius(function (n) { return currentRadiusOf(n) + 4 }).iterations(2))
@@ -129,6 +139,8 @@ async function setupPixiScene(ctx) {
   function applyForces() {
     sim.force("charge").strength(-80 * o.repelForce)
     sim.force("center").strength(centerForceStrength())
+    sim.force("currentX").strength(centerCurrentStrength)
+    sim.force("currentY").strength(centerCurrentStrength)
     sim.force("radial").strength(radialForceStrength())
     sim.force("link").distance(o.linkDistance).strength(o.linkStrength)
     sim.force("collide").radius(function (n) { return currentRadiusOf(n) + 4 })
@@ -150,7 +162,7 @@ async function setupPixiScene(ctx) {
 
     var label = new PIXI.Text({
       text: node.text,
-      style: { fontSize: o.fontSize * 16, fill: hexText, fontFamily: fontFamily },
+      style: { fontSize: o.fontSize * 16, fill: labelFill(), fontFamily: fontFamily },
       resolution: (window.devicePixelRatio || 1) * 3,
     })
     label.anchor.set(0.5, 0)
@@ -218,6 +230,7 @@ async function setupPixiScene(ctx) {
       fontSize: true,
       nodeSize: true,
       linkWidth: true,
+      linkOpacity: true,
       centerForce: true,
       repelForce: true,
       linkStrength: true,
@@ -229,10 +242,13 @@ async function setupPixiScene(ctx) {
       o[key] = values[key]
       if (key === "centerForce" || key === "repelForce" || key === "linkStrength" || key === "linkDistance") forceChanged = true
       if (key === "nodeSize") sizeChanged = true
-      if (key === "fontSize") fontChanged = true
+      if (key === "fontSize" || key === "textOpacity") fontChanged = true
     }
     if (fontChanged) {
-      for (var fi = 0; fi < nodeGfx.length; fi++) nodeGfx[fi].label.style.fontSize = o.fontSize * 16
+      for (var fi = 0; fi < nodeGfx.length; fi++) {
+        nodeGfx[fi].label.style.fontSize = o.fontSize * 16
+        nodeGfx[fi].label.style.fill = labelFill()
+      }
     }
     if (sizeChanged) {
       for (var si = 0; si < nodeGfx.length; si++) drawNode(nodeGfx[si])
