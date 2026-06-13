@@ -1,3 +1,5 @@
+import { generatedMaintainerLogins } from "./maintainers.generated.js"
+
 const SESSION_COOKIE = "gv_session"
 const OAUTH_STATE_COOKIE = "gv_oauth_state"
 const OAUTH_RETURN_COOKIE = "gv_oauth_return"
@@ -9,7 +11,6 @@ const jsonHeaders = {
 }
 
 const encoder = new TextEncoder()
-const builtInMaintainerLogins = ["blueraina", "libinyam", "llc-byte", "vesperazephyr"]
 
 function parseLoginList(value) {
   return new Set(
@@ -133,7 +134,7 @@ export function adminLogins(env) {
 
 export function maintainerLogins(env) {
   return new Set([
-    ...builtInMaintainerLogins,
+    ...generatedMaintainerLogins.map((login) => String(login).trim().toLowerCase()).filter(Boolean),
     ...adminLogins(env),
     ...parseLoginList(env.MAINTAINER_GITHUB_LOGINS),
   ])

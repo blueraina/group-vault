@@ -36,7 +36,8 @@ https://group-vault.pages.dev/api/auth/github/callback
 - 未登录：只能看评论。
 - 登录 GitHub：可以发表评论，做过/收藏标记会同步到 D1。
 - 评论作者：可以删除自己的评论。
-- `ADMIN_GITHUB_LOGINS` 中的管理员：可以删除任何评论。
+- 自动生成的仓库协作者名单中的维护者：可以删除任何评论。
+- `ADMIN_GITHUB_LOGINS` 或 `MAINTAINER_GITHUB_LOGINS` 中的额外维护者：也可以删除任何评论。
 
 ## 评论支持什么
 
@@ -54,4 +55,4 @@ $$
 ## 当前版本的限制
 
 - 不支持图片上传；如果需要图片，建议先放外链，后续可以接 R2 上传。
-- 管理员先通过 `ADMIN_GITHUB_LOGINS` 白名单配置，后续如有需要再接 GitHub collaborator API。
+- 维护者名单由 `scripts/update-collaborators.mjs` 自动生成到 `functions/_lib/maintainers.generated.js`。GitHub 仓库协作者变更后，Action 会更新该文件并随下一次部署生效。
