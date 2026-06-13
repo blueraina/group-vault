@@ -128,12 +128,14 @@ plugins:
         alwaysShowLabels: true
         removeNodes:
           - 其他信息/维护时间线
+          - 其他信息/评论管理
       globalGraph:
         showTags: false
         linkOpacity: 1.15
         hideOrphans: false
         removeNodes:
           - 其他信息/维护时间线
+          - 其他信息/评论管理
     layout:
       position: right
       priority: 10
