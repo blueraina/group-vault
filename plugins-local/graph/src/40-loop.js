@@ -159,7 +159,8 @@ function wireInteractionsAndLoop(s) {
     stage.scale.set(T.k, T.k)
     stage.position.set(T.x, T.y)
 
-    var hover = s.getHover()
+    var draggingNow = typeof s.getDragging === "function" && s.getDragging()
+    var hover = draggingNow ? null : s.getHover()
     var zoomLabelAlpha = Math.max(0, (T.k * o.opacityScale - 1) / 3.75)
 
     // nodes

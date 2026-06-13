@@ -257,6 +257,7 @@ async function setupPixiScene(ctx) {
     colors: { link: hexLink, text: hexText, light: hexLight },
     getHover: function () { return hovered },
     setHover: setHover,
+    getDragging: function () { return dragging },
     setDragging: function (v) { dragging = v },
     getTransform: function () { return transform },
     setTransform: function (t) { transform = t },
