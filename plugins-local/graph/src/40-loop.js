@@ -189,7 +189,9 @@ function wireInteractionsAndLoop(s) {
       if (sx == null || tx == null) continue
       var g = lr.gfx
       g.clear()
-      var baseAlpha = hover !== null ? 0.15 + 0.85 * lr.focus : 0.6
+      var activeLink = hover !== null && lr.targetFocus >= 0.9
+      var dimLinks = hover !== null && o.focusOnHover
+      var baseAlpha = dimLinks ? (activeLink ? 0.9 : 0.35 + 0.25 * lr.focus) : 0.6
       g.moveTo(sx + cx, sy + cy)
       g.lineTo(tx + cx, ty + cy)
       if (o.showArrows) {
@@ -201,8 +203,9 @@ function wireInteractionsAndLoop(s) {
         g.moveTo(ex, ey)
         g.lineTo(ex - size * Math.cos(ang + Math.PI / 7), ey - size * Math.sin(ang + Math.PI / 7))
       }
-      var color = lr.focus > 0.5 ? s.colors.text : s.colors.link
-      g.stroke({ width: o.linkWidth, color: color, alpha: baseAlpha * intro })
+      var color = activeLink || lr.focus > 0.5 ? s.colors.text : s.colors.link
+      var width = activeLink ? o.linkWidth * 1.35 : o.linkWidth
+      g.stroke({ width: width, color: color, alpha: baseAlpha * intro })
     }
 
     requestAnimationFrame(frame)
