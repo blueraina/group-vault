@@ -14,10 +14,13 @@ interface D3Config {
     opacityScale: number;
     nodeSize: number;
     linkWidth: number;
+    linkOpacity: number;
     showArrows: boolean;
     textOpacity: number;
     alwaysShowLabels?: boolean;
     linkStrength: number;
+    centerCurrentNode?: boolean;
+    hideOrphans?: boolean;
     removeNodes: string[];
     removeTags: string[];
     showTags: boolean;

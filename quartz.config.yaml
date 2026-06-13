@@ -118,13 +118,20 @@ plugins:
     options:
       localGraph:
         showTags: false
-        fontSize: 0.85
-        textOpacity: 0.85
+        scale: 1.45
+        linkDistance: 42
+        fontSize: 0.95
+        textOpacity: 1.1
+        nodeSize: 1.15
+        linkOpacity: 1.15
+        centerCurrentNode: true
         alwaysShowLabels: true
         removeNodes:
           - 其他信息/维护时间线
       globalGraph:
         showTags: false
+        linkOpacity: 1.15
+        hideOrphans: false
         removeNodes:
           - 其他信息/维护时间线
     layout:

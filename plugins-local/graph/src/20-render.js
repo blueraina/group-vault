@@ -25,10 +25,13 @@ async function renderGraph(container, fullSlug, renderId) {
   var opacityScale = cfg.opacityScale || 1
   var nodeSizeFactor = cfg.nodeSize || 1
   var linkWidth = cfg.linkWidth || 1
+  var linkOpacity = cfg.linkOpacity != null ? cfg.linkOpacity : 1
   var showArrows = !!cfg.showArrows
   var textOpacity = cfg.textOpacity != null ? cfg.textOpacity : 1
   var alwaysShowLabels = !!cfg.alwaysShowLabels
   var linkStrengthCfg = cfg.linkStrength || 1
+  var centerCurrentNode = !!cfg.centerCurrentNode
+  var hideOrphans = !!cfg.hideOrphans
   var removeNodes = cfg.removeNodes || []
   var hiddenNodes = new Set(removeNodes.map(function (n) { return simplifySlug(String(n)) }))
   var removeTags = cfg.removeTags || []
@@ -72,6 +75,20 @@ async function renderGraph(container, fullSlug, renderId) {
       }
     }
   })
+
+  if (hideOrphans && depth < 0) {
+    var connected = new Set()
+    for (var ci = 0; ci < allLinks.length; ci++) {
+      connected.add(allLinks[ci].source)
+      connected.add(allLinks[ci].target)
+    }
+    present = new Set(Array.from(present).filter(function (id) { return connected.has(id) }))
+    tagNodes = tagNodes.filter(function (id) { return connected.has(id) })
+    allLinks = allLinks.filter(function (link) {
+      return (present.has(link.source) || tagNodes.indexOf(link.source) !== -1) &&
+        (present.has(link.target) || tagNodes.indexOf(link.target) !== -1)
+    })
+  }
 
   // BFS to compute the visible node set + per-node depth
   var visibleIds = new Set()
@@ -122,8 +139,8 @@ async function renderGraph(container, fullSlug, renderId) {
       text: text,
       isTag: isTag,
       folder: folderOf(id),
-      x: (Math.cos(visibleIds.size + nodes.length) * width) / 4,
-      y: (Math.sin(visibleIds.size + nodes.length) * height) / 4,
+      x: centerCurrentNode && id === slug ? 0 : (Math.cos(visibleIds.size + nodes.length) * width) / 4,
+      y: centerCurrentNode && id === slug ? 0 : (Math.sin(visibleIds.size + nodes.length) * height) / 4,
     }
     nodes.push(node)
     nodeById.set(id, node)
@@ -186,10 +203,12 @@ async function renderGraph(container, fullSlug, renderId) {
       opacityScale: opacityScale,
       nodeSize: nodeSizeFactor,
       linkWidth: linkWidth,
+      linkOpacity: linkOpacity,
       showArrows: showArrows,
       textOpacity: textOpacity,
       alwaysShowLabels: alwaysShowLabels,
       linkStrength: linkStrengthCfg,
+      centerCurrentNode: centerCurrentNode,
       focusOnHover: focusOnHover,
     },
   })

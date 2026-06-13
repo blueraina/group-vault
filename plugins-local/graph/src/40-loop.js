@@ -180,7 +180,7 @@ function wireInteractionsAndLoop(s) {
       var hoveredLabel = hover !== null && rec.targetFocus >= 0.9
       var defaultLabelAlpha = (o.alwaysShowLabels ? o.textOpacity : zoomLabelAlpha * o.textOpacity)
       var targetLabelAlpha = hoveredLabel ? o.textOpacity : defaultLabelAlpha
-      rec.label.alpha = lerp(rec.label.alpha, Math.min(targetLabelAlpha, 1) * intro, 0.2)
+      rec.label.alpha = lerp(rec.label.alpha, Math.max(0, Math.min(targetLabelAlpha, 1)) * intro, 0.2)
     }
 
     // links
@@ -194,7 +194,7 @@ function wireInteractionsAndLoop(s) {
       g.clear()
       var activeLink = hover !== null && lr.targetFocus >= 0.9
       var dimLinks = hover !== null && o.focusOnHover && !draggingNow
-      var baseAlpha = activeLink ? 0.9 : (dimLinks ? 0.35 + 0.25 * lr.focus : 0.6)
+      var baseAlpha = activeLink ? 0.95 : (dimLinks ? 0.35 + 0.3 * lr.focus : 0.72)
       g.moveTo(sx + cx, sy + cy)
       g.lineTo(tx + cx, ty + cy)
       if (o.showArrows) {
@@ -208,7 +208,8 @@ function wireInteractionsAndLoop(s) {
       }
       var color = activeLink || lr.focus > 0.5 ? s.colors.text : s.colors.link
       var width = activeLink ? o.linkWidth * 1.35 : o.linkWidth
-      g.stroke({ width: width, color: color, alpha: baseAlpha * intro })
+      var linkAlpha = Math.max(0, Math.min(1, baseAlpha * (o.linkOpacity || 1) * intro))
+      g.stroke({ width: width, color: color, alpha: linkAlpha })
     }
 
     requestAnimationFrame(frame)

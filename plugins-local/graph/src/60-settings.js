@@ -5,8 +5,9 @@
   var storageKeys = { local: "graph-settings-local", global: "graph-settings" }
   var fallback = {
     depth: 1, showNeighborLinks: true, neighborLinkDepth: 1, showArrows: false,
-    textOpacity: 1, fontSize: 0.75, nodeSize: 1, linkWidth: 1,
+    textOpacity: 1, fontSize: 0.75, nodeSize: 1, linkWidth: 1, linkOpacity: 1,
     centerForce: 0.3, repelForce: 0.5, linkStrength: 1, linkDistance: 30,
+    hideOrphans: false,
   }
   var liveKeys = {
     showArrows: true,
@@ -14,6 +15,7 @@
     fontSize: true,
     nodeSize: true,
     linkWidth: true,
+    linkOpacity: true,
     centerForce: true,
     repelForce: true,
     linkStrength: true,
@@ -26,16 +28,18 @@
         { key: "depth", label: "局部深度", min: 0, max: 4, step: 1, scopes: ["local"] },
         { key: "showNeighborLinks", label: "其他节点间链接", type: "checkbox", scopes: ["local"] },
         { key: "neighborLinkDepth", label: "其他节点链接深度", min: 0, max: 4, step: 1, scopes: ["local"] },
+        { key: "hideOrphans", label: "隐藏孤立文件", type: "checkbox", scopes: ["global"] },
       ],
     },
     {
       title: "外观",
       controls: [
         { key: "showArrows", label: "箭头", type: "checkbox" },
-        { key: "textOpacity", label: "文本透明度", min: 0, max: 1, step: 0.05 },
-        { key: "fontSize", label: "字体大小", min: 0.6, max: 1.2, step: 0.05 },
+        { key: "textOpacity", label: "文本透明度", min: 0, max: 1.4, step: 0.05 },
+        { key: "fontSize", label: "字体大小", min: 0.6, max: 1.5, step: 0.05 },
         { key: "nodeSize", label: "节点大小", min: 0.6, max: 2.2, step: 0.1 },
         { key: "linkWidth", label: "连线粗细", min: 0.5, max: 4, step: 0.25 },
+        { key: "linkOpacity", label: "连线透明度", min: 0.2, max: 1.5, step: 0.05 },
       ],
     },
     {
@@ -214,10 +218,11 @@
     applySettings("global")
     applySettings("local")
   }
+  window.__graphApplySettings = init
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", init)
   } else {
     init()
   }
-  document.addEventListener("nav", function () { setTimeout(init, 0) })
+  document.addEventListener("nav", init)
 })();
