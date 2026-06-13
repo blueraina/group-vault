@@ -31,6 +31,7 @@ async function renderGraph(container, fullSlug, renderId) {
   var alwaysShowLabels = !!cfg.alwaysShowLabels
   var linkStrengthCfg = cfg.linkStrength || 1
   var centerCurrentNode = !!cfg.centerCurrentNode
+  var enableRadial = cfg.enableRadial !== false
   var hideOrphans = !!cfg.hideOrphans
   var removeNodes = cfg.removeNodes || []
   var hiddenNodes = new Set(removeNodes.map(function (n) { return simplifySlug(String(n)) }))
@@ -213,6 +214,7 @@ async function renderGraph(container, fullSlug, renderId) {
       alwaysShowLabels: alwaysShowLabels,
       linkStrength: linkStrengthCfg,
       centerCurrentNode: centerCurrentNode,
+      enableRadial: enableRadial,
       focusOnHover: focusOnHover,
     },
   })

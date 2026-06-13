@@ -1,4 +1,4 @@
-import { getCurrentUser, json } from "../../_lib/auth.js"
+import { getCurrentUser, githubAuthConfigured, json } from "../../_lib/auth.js"
 
 export async function onRequest({ request, env }) {
   if (request.method !== "GET") {
@@ -6,14 +6,20 @@ export async function onRequest({ request, env }) {
   }
 
   try {
-    const user = await getCurrentUser(request, env)
+    const authConfigured = githubAuthConfigured(env)
+    const user = authConfigured ? await getCurrentUser(request, env) : null
     return json({
       authenticated: Boolean(user),
       user,
-      authConfigured: Boolean(env.GITHUB_CLIENT_ID),
+      authConfigured,
     })
   } catch (error) {
     const message = error instanceof Error ? error.message : "Session lookup failed"
-    return json({ error: message }, 500)
+    return json({
+      authenticated: false,
+      user: null,
+      authConfigured: githubAuthConfigured(env),
+      error: message,
+    })
   }
 }
