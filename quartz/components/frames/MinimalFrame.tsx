@@ -1,4 +1,5 @@
 import { PageFrame, PageFrameProps } from "./types"
+import SiteStatsFooter from "../SiteStatsFooter"
 
 /**
  * Minimal page frame — no sidebars, no header/footer chrome. Only the
@@ -17,6 +18,7 @@ export const MinimalFrame: PageFrame = {
           <Content {...componentData} />
         </div>
         <Footer {...componentData} />
+        <SiteStatsFooter />
       </>
     )
   },

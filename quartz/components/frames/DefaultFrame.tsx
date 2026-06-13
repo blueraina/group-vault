@@ -1,5 +1,6 @@
 import { PageFrame, PageFrameProps } from "./types"
 import HeaderConstructor from "../Header"
+import SiteStatsFooter from "../SiteStatsFooter"
 
 const Header = HeaderConstructor()
 
@@ -55,6 +56,7 @@ export const DefaultFrame: PageFrame = {
           ))}
         </div>
         <Footer {...componentData} />
+        <SiteStatsFooter />
       </>
     )
   },
