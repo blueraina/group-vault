@@ -26,6 +26,9 @@ async function setupPixiScene(ctx) {
   var colorText = resolveColor(root.getPropertyValue("--darkgray").trim(), "#4e4e4e")
   var colorStrongText = resolveColor(root.getPropertyValue("--dark").trim(), "#2b2b2b")
   var colorLight = resolveColor(root.getPropertyValue("--light").trim(), "#faf8f8")
+  var colorRead = resolveColor(GRAPH_PROGRESS_COLORS.read, "#2a9d8f")
+  var colorFavorite = resolveColor(GRAPH_PROGRESS_COLORS.favorite, "#e9b44c")
+  var colorBoth = resolveColor(GRAPH_PROGRESS_COLORS.both, "#b76ef0")
   var fontFamily = root.getPropertyValue("--bodyFont").trim() || "sans-serif"
 
   function toHex(rgb) {
@@ -40,6 +43,9 @@ async function setupPixiScene(ctx) {
   var hexText = toHex(colorText)
   var hexStrongText = toHex(colorStrongText)
   var hexLight = toHex(colorLight)
+  var hexRead = toHex(colorRead)
+  var hexFavorite = toHex(colorFavorite)
+  var hexBoth = toHex(colorBoth)
 
   // Folder hue -> distinct node colors, blended toward the theme so they stay tasteful.
   function hslToHex(h, s, l) {
@@ -54,6 +60,11 @@ async function setupPixiScene(ctx) {
   }
   var folderColors = new Map()
   function colorForNode(node) {
+    if (!node.isTag) {
+      if (node.readingState === "both") return hexBoth
+      if (node.readingState === "favorite") return hexFavorite
+      if (node.readingState === "read") return hexRead
+    }
     if (node.id === slug) return hexCurrent
     if (node.isTag) return hexVisited
     var folder = node.folder
@@ -172,6 +183,7 @@ async function setupPixiScene(ctx) {
     rec.gfx.circle(0, 0, r)
     rec.gfx.fill({ color: rec.baseColor })
     if (rec.node.isTag) rec.gfx.stroke({ width: 1.5, color: hexVisited })
+    else if (rec.node.id === slug) rec.gfx.stroke({ width: 2, color: hexCurrent })
   }
 
   function applyForces() {

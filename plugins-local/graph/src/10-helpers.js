@@ -41,6 +41,39 @@ function clearChildren(el) {
   while (el.firstChild) el.removeChild(el.firstChild)
 }
 
+// Reading-state marks share the same localStorage format as the reading-state plugin.
+var READING_STATE_PREFIX = "group-vault:reading-state:v1"
+var GRAPH_PROGRESS_COLORS = {
+  read: "#2a9d8f",
+  favorite: "#e9b44c",
+  both: "#b76ef0",
+}
+
+function readingStateId(slug) {
+  var id = simplifySlug(String(slug || ""))
+  if (id.endsWith(".html")) id = simplifySlug(id.slice(0, -".html".length))
+  if (id === "/" || id === "") return "index"
+  return trimSlash(id).replace(/\/index$/u, "") || "index"
+}
+function readingStateKey(action, slug) {
+  return READING_STATE_PREFIX + ":" + action + ":" + readingStateId(slug)
+}
+function hasReadingState(action, slug) {
+  try {
+    return localStorage.getItem(readingStateKey(action, slug)) !== null
+  } catch (e) {
+    return false
+  }
+}
+function readingStateForSlug(slug) {
+  var isRead = hasReadingState("read", slug)
+  var isFavorite = hasReadingState("favorite", slug)
+  if (isRead && isFavorite) return "both"
+  if (isFavorite) return "favorite"
+  if (isRead) return "read"
+  return ""
+}
+
 // localStorage visited set
 var VISITED_KEY = "graph-visited"
 function visitedSet() {
