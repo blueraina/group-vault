@@ -964,10 +964,273 @@ const script = String.raw`(() => {
   }
 })()`
 
+const adminCommentsStyles = `.comment-admin {
+  border: 1px solid var(--lightgray);
+  border-radius: 8px;
+  padding: 1rem;
+}
+.comment-admin-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+.comment-admin-status {
+  margin: 0;
+  color: var(--darkgray);
+}
+.comment-admin-status.is-error {
+  color: #d9480f;
+}
+.comment-admin-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.comment-admin-button {
+  border: 1px solid var(--lightgray);
+  border-radius: 6px;
+  background: var(--light);
+  color: var(--dark);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.25rem;
+  padding: 0.35rem 0.75rem;
+  text-decoration: none;
+}
+.comment-admin-button.primary {
+  background: var(--secondary);
+  border-color: var(--secondary);
+  color: var(--light);
+}
+.comment-admin-button.danger {
+  color: #c92a2a;
+}
+.comment-admin-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+.comment-admin-list {
+  display: grid;
+  gap: 0.75rem;
+}
+.comment-admin-empty {
+  margin: 0;
+  color: var(--gray);
+}
+.comment-admin-item {
+  border: 1px solid var(--lightgray);
+  border-radius: 8px;
+  padding: 0.9rem;
+}
+.comment-admin-item-header {
+  align-items: flex-start;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+  margin-bottom: 0.7rem;
+}
+.comment-admin-meta {
+  min-width: 0;
+}
+.comment-admin-author {
+  color: var(--dark);
+  font-weight: 600;
+}
+.comment-admin-login,
+.comment-admin-date {
+  color: var(--gray);
+  font-size: 0.9rem;
+}
+.comment-admin-path {
+  display: inline-block;
+  margin-top: 0.2rem;
+}
+.comment-admin-content {
+  background: var(--highlight);
+  border-radius: 6px;
+  margin: 0;
+  overflow-x: auto;
+  padding: 0.75rem;
+  white-space: pre-wrap;
+}
+@media (max-width: 640px) {
+  .comment-admin-toolbar,
+  .comment-admin-item-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .comment-admin-actions,
+  .comment-admin-button {
+    width: 100%;
+  }
+}`
+
+const adminCommentsScript = `
+function initCommentAdmin() {
+  const root = document.querySelector("[data-comment-admin]")
+  if (!root || root.dataset.commentAdminReady === "true") return
+  root.dataset.commentAdminReady = "true"
+
+  const api = "/api/admin/comments"
+  const status = root.querySelector("[data-comment-admin-status]")
+  const list = root.querySelector("[data-comment-admin-list]")
+  const refresh = root.querySelector("[data-comment-admin-refresh]")
+  const login = root.querySelector("[data-comment-admin-login]")
+
+  function escapeHtml(value) {
+    return String(value || "").replace(/[&<>"']/g, (char) => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;",
+    })[char])
+  }
+
+  function escapeAttribute(value) {
+    return escapeHtml(value).replace(/\x60/g, "&#96;")
+  }
+
+  function setStatus(message, isError) {
+    if (!status) return
+    status.textContent = message
+    status.classList.toggle("is-error", Boolean(isError))
+  }
+
+  function loginUrl() {
+    return "/api/auth/github?returnTo=" + encodeURIComponent(window.location.pathname + window.location.search + window.location.hash)
+  }
+
+  function noteUrl(path) {
+    const clean = String(path || "index").replace(/^\\/+|\\/+$/g, "") || "index"
+    if (clean === "index") return "/"
+    return "/" + clean.split("/").map(encodeURIComponent).join("/")
+  }
+
+  function formatDate(value) {
+    const date = new Date(value)
+    if (Number.isNaN(date.getTime())) return String(value || "")
+    return date.toLocaleString("zh-CN", { hour12: false })
+  }
+
+  function setLoginVisible(visible) {
+    if (!login) return
+    login.hidden = !visible
+    if (visible) login.href = loginUrl()
+  }
+
+  function renderAuth(message) {
+    setLoginVisible(true)
+    setStatus(message || "请先登录 GitHub 后再查看评论管理页", true)
+    if (list) list.innerHTML = '<p class="comment-admin-empty">登录后会显示最近评论。</p>'
+  }
+
+  function renderForbidden(message) {
+    setLoginVisible(false)
+    setStatus(message || "你没有权限查看评论管理页", true)
+    if (list) list.innerHTML = '<p class="comment-admin-empty">只有笔记维护者可以查看这里。</p>'
+  }
+
+  function renderList(comments) {
+    setLoginVisible(false)
+    if (!list) return
+    if (!comments.length) {
+      list.innerHTML = '<p class="comment-admin-empty">暂无评论。</p>'
+      return
+    }
+
+    list.innerHTML = comments.map((comment) => {
+      const loginText = comment.github_login ? "@" + comment.github_login : ""
+      const avatar = comment.github_avatar_url
+        ? '<img class="note-comments-auth-avatar" src="' + escapeAttribute(comment.github_avatar_url) + '" alt="">'
+        : ""
+      return (
+        '<article class="comment-admin-item">' +
+          '<div class="comment-admin-item-header">' +
+            '<div class="comment-admin-meta">' +
+              '<div>' + avatar + '<span class="comment-admin-author">' + escapeHtml(comment.author || loginText || "匿名") + '</span> ' +
+              '<span class="comment-admin-login">' + escapeHtml(loginText) + '</span></div>' +
+              '<div class="comment-admin-date">' + escapeHtml(formatDate(comment.created_at)) + '</div>' +
+              '<a class="comment-admin-path" href="' + escapeAttribute(noteUrl(comment.path)) + '">' + escapeHtml(comment.path || "index") + '</a>' +
+            '</div>' +
+            '<button class="comment-admin-button danger" type="button" data-comment-delete="' + escapeAttribute(comment.id) + '">删除</button>' +
+          '</div>' +
+          '<pre class="comment-admin-content">' + escapeHtml(comment.content) + '</pre>' +
+        '</article>'
+      )
+    }).join("")
+  }
+
+  async function loadComments() {
+    setStatus("正在加载最新评论...", false)
+    setLoginVisible(false)
+    if (list) list.innerHTML = ""
+
+    try {
+      const response = await fetch(api + "?limit=100", { headers: { accept: "application/json" } })
+      const data = await response.json().catch(() => ({}))
+      if (response.status === 401) {
+        renderAuth(data.error)
+        return
+      }
+      if (response.status === 403) {
+        renderForbidden(data.error)
+        return
+      }
+      if (!response.ok) throw new Error(data.error || "评论管理服务暂时不可用")
+
+      const comments = Array.isArray(data.comments) ? data.comments : []
+      renderList(comments)
+      setStatus("已加载 " + comments.length + " 条最新评论", false)
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "评论管理服务暂时不可用", true)
+      if (list) list.innerHTML = '<p class="comment-admin-empty">稍后刷新再试。</p>'
+    }
+  }
+
+  async function deleteComment(id, button) {
+    if (!id || !window.confirm("确定删除这条评论吗？")) return
+    if (button) button.disabled = true
+    try {
+      const response = await fetch(api + "?id=" + encodeURIComponent(id), { method: "DELETE" })
+      const data = await response.json().catch(() => ({}))
+      if (!response.ok) throw new Error(data.error || "删除失败")
+      await loadComments()
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "删除失败", true)
+      if (button) button.disabled = false
+    }
+  }
+
+  refresh?.addEventListener("click", loadComments)
+  root.addEventListener("click", (event) => {
+    const button = event.target?.closest?.("[data-comment-delete]")
+    if (!button) return
+    deleteComment(button.getAttribute("data-comment-delete"), button)
+  })
+
+  loadComments()
+}
+
+document.addEventListener("nav", initCommentAdmin)
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initCommentAdmin, { once: true })
+} else {
+  initCommentAdmin()
+}
+`
+
 const Comments = (opts = {}) => {
   const options = { ...defaultOptions, ...opts }
 
   function CommentsComponent({ fileData, displayClass }) {
+    const commentsSetting = fileData?.frontmatter?.comments
+    if (commentsSetting === false || String(commentsSetting).toLowerCase() === "false") return null
+
     const rawSlug = String(fileData?.slug ?? "").replace(/^\/+|\/+$/g, "")
     const slug = rawSlug || "index"
 
@@ -996,7 +1259,11 @@ const Comments = (opts = {}) => {
           },
           "正在加载评论...",
         ),
-        h("div", { class: "note-comments-auth", "data-comments-auth": "" }, "正在检查 GitHub 登录状态..."),
+        h(
+          "div",
+          { class: "note-comments-auth", "data-comments-auth": "" },
+          "正在检查 GitHub 登录状态...",
+        ),
         h("div", { class: "note-comments-list", "data-comments-list": "" }),
         h(
           "form",
@@ -1030,7 +1297,11 @@ const Comments = (opts = {}) => {
               "data-comments-preview": "",
             }),
             h("div", { class: "note-comments-toolbar" }, [
-              h("span", { class: "note-comments-counter", "data-comments-counter": "" }, "0 / " + options.maxLength),
+              h(
+                "span",
+                { class: "note-comments-counter", "data-comments-counter": "" },
+                "0 / " + options.maxLength,
+              ),
               h("span", { class: "note-comments-actions" }, [
                 h("label", { class: "note-comments-sync-preview" }, [
                   h("input", {
@@ -1039,7 +1310,11 @@ const Comments = (opts = {}) => {
                   }),
                   h("span", null, "同步预览"),
                 ]),
-                h("button", { class: "note-comments-button primary", type: "submit", disabled: true }, "发布评论"),
+                h(
+                  "button",
+                  { class: "note-comments-button primary", type: "submit", disabled: true },
+                  "发布评论",
+                ),
               ]),
             ]),
           ],
@@ -1048,8 +1323,8 @@ const Comments = (opts = {}) => {
     )
   }
 
-  CommentsComponent.css = styles
-  CommentsComponent.afterDOMLoaded = script
+  CommentsComponent.css = [styles, adminCommentsStyles]
+  CommentsComponent.afterDOMLoaded = [script, adminCommentsScript]
   return CommentsComponent
 }
 
