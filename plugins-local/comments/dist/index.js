@@ -78,9 +78,20 @@ const styles = `.note-comments {
   font-weight: 700;
 }
 
+.note-comment-avatar-img,
+.note-comments-auth-avatar {
+  display: block;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  object-fit: cover;
+}
+
 .note-comment-meta {
   display: grid;
   gap: 0.08rem;
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
 .note-comment-author {
@@ -96,6 +107,28 @@ const styles = `.note-comments {
 .note-comment-body {
   color: var(--dark);
   overflow-wrap: anywhere;
+}
+
+.note-comment-delete {
+  appearance: none;
+  border: 1px solid var(--lightgray);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--gray);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.82rem;
+  padding: 0.28rem 0.5rem;
+}
+
+.note-comment-delete:hover {
+  border-color: #c2410c;
+  color: #c2410c;
+}
+
+.note-comment-delete:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
 }
 
 .note-comment-body > :first-child,
@@ -139,10 +172,40 @@ const styles = `.note-comments {
   color: var(--gray);
 }
 
+.note-comments-auth {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--lightgray);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--lightgray) 18%, transparent);
+  color: var(--darkgray);
+  font-size: 0.92rem;
+}
+
+.note-comments-auth-user,
+.note-comments-auth-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.note-comments-auth-user strong {
+  color: var(--dark);
+}
+
 .note-comments-form {
   display: grid;
   gap: 0.75rem;
   padding: 1rem;
+}
+
+.note-comments-form.is-locked textarea {
+  cursor: not-allowed;
 }
 
 .note-comments-field {
@@ -231,6 +294,12 @@ const styles = `.note-comments {
   padding: 0.38rem 0.78rem;
 }
 
+a.note-comments-button {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
 .note-comments-button:hover {
   border-color: var(--secondary);
   color: var(--secondary);
@@ -291,6 +360,7 @@ const styles = `.note-comments {
 
 const script = String.raw`(() => {
   const katexState = { promise: null }
+  const sessionState = { promise: null, user: null }
   const backtick = String.fromCharCode(96)
 
   function initComments() {
@@ -298,7 +368,7 @@ const script = String.raw`(() => {
       if (root.dataset.commentsReady === "true") return
       root.dataset.commentsReady = "true"
       wireRoot(root)
-      loadComments(root)
+      refreshSession(root).finally(() => loadComments(root))
     })
   }
 
@@ -306,9 +376,10 @@ const script = String.raw`(() => {
     const form = root.querySelector("[data-comments-form]")
     const textarea = root.querySelector("[data-comments-content]")
     const preview = root.querySelector("[data-comments-preview]")
-    const previewButton = root.querySelector("[data-comments-preview-button]")
     const syncPreview = root.querySelector("[data-comments-sync-preview]")
     const counter = root.querySelector("[data-comments-counter]")
+    const list = root.querySelector("[data-comments-list]")
+    const auth = root.querySelector("[data-comments-auth]")
 
     if (textarea && counter) {
       const updateCounter = () => {
@@ -324,10 +395,6 @@ const script = String.raw`(() => {
       await ensureKatex(root.dataset.commentsKatex)
       preview.innerHTML = renderMarkdown(textarea.value.trim() || "还没有可预览的内容。")
       preview.removeAttribute("hidden")
-    }
-
-    if (previewButton && preview && textarea) {
-      previewButton.addEventListener("click", updatePreview)
     }
 
     if (syncPreview && preview && textarea) {
@@ -347,6 +414,34 @@ const script = String.raw`(() => {
         await submitComment(root, form)
       })
     }
+
+    if (list) {
+      list.addEventListener("click", async (event) => {
+        const button = event.target?.closest?.("[data-comment-delete]")
+        if (!button) return
+        event.preventDefault()
+        await deleteComment(root, button.dataset.commentDelete, button)
+      })
+    }
+
+    if (auth) {
+      auth.addEventListener("click", async (event) => {
+        const button = event.target?.closest?.("[data-comments-logout]")
+        if (!button) return
+        event.preventDefault()
+        button.setAttribute("disabled", "disabled")
+        try {
+          await fetch("/api/auth/logout", { method: "POST", headers: { Accept: "application/json" } })
+        } finally {
+          sessionState.user = null
+          sessionState.promise = null
+          applyAuth(root)
+          await loadComments(root)
+          document.dispatchEvent(new CustomEvent("authchange"))
+          button.removeAttribute("disabled")
+        }
+      })
+    }
   }
 
   function apiUrl(root) {
@@ -355,6 +450,14 @@ const script = String.raw`(() => {
 
   function commentPath(root) {
     return root.dataset.commentPath || "index"
+  }
+
+  function currentReturnTo() {
+    return window.location.pathname + window.location.search + window.location.hash
+  }
+
+  function loginUrl() {
+    return "/api/auth/github?returnTo=" + encodeURIComponent(currentReturnTo())
   }
 
   async function readResponse(response) {
@@ -373,6 +476,64 @@ const script = String.raw`(() => {
       : ""
     const prefix = response ? "HTTP " + String(response.status) : ""
     return [fallback, prefix, detail].filter(Boolean).join("：")
+  }
+
+  async function refreshSession(root) {
+    if (!sessionState.promise) {
+      sessionState.promise = fetch("/api/auth/session", { headers: { Accept: "application/json" } })
+        .then(readResponse)
+        .then((data) => {
+          sessionState.user = data && data.user ? data.user : null
+          return sessionState.user
+        })
+        .catch(() => {
+          sessionState.user = null
+          return null
+        })
+    }
+
+    await sessionState.promise
+    applyAuth(root)
+    return sessionState.user
+  }
+
+  function authAvatar(user) {
+    if (user && user.avatarUrl) {
+      return '<img class="note-comments-auth-avatar" src="' + escapeAttribute(user.avatarUrl) + '" alt="">'
+    }
+    const initial = (user && (user.name || user.login) ? (user.name || user.login) : "G").trim().slice(0, 1)
+    return '<span class="note-comment-avatar">' + escapeHtml(initial) + "</span>"
+  }
+
+  function applyAuth(root) {
+    const user = sessionState.user
+    const auth = root.querySelector("[data-comments-auth]")
+    const form = root.querySelector("[data-comments-form]")
+    const textarea = root.querySelector("[data-comments-content]")
+    const submitButton = form?.querySelector("[type='submit']")
+
+    if (auth) {
+      if (user) {
+        auth.innerHTML =
+          '<span class="note-comments-auth-user">' +
+          authAvatar(user) +
+          '<span>已用 GitHub 登录：<strong>' + escapeHtml(user.name || user.login) + "</strong></span>" +
+          "</span>" +
+          '<span class="note-comments-auth-actions">' +
+          '<button class="note-comments-button" type="button" data-comments-logout>退出</button>' +
+          "</span>"
+      } else {
+        auth.innerHTML =
+          '<span>登录 GitHub 后可以发表评论，作者和管理员可以删除评论。</span>' +
+          '<span class="note-comments-auth-actions">' +
+          '<a class="note-comments-button primary" href="' + escapeAttribute(loginUrl()) + '">GitHub 登录</a>' +
+          "</span>"
+      }
+    }
+
+    form?.classList.toggle("is-locked", !user)
+    if (textarea) textarea.disabled = !user
+    if (submitButton) submitButton.disabled = !user
   }
 
   function setStatus(root, message, isError) {
@@ -397,6 +558,10 @@ const script = String.raw`(() => {
         throw new Error(responseError(data, "评论加载失败", response))
       }
 
+      if (Object.prototype.hasOwnProperty.call(data, "user")) {
+        sessionState.user = data.user || null
+        applyAuth(root)
+      }
       renderCommentList(root, Array.isArray(data.comments) ? data.comments : [])
     } catch (error) {
       list.innerHTML = ""
@@ -425,13 +590,34 @@ const script = String.raw`(() => {
 
       const header = document.createElement("header")
       header.className = "note-comment-header"
-      header.innerHTML =
-        '<span class="note-comment-avatar">' + escapeHtml(initial) + '</span>' +
-        '<span class="note-comment-meta">' +
+      const avatar = document.createElement(comment.github_avatar_url ? "img" : "span")
+      if (comment.github_avatar_url) {
+        avatar.className = "note-comment-avatar-img"
+        avatar.src = comment.github_avatar_url
+        avatar.alt = ""
+        avatar.loading = "lazy"
+      } else {
+        avatar.className = "note-comment-avatar"
+        avatar.textContent = initial
+      }
+
+      const meta = document.createElement("span")
+      meta.className = "note-comment-meta"
+      meta.innerHTML =
         '<strong class="note-comment-author">' + escapeHtml(comment.author || "匿名") + '</strong>' +
         '<time class="note-comment-date" datetime="' + escapeAttribute(comment.created_at || "") + '">' +
         escapeHtml(formatDate(comment.created_at)) +
-        "</time></span>"
+        "</time>"
+      header.append(avatar, meta)
+
+      if (comment.can_delete) {
+        const deleteButton = document.createElement("button")
+        deleteButton.className = "note-comment-delete"
+        deleteButton.type = "button"
+        deleteButton.dataset.commentDelete = comment.id || ""
+        deleteButton.textContent = "删除"
+        header.append(deleteButton)
+      }
 
       const body = document.createElement("div")
       body.className = "note-comment-body"
@@ -446,13 +632,17 @@ const script = String.raw`(() => {
 
   async function submitComment(root, form) {
     const submitButton = form.querySelector("[type='submit']")
-    const author = (form.elements.author?.value || "").trim()
     const content = (form.elements.content?.value || "").trim()
     const website = (form.elements.website?.value || "").trim()
     const max = Number(root.dataset.commentsMaxLength || "5000")
 
-    if (!author) {
-      setStatus(root, "请先填写昵称。", true)
+    if (form.dataset.commentsSubmitting === "true") return
+
+    if (!sessionState.user) {
+      await refreshSession(root)
+    }
+    if (!sessionState.user) {
+      setStatus(root, "请先登录 GitHub 后再评论。", true)
       return
     }
     if (!content) {
@@ -464,10 +654,14 @@ const script = String.raw`(() => {
       return
     }
 
+    form.dataset.commentsSubmitting = "true"
     submitButton?.setAttribute("disabled", "disabled")
     setStatus(root, "正在发布评论...", false)
 
     try {
+      const idempotencyKey = crypto.randomUUID
+        ? crypto.randomUUID()
+        : String(Date.now()) + "-" + Math.random().toString(16).slice(2)
       const response = await fetch(apiUrl(root), {
         method: "POST",
         headers: {
@@ -476,9 +670,9 @@ const script = String.raw`(() => {
         },
         body: JSON.stringify({
           path: commentPath(root),
-          author,
           content,
           website,
+          idempotencyKey,
         }),
       })
       const data = await readResponse(response)
@@ -489,20 +683,43 @@ const script = String.raw`(() => {
 
       form.reset()
       const preview = root.querySelector("[data-comments-preview]")
-      const previewButton = root.querySelector("[data-comments-preview-button]")
       const syncPreview = root.querySelector("[data-comments-sync-preview]")
       if (preview) preview.innerHTML = ""
       preview?.setAttribute("hidden", "")
       if (syncPreview) syncPreview.checked = false
-      if (previewButton) previewButton.textContent = "预览"
       await loadComments(root)
       setStatus(root, "评论已发布。", false)
     } catch (error) {
       setStatus(root, error && error.message ? error.message : "评论发布失败", true)
     } finally {
+      delete form.dataset.commentsSubmitting
       submitButton?.removeAttribute("disabled")
+      if (!sessionState.user) submitButton?.setAttribute("disabled", "disabled")
       const counter = root.querySelector("[data-comments-counter]")
       if (counter) counter.textContent = "0 / " + String(max)
+    }
+  }
+
+  async function deleteComment(root, id, button) {
+    if (!id) return
+    if (!window.confirm("确定删除这条评论吗？")) return
+
+    button?.setAttribute("disabled", "disabled")
+    setStatus(root, "正在删除评论...", false)
+    try {
+      const response = await fetch(apiUrl(root) + "?id=" + encodeURIComponent(id), {
+        method: "DELETE",
+        headers: { Accept: "application/json" },
+      })
+      const data = await readResponse(response)
+      if (!response.ok) {
+        throw new Error(responseError(data, "评论删除失败", response))
+      }
+      await loadComments(root)
+      setStatus(root, "评论已删除。", false)
+    } catch (error) {
+      setStatus(root, error && error.message ? error.message : "评论删除失败", true)
+      button?.removeAttribute("disabled")
     }
   }
 
@@ -754,6 +971,7 @@ const Comments = (opts = {}) => {
           },
           "正在加载评论...",
         ),
+        h("div", { class: "note-comments-auth", "data-comments-auth": "" }, "正在检查 GitHub 登录状态..."),
         h("div", { class: "note-comments-list", "data-comments-list": "" }),
         h(
           "form",
@@ -763,23 +981,13 @@ const Comments = (opts = {}) => {
           },
           [
             h("label", { class: "note-comments-field" }, [
-              h("span", null, "昵称"),
-              h("input", {
-                name: "author",
-                type: "text",
-                maxlength: 40,
-                autocomplete: "name",
-                placeholder: "你的名字",
-                required: true,
-              }),
-            ]),
-            h("label", { class: "note-comments-field" }, [
               h("span", null, "评论内容"),
               h("textarea", {
                 name: "content",
                 maxlength: options.maxLength,
                 placeholder: "支持 Markdown、$行内公式$ 和 $$独立公式$$。",
                 required: true,
+                disabled: true,
                 "data-comments-content": "",
               }),
             ]),
@@ -806,16 +1014,7 @@ const Comments = (opts = {}) => {
                   }),
                   h("span", null, "同步预览"),
                 ]),
-                h(
-                  "button",
-                  {
-                    class: "note-comments-button",
-                    type: "button",
-                    "data-comments-preview-button": "",
-                  },
-                  "预览",
-                ),
-                h("button", { class: "note-comments-button primary", type: "submit" }, "发布评论"),
+                h("button", { class: "note-comments-button primary", type: "submit", disabled: true }, "发布评论"),
               ]),
             ]),
           ],
