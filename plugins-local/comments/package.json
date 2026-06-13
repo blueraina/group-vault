@@ -1,0 +1,57 @@
+{
+  "name": "@group-vault/comments",
+  "version": "0.1.0",
+  "description": "Per-note comments component backed by Cloudflare Pages Functions and D1.",
+  "type": "module",
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./components": {
+      "types": "./dist/components/index.d.ts",
+      "import": "./dist/components/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
+  "peerDependencies": {
+    "preact": "^10.0.0"
+  },
+  "quartz": {
+    "name": "comments",
+    "displayName": "Comments",
+    "category": "component",
+    "version": "1.0.0",
+    "quartzVersion": ">=5.0.0",
+    "dependencies": [],
+    "defaultOrder": 90,
+    "defaultEnabled": true,
+    "defaultOptions": {
+      "apiBase": "/api/comments",
+      "maxLength": 5000,
+      "katexScript": "/static/katex.min.js"
+    },
+    "components": {
+      "Comments": {
+        "displayName": "Comments",
+        "defaultPosition": "afterBody",
+        "defaultPriority": 10
+      }
+    },
+    "optionSchema": {
+      "apiBase": {
+        "type": "string"
+      },
+      "maxLength": {
+        "type": "number"
+      },
+      "katexScript": {
+        "type": "string"
+      }
+    }
+  }
+}
