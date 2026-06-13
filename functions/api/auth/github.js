@@ -1,11 +1,43 @@
 import {
   createOauthState,
+  githubAuthConfigured,
   json,
+  missingEnv,
   requireEnv,
   returnCookie,
   safeReturnTo,
   stateCookie,
 } from "../../_lib/auth.js"
+
+function loginUnavailable(request, env) {
+  const missing = missingEnv(env, ["GITHUB_CLIENT_ID", "GITHUB_CLIENT_SECRET", "SESSION_SECRET"])
+  const message = "GitHub login is not configured"
+  const accept = request.headers.get("accept") || ""
+
+  if (accept.includes("text/html")) {
+    const detail = missing.length > 0 ? missing.join(", ") : "required environment variables"
+    return new Response(
+      `<!doctype html>
+<meta charset="utf-8">
+<title>GitHub 登录未配置</title>
+<body style="font-family: system-ui, sans-serif; line-height: 1.6; max-width: 42rem; margin: 4rem auto; padding: 0 1rem;">
+  <h1>GitHub 登录暂时不可用</h1>
+  <p>站点还没有完成 GitHub OAuth 环境变量配置。</p>
+  <p><code>${detail}</code></p>
+  <p><a href="/">返回首页</a></p>
+</body>`,
+      {
+        status: 503,
+        headers: {
+          "content-type": "text/html; charset=utf-8",
+          "cache-control": "no-store",
+        },
+      },
+    )
+  }
+
+  return json({ error: message, authConfigured: false, missing }, 503)
+}
 
 export async function onRequest({ request, env }) {
   if (request.method !== "GET") {
@@ -13,6 +45,8 @@ export async function onRequest({ request, env }) {
   }
 
   try {
+    if (!githubAuthConfigured(env)) return loginUnavailable(request, env)
+
     const clientId = requireEnv(env, "GITHUB_CLIENT_ID")
     const url = new URL(request.url)
     const state = createOauthState()

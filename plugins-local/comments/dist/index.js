@@ -360,7 +360,7 @@ a.note-comments-button {
 
 const script = String.raw`(() => {
   const katexState = { promise: null }
-  const sessionState = { promise: null, user: null }
+  const sessionState = { promise: null, user: null, authConfigured: null }
   const backtick = String.fromCharCode(96)
 
   function initComments() {
@@ -478,15 +478,30 @@ const script = String.raw`(() => {
     return [fallback, prefix, detail].filter(Boolean).join("：")
   }
 
+  function friendlyError(message) {
+    const value = String(message || "")
+    if (value.includes("COMMENTS_DB")) return "评论数据库尚未完成部署配置，暂时不能加载或发布评论。"
+    if (
+      value.includes("GITHUB_CLIENT_ID") ||
+      value.includes("GITHUB_CLIENT_SECRET") ||
+      value.includes("SESSION_SECRET")
+    ) {
+      return "GitHub 登录尚未完成部署配置，暂时不能发表评论。"
+    }
+    return value
+  }
+
   async function refreshSession(root) {
     if (!sessionState.promise) {
       sessionState.promise = fetch("/api/auth/session", { headers: { Accept: "application/json" } })
         .then(readResponse)
         .then((data) => {
+          sessionState.authConfigured = data && data.authConfigured === false ? false : true
           sessionState.user = data && data.user ? data.user : null
           return sessionState.user
         })
         .catch(() => {
+          sessionState.authConfigured = null
           sessionState.user = null
           return null
         })
@@ -521,6 +536,12 @@ const script = String.raw`(() => {
           "</span>" +
           '<span class="note-comments-auth-actions">' +
           '<button class="note-comments-button" type="button" data-comments-logout>退出</button>' +
+          "</span>"
+      } else if (sessionState.authConfigured === false) {
+        auth.innerHTML =
+          '<span>GitHub 登录尚未完成部署配置，暂时不能发表评论。</span>' +
+          '<span class="note-comments-auth-actions">' +
+          '<button class="note-comments-button primary" type="button" disabled>GitHub 登录</button>' +
           "</span>"
       } else {
         auth.innerHTML =
@@ -565,7 +586,7 @@ const script = String.raw`(() => {
       renderCommentList(root, Array.isArray(data.comments) ? data.comments : [])
     } catch (error) {
       list.innerHTML = ""
-      setStatus(root, error && error.message ? error.message : "评论加载失败", true)
+      setStatus(root, friendlyError(error && error.message ? error.message : "评论加载失败"), true)
     }
   }
 
@@ -641,6 +662,10 @@ const script = String.raw`(() => {
     if (!sessionState.user) {
       await refreshSession(root)
     }
+    if (sessionState.authConfigured === false) {
+      setStatus(root, "GitHub 登录尚未完成部署配置，暂时不能发表评论。", true)
+      return
+    }
     if (!sessionState.user) {
       setStatus(root, "请先登录 GitHub 后再评论。", true)
       return
@@ -690,7 +715,7 @@ const script = String.raw`(() => {
       await loadComments(root)
       setStatus(root, "评论已发布。", false)
     } catch (error) {
-      setStatus(root, error && error.message ? error.message : "评论发布失败", true)
+      setStatus(root, friendlyError(error && error.message ? error.message : "评论发布失败"), true)
     } finally {
       delete form.dataset.commentsSubmitting
       submitButton?.removeAttribute("disabled")
@@ -718,7 +743,7 @@ const script = String.raw`(() => {
       await loadComments(root)
       setStatus(root, "评论已删除。", false)
     } catch (error) {
-      setStatus(root, error && error.message ? error.message : "评论删除失败", true)
+      setStatus(root, friendlyError(error && error.message ? error.message : "评论删除失败"), true)
       button?.removeAttribute("disabled")
     }
   }

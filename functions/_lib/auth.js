@@ -36,6 +36,18 @@ export function requireEnv(env, name) {
   return value
 }
 
+export function hasEnv(env, name) {
+  return Boolean(String(env[name] || "").trim())
+}
+
+export function missingEnv(env, names) {
+  return names.filter((name) => !hasEnv(env, name))
+}
+
+export function githubAuthConfigured(env) {
+  return missingEnv(env, ["GITHUB_CLIENT_ID", "GITHUB_CLIENT_SECRET", "SESSION_SECRET"]).length === 0
+}
+
 export function parseCookies(request) {
   const header = request.headers.get("cookie") || ""
   const cookies = {}

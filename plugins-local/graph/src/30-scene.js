@@ -67,10 +67,47 @@ async function setupPixiScene(ctx) {
     return baseRadiusOf(node) * (o.nodeSize || 1)
   }
   function centerForceStrength() {
+    if (o.centerCurrentNode) return 0
     return Math.max(0, Math.min(1, o.centerForce || 0))
   }
   function radialForceStrength() {
+    if (!o.enableRadial || nodes.length <= 2) return 0
     return Math.max(0, o.centerForce || 0) * 0.08
+  }
+  function effectiveLinkDistance() {
+    var configured = Math.max(1, Number(o.linkDistance) || 30)
+    if (nodes.length <= 2) return Math.max(configured, 72)
+    if (nodes.length <= 4) return Math.max(configured, 54)
+    return configured
+  }
+  function sparseGraphSpread(alpha) {
+    if (nodes.length < 2 || nodes.length > 4) return
+    var minDistance = effectiveLinkDistance()
+    for (var i = 0; i < nodes.length; i++) {
+      for (var j = i + 1; j < nodes.length; j++) {
+        var a = nodes[i]
+        var b = nodes[j]
+        var dx = (b.x || 0) - (a.x || 0)
+        var dy = (b.y || 0) - (a.y || 0)
+        var distance = Math.sqrt(dx * dx + dy * dy)
+        if (!distance || distance < 1) {
+          var angle = (i + j + 1) * Math.PI * 0.618
+          dx = Math.cos(angle)
+          dy = Math.sin(angle)
+          distance = 1
+        }
+        if (distance >= minDistance) continue
+        var push = ((minDistance - distance) / distance) * 0.35 * alpha
+        if (a.fx == null) {
+          a.vx -= dx * push
+          a.vy -= dy * push
+        }
+        if (b.fx == null) {
+          b.vx += dx * push
+          b.vy += dy * push
+        }
+      }
+    }
   }
   function centerCurrentStrength(node) {
     return o.centerCurrentNode && node.id === slug ? 1 : 0
@@ -113,8 +150,9 @@ async function setupPixiScene(ctx) {
     .force("currentX", d3.forceX(0).strength(centerCurrentStrength))
     .force("currentY", d3.forceY(0).strength(centerCurrentStrength))
     .force("radial", d3.forceRadial(0, 0, 0).strength(radialForceStrength()))
-    .force("link", d3.forceLink(links).distance(o.linkDistance).strength(o.linkStrength))
+    .force("link", d3.forceLink(links).distance(effectiveLinkDistance).strength(o.linkStrength))
     .force("collide", d3.forceCollide().radius(function (n) { return currentRadiusOf(n) + 4 }).iterations(2))
+    .force("sparseGraphSpread", sparseGraphSpread)
     .velocityDecay(0.35)
     .alphaDecay(0.02)
 
@@ -142,7 +180,7 @@ async function setupPixiScene(ctx) {
     sim.force("currentX").strength(centerCurrentStrength)
     sim.force("currentY").strength(centerCurrentStrength)
     sim.force("radial").strength(radialForceStrength())
-    sim.force("link").distance(o.linkDistance).strength(o.linkStrength)
+    sim.force("link").distance(effectiveLinkDistance).strength(o.linkStrength)
     sim.force("collide").radius(function (n) { return currentRadiusOf(n) + 4 })
   }
 

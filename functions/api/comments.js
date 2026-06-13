@@ -160,13 +160,14 @@ export async function onRequest({ request, env }) {
   }
 
   try {
-    if (request.method === "GET") return handleGet(request, env)
-    if (request.method === "POST") return handlePost(request, env)
-    if (request.method === "DELETE") return handleDelete(request, env)
+    if (request.method === "GET") return await handleGet(request, env)
+    if (request.method === "POST") return await handlePost(request, env)
+    if (request.method === "DELETE") return await handleDelete(request, env)
     return json({ error: "Method not allowed" }, 405)
   } catch (error) {
     const message = error instanceof Error ? error.message : "评论服务暂时不可用"
-    const status = error.status || (message.includes("not configured") ? 500 : 400)
-    return json({ error: message }, status)
+    const configured = !message.includes("not configured")
+    const status = error.status || (configured ? 400 : 503)
+    return json({ error: message, configured }, status)
   }
 }
