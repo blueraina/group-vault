@@ -142,6 +142,10 @@ async function renderGraph(container, fullSlug, renderId) {
       x: centerCurrentNode && id === slug ? 0 : (Math.cos(visibleIds.size + nodes.length) * width) / 4,
       y: centerCurrentNode && id === slug ? 0 : (Math.sin(visibleIds.size + nodes.length) * height) / 4,
     }
+    if (centerCurrentNode && id === slug) {
+      node.fx = 0
+      node.fy = 0
+    }
     nodes.push(node)
     nodeById.set(id, node)
   })

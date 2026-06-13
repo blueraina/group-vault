@@ -106,8 +106,13 @@ function wireInteractionsAndLoop(s) {
         if (!event.subject || !event.subject.node) return
         var node = event.subject.node
         if (!event.active) sim.alphaTarget(0)
-        node.fx = null
-        node.fy = null
+        if (o.centerCurrentNode && node.id === s.slug) {
+          node.fx = 0
+          node.fy = 0
+        } else {
+          node.fx = null
+          node.fy = null
+        }
         s.setDragging(false)
         // Only navigate when the pointer barely moved — fixes accidental jumps.
         if (!event.subject.__moved) {

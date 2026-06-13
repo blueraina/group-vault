@@ -3,19 +3,6 @@ const jsonHeaders = {
   "cache-control": "no-store",
 }
 
-const schemaStatements = [
-  `CREATE TABLE IF NOT EXISTS comments (
-    id TEXT PRIMARY KEY,
-    path TEXT NOT NULL,
-    author TEXT NOT NULL,
-    content TEXT NOT NULL,
-    status TEXT NOT NULL DEFAULT 'visible',
-    created_at TEXT NOT NULL
-  )`,
-  "CREATE INDEX IF NOT EXISTS comments_path_created_at_idx ON comments(path, created_at)",
-  "CREATE INDEX IF NOT EXISTS comments_status_idx ON comments(status)",
-]
-
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
@@ -43,18 +30,11 @@ function normalizeContent(value) {
   return content
 }
 
-async function ensureSchema(db) {
-  for (const statement of schemaStatements) {
-    await db.prepare(statement).run()
-  }
-}
-
 async function database(env) {
-  if (!env.COMMENTS_DB) {
+  if (!env.COMMENTS_DB || typeof env.COMMENTS_DB.prepare !== "function") {
     throw new Error("COMMENTS_DB D1 绑定尚未配置")
   }
 
-  await ensureSchema(env.COMMENTS_DB)
   return env.COMMENTS_DB
 }
 
