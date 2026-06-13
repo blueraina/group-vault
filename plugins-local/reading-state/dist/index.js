@@ -82,11 +82,14 @@ const style = `.reading-state {
 
 const script = `(() => {
   const storagePrefix = "group-vault:reading-state:v1"
+  const marksApi = "/api/marks"
+  const sessionApi = "/api/auth/session"
   const activeText = {
     read: { on: "✓", off: "○" },
     favorite: { on: "★", off: "☆" },
   }
   const globalStateKey = "__groupVaultReadingState"
+  const remoteState = { loaded: false, loading: null, authenticated: false }
   let explorerObserver = null
   let explorerUpdateQueued = false
   const explorerUpdateDelays = [0, 80, 250]
@@ -152,6 +155,75 @@ const script = `(() => {
       } else {
         localStorage.removeItem(key)
       }
+    } catch {}
+  }
+
+  async function readJson(response) {
+    const text = await response.text().catch(() => "")
+    if (!text) return {}
+    try {
+      return JSON.parse(text)
+    } catch {
+      return {}
+    }
+  }
+
+  async function loadRemoteMarks() {
+    if (remoteState.loaded) return remoteState.authenticated
+    if (remoteState.loading) return remoteState.loading
+
+    remoteState.loading = (async () => {
+      try {
+        const sessionResponse = await fetch(sessionApi, { headers: { Accept: "application/json" } })
+        const session = await readJson(sessionResponse)
+        remoteState.authenticated = Boolean(session && session.user)
+
+        if (!remoteState.authenticated) {
+          remoteState.loaded = true
+          return false
+        }
+
+        const marksResponse = await fetch(marksApi, { headers: { Accept: "application/json" } })
+        const data = await readJson(marksResponse)
+        if (marksResponse.ok && Array.isArray(data.marks)) {
+          data.marks.forEach((mark) => {
+            if (mark && mark.path && mark.mark_type) {
+              setState(mark.mark_type, mark.path, true)
+            }
+          })
+        }
+
+        remoteState.loaded = true
+        return true
+      } catch {
+        remoteState.authenticated = false
+        remoteState.loaded = true
+        return false
+      } finally {
+        remoteState.loading = null
+      }
+    })()
+
+    return remoteState.loading
+  }
+
+  async function persistRemoteMark(action, pageId, isActive) {
+    const authenticated = await loadRemoteMarks()
+    if (!authenticated) return
+
+    try {
+      await fetch(marksApi, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          path: pageId,
+          markType: action,
+          active: isActive,
+        }),
+      })
     } catch {}
   }
 
@@ -278,6 +350,7 @@ const script = `(() => {
     setState(action, pageId, nextState)
     refreshRoot(root)
     scheduleExplorerMarkers()
+    persistRemoteMark(action, pageId, nextState)
   }
 
   function setupReadingStateClickHandler() {
@@ -302,6 +375,10 @@ const script = `(() => {
     setupReadingStateClickHandler()
     document.querySelectorAll("[data-reading-state]").forEach(setupRoot)
     setupExplorerMarkers()
+    loadRemoteMarks().then(() => {
+      document.querySelectorAll("[data-reading-state]").forEach(setupRoot)
+      scheduleExplorerMarkers()
+    })
   }
 
   if (document.readyState === "loading") {
@@ -312,6 +389,11 @@ const script = `(() => {
 
   document.addEventListener("nav", setupReadingState)
   document.addEventListener("render", setupReadingState)
+  document.addEventListener("authchange", () => {
+    remoteState.loaded = false
+    remoteState.loading = null
+    setupReadingState()
+  })
 })()`
 
 const defaultOptions = {

@@ -18,6 +18,10 @@ function wireInteractionsAndLoop(s) {
   var DRAG_THRESHOLD = 4 // px in screen space; below this a pointerup is a click, not a drag
   var stopped = false
   var introStart = null
+  function centeredTransform(scale) {
+    return d3.zoomIdentity.translate(cx * (1 - scale), cy * (1 - scale)).scale(scale)
+  }
+
   function canvasPoint(event) {
     var rect = app.canvas.getBoundingClientRect()
     var ex = event.sourceEvent || event
@@ -148,9 +152,9 @@ function wireInteractionsAndLoop(s) {
         s.setTransform(event.transform)
       })
     d3.select(app.canvas).call(zoomBehavior)
-    d3.select(app.canvas).call(zoomBehavior.transform, d3.zoomIdentity.scale(o.baseScale))
+    d3.select(app.canvas).call(zoomBehavior.transform, centeredTransform(o.baseScale))
   } else {
-    s.setTransform(d3.zoomIdentity.scale(o.baseScale))
+    s.setTransform(centeredTransform(o.baseScale))
   }
 
   // --- per-frame render loop ---
