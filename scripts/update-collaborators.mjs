@@ -7,6 +7,7 @@ import YAML from "yaml"
 const root = process.cwd()
 const readmePath = path.join(root, "README.md")
 const dataPath = path.join(root, "data", "collaborators.json")
+const maintainersPath = path.join(root, "functions", "_lib", "maintainers.generated.js")
 const contentDir = path.join(root, "content")
 const pagePath = path.join(root, "content", "其他信息", "协作者.md")
 const timelinePath = path.join(root, "content", "其他信息", "维护时间线.md")
@@ -19,9 +20,7 @@ const legacyAuthorAliases = new Map([
   ["管理员", "blueraina"],
   ["蓝语", "blueraina"],
 ])
-const collaboratorDisplayNames = new Map([
-  ["blueraina", "蓝语"],
-])
+const collaboratorDisplayNames = new Map([["blueraina", "蓝语"]])
 
 function parseRepository() {
   if (process.env.GITHUB_REPOSITORY) {
@@ -52,7 +51,9 @@ async function githubJson(url) {
   const response = await fetch(url, { headers: authHeaders() })
   if (!response.ok) {
     const body = await response.text()
-    throw new Error(`GitHub API request failed: ${response.status} ${response.statusText}\n${url}\n${body}`)
+    throw new Error(
+      `GitHub API request failed: ${response.status} ${response.statusText}\n${url}\n${body}`,
+    )
   }
   return response.json()
 }
@@ -83,7 +84,11 @@ async function getUser(login) {
 function normalizeCollaborator(user) {
   return {
     login: user.login,
-    displayName: collaboratorDisplayNames.get(user.login.toLowerCase()) || user.displayName || user.name || user.login,
+    displayName:
+      collaboratorDisplayNames.get(user.login.toLowerCase()) ||
+      user.displayName ||
+      user.name ||
+      user.login,
     htmlUrl: user.html_url || user.htmlUrl || `https://github.com/${user.login}`,
     avatarUrl: user.avatar_url || user.avatarUrl || `https://github.com/${user.login}.png`,
   }
@@ -108,7 +113,10 @@ async function writeIfChanged(filePath, content) {
 async function readExistingCollaboratorLogins() {
   try {
     const data = JSON.parse(await fs.readFile(dataPath, "utf8"))
-    return (data.collaborators || []).map((user) => user.login).filter(Boolean).sort()
+    return (data.collaborators || [])
+      .map((user) => user.login)
+      .filter(Boolean)
+      .sort()
   } catch {
     return []
   }
@@ -139,7 +147,9 @@ function localDateParts(date) {
     hour12: false,
   })
 
-  const parts = Object.fromEntries(formatter.formatToParts(date).map((part) => [part.type, part.value]))
+  const parts = Object.fromEntries(
+    formatter.formatToParts(date).map((part) => [part.type, part.value]),
+  )
   return {
     date: `${parts.year}-${parts.month}-${parts.day}`,
     dateTime: `${parts.year}-${parts.month}-${parts.day} ${parts.hour}:${parts.minute}`,
@@ -164,7 +174,10 @@ async function updateCollaboratorTimeline(collaborators) {
   const currentBlock = content.slice(startIndex + timelineStart.length, endIndex).trim()
   const currentEntries =
     currentBlock && !/^暂无记录[。.]$/.test(currentBlock)
-      ? currentBlock.split(/\r?\n/).map((line) => line.trim()).filter((line) => line && !/^暂无记录[。.]$/.test(line))
+      ? currentBlock
+          .split(/\r?\n/)
+          .map((line) => line.trim())
+          .filter((line) => line && !/^暂无记录[。.]$/.test(line))
       : []
 
   const nextBody = [entry, ...currentEntries].join("\n")
@@ -179,8 +192,28 @@ async function updateCollaboratorTimeline(collaborators) {
 }
 
 async function writeCircularAvatar(collaborator) {
-  const response = await fetch(avatarFetchUrl(collaborator.avatarUrl))
+  const filename = `${collaborator.login.toLowerCase()}.png`
+  const outputPath = path.join(avatarDir, filename)
+  let response
+  try {
+    response = await fetch(avatarFetchUrl(collaborator.avatarUrl))
+  } catch (error) {
+    try {
+      await fs.access(outputPath)
+      console.warn(`Could not fetch avatar for ${collaborator.login}. Keeping existing avatar.`)
+      return
+    } catch {}
+    throw error
+  }
+
   if (!response.ok) {
+    try {
+      await fs.access(outputPath)
+      console.warn(
+        `Could not fetch avatar for ${collaborator.login}: ${response.status}. Keeping existing avatar.`,
+      )
+      return
+    } catch {}
     throw new Error(`Failed to fetch avatar for ${collaborator.login}: ${response.status}`)
   }
 
@@ -195,8 +228,7 @@ async function writeCircularAvatar(collaborator) {
     .png()
     .toBuffer()
 
-  const filename = `${collaborator.login.toLowerCase()}.png`
-  await writeIfChanged(path.join(avatarDir, filename), output)
+  await writeIfChanged(outputPath, output)
 }
 
 async function removeStaleAvatars(collaborators) {
@@ -342,7 +374,9 @@ async function collectNotesByCollaborator(collaborators) {
   }
 
   for (const notes of notesByLogin.values()) {
-    notes.sort((a, b) => b.date.getTime() - a.date.getTime() || a.title.localeCompare(b.title, "zh-CN"))
+    notes.sort(
+      (a, b) => b.date.getTime() - a.date.getTime() || a.title.localeCompare(b.title, "zh-CN"),
+    )
   }
 
   return notesByLogin
@@ -417,7 +451,10 @@ async function updateReadme(collaborators) {
 
   const insertionPoint = "\n## 本地打开 Obsidian vault"
   if (readme.includes(insertionPoint)) {
-    return writeIfChanged(readmePath, readme.replace(insertionPoint, `\n${section}${insertionPoint}`))
+    return writeIfChanged(
+      readmePath,
+      readme.replace(insertionPoint, `\n${section}${insertionPoint}`),
+    )
   }
 
   return writeIfChanged(readmePath, `${readme.trimEnd()}\n\n${section}`)
@@ -425,7 +462,10 @@ async function updateReadme(collaborators) {
 
 function renderCollaboratorHeader(user, notes) {
   const avatarPath = `../assets/collaborators/${user.login.toLowerCase()}.png`
-  const display = user.displayName && user.displayName !== user.login ? `${user.displayName}（@${user.login}）` : `@${user.login}`
+  const display =
+    user.displayName && user.displayName !== user.login
+      ? `${user.displayName}（@${user.login}）`
+      : `@${user.login}`
   return [
     `## ${display}`,
     "",
@@ -477,6 +517,37 @@ async function updateDataFile(repository, collaborators) {
   return writeIfChanged(dataPath, `${JSON.stringify(data, null, 2)}\n`)
 }
 
+function renderMaintainersModule(repository, collaborators) {
+  const logins = collaborators
+    .map((user) =>
+      String(user.login || "")
+        .trim()
+        .toLowerCase(),
+    )
+    .filter(Boolean)
+    .sort()
+
+  return [
+    "// This file is generated by scripts/update-collaborators.mjs.",
+    "// Do not edit by hand.",
+    "",
+    "// prettier-ignore",
+    "export const generatedMaintainerLogins = [",
+    ...logins.map((login) => `  ${JSON.stringify(login)},`),
+    "]",
+    "",
+    "export const generatedMaintainerSource = {",
+    '  source: "github-collaborators",',
+    `  repository: ${JSON.stringify(repository)},`,
+    "}",
+    "",
+  ].join("\n")
+}
+
+async function updateMaintainersModule(repository, collaborators) {
+  return writeIfChanged(maintainersPath, renderMaintainersModule(repository, collaborators))
+}
+
 async function main() {
   const { owner, repo } = parseRepository()
   const repository = `${owner}/${repo}`
@@ -495,10 +566,14 @@ async function main() {
 
     const existingCollaborators = await readExistingCollaborators()
     if (existingCollaborators.length > 0) {
-      console.warn("Could not list collaborators without a token. Falling back to data/collaborators.json.")
+      console.warn(
+        "Could not list collaborators without a token. Falling back to data/collaborators.json.",
+      )
       rawCollaborators = existingCollaborators
     } else {
-      console.warn(`Could not list collaborators without a token. Falling back to repository owner: ${owner}`)
+      console.warn(
+        `Could not list collaborators without a token. Falling back to repository owner: ${owner}`,
+      )
       rawCollaborators = [await getUser(owner)]
     }
   }
@@ -506,7 +581,8 @@ async function main() {
   const byLogin = new Map()
   for (const user of rawCollaborators) {
     if (user?.login) {
-      const detailedUser = user.displayName || user.name ? user : { ...user, ...(await getUser(user.login)) }
+      const detailedUser =
+        user.displayName || user.name ? user : { ...user, ...(await getUser(user.login)) }
       byLogin.set(user.login.toLowerCase(), normalizeCollaborator(detailedUser))
     }
   }
@@ -523,13 +599,16 @@ async function main() {
   await removeStaleAvatars(collaborators)
   const notesByLogin = await collectNotesByCollaborator(collaborators)
   await updateDataFile(repository, collaborators)
+  await updateMaintainersModule(repository, collaborators)
   await writeIfChanged(pagePath, renderCollaboratorsPage(collaborators, notesByLogin))
   await updateReadme(collaborators)
   if (!sameLogins(previousLogins, nextLogins)) {
     await updateCollaboratorTimeline(collaborators)
   }
 
-  console.log(`Updated ${collaborators.length} collaborator(s): ${collaborators.map((u) => u.login).join(", ")}`)
+  console.log(
+    `Updated ${collaborators.length} collaborator(s): ${collaborators.map((u) => u.login).join(", ")}`,
+  )
 }
 
 await main()
