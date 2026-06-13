@@ -18,29 +18,52 @@ function wireInteractionsAndLoop(s) {
   var DRAG_THRESHOLD = 4 // px in screen space; below this a pointerup is a click, not a drag
   var stopped = false
   var introStart = null
+  function canvasPoint(event) {
+    var rect = app.canvas.getBoundingClientRect()
+    var ex = event.sourceEvent || event
+    var clientX = ex.clientX
+    var clientY = ex.clientY
+    if (clientX == null && event.touches && event.touches.length > 0) {
+      clientX = event.touches[0].clientX
+      clientY = event.touches[0].clientY
+    }
+    return {
+      x: (clientX - rect.left) * (width / rect.width),
+      y: (clientY - rect.top) * (height / rect.height),
+    }
+  }
+
+  function pickNodeAt(x, y) {
+    var T = s.getTransform()
+    var px = (x - T.x) / T.k - cx
+    var py = (y - T.y) / T.k - cy
+    var best = null
+    var bestDist = Infinity
+    for (var i = 0; i < nodes.length; i++) {
+      var n = nodes[i]
+      var dx = px - n.x
+      var dy = py - n.y
+      var dist = Math.sqrt(dx * dx + dy * dy)
+      var rr = radiusOf(n) + 8
+      if (dist < rr && dist < bestDist) { best = n; bestDist = dist }
+    }
+    return best
+  }
 
   // --- drag (with click-vs-drag discrimination) ---
   if (o.enableDrag) {
     var pickNode = function (event) {
-      var T = s.getTransform()
-      var px = (event.x - T.x) / T.k - cx
-      var py = (event.y - T.y) / T.k - cy
-      var best = null
-      var bestDist = Infinity
-      for (var i = 0; i < nodes.length; i++) {
-        var n = nodes[i]
-        var dx = px - n.x
-        var dy = py - n.y
-        var dist = Math.sqrt(dx * dx + dy * dy)
-        var rr = radiusOf(n) + 4
-        if (dist < rr && dist < bestDist) { best = n; bestDist = dist }
-      }
-      return best
+      return pickNodeAt(event.x, event.y)
     }
 
     var dragBehavior = d3
       .drag()
       .container(app.canvas)
+      .filter(function (event) {
+        if (event.button) return false
+        var p = canvasPoint(event)
+        return !!pickNodeAt(p.x, p.y)
+      })
       .subject(pickNode)
       .on("start", function (event) {
         if (!event.subject) return
@@ -92,6 +115,12 @@ function wireInteractionsAndLoop(s) {
       .zoom()
       .extent([[0, 0], [width, height]])
       .scaleExtent([0.25, 4])
+      .filter(function (event) {
+        if ((event.ctrlKey && event.type !== "wheel") || event.button) return false
+        if (event.type === "wheel") return true
+        var p = canvasPoint(event)
+        return !pickNodeAt(p.x, p.y)
+      })
       .on("zoom", function (event) {
         s.setTransform(event.transform)
       })

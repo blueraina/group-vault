@@ -118,7 +118,7 @@ plugins:
     options:
       localGraph:
         showTags: false
-        fontSize: 0.45
+        fontSize: 0.75
         textOpacity: 0.85
         removeNodes:
           - 其他信息/维护时间线

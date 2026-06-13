@@ -5,7 +5,7 @@
   var storageKeys = { local: "graph-settings-local", global: "graph-settings" }
   var fallback = {
     depth: 1, showNeighborLinks: true, neighborLinkDepth: 1, showArrows: false,
-    textOpacity: 1, fontSize: 0.5, nodeSize: 1, linkWidth: 1,
+    textOpacity: 1, fontSize: 0.75, nodeSize: 1, linkWidth: 1,
     centerForce: 0.3, repelForce: 0.5, linkStrength: 1, linkDistance: 30,
   }
   var sections = [
@@ -22,7 +22,7 @@
       controls: [
         { key: "showArrows", label: "箭头", type: "checkbox" },
         { key: "textOpacity", label: "文本透明度", min: 0, max: 1, step: 0.05 },
-        { key: "fontSize", label: "字体大小", min: 0.25, max: 1.2, step: 0.05 },
+        { key: "fontSize", label: "字体大小", min: 0.6, max: 1.2, step: 0.05 },
         { key: "nodeSize", label: "节点大小", min: 0.6, max: 2.2, step: 0.1 },
         { key: "linkWidth", label: "连线粗细", min: 0.5, max: 4, step: 0.25 },
       ],
@@ -39,12 +39,28 @@
   ]
   function readJson(v) { try { return JSON.parse(v || "{}") } catch (e) { return {} } }
   function selectorFor(scope) { return scope === "local" ? ".graph-container" : ".global-graph-container" }
+  function clampValue(def, value) {
+    if (def.type === "checkbox") return !!value
+    var num = Number(value)
+    if (!Number.isFinite(num)) num = fallback[def.key]
+    if (def.min != null) num = Math.max(def.min, num)
+    if (def.max != null) num = Math.min(def.max, num)
+    return num
+  }
+  function normalizeValues(values) {
+    sections.forEach(function (section) {
+      section.controls.forEach(function (def) {
+        if (values[def.key] != null) values[def.key] = clampValue(def, values[def.key])
+      })
+    })
+    return values
+  }
   function baseCfg(scope) {
     var el = document.querySelector(selectorFor(scope))
-    return Object.assign({}, fallback, readJson(el && (el.dataset.baseCfg || el.dataset.cfg)))
+    return normalizeValues(Object.assign({}, fallback, readJson(el && (el.dataset.baseCfg || el.dataset.cfg))))
   }
   function stored(scope) { return readJson(localStorage.getItem(storageKeys[scope])) }
-  function settings(scope) { return Object.assign({}, baseCfg(scope), stored(scope)) }
+  function settings(scope) { return normalizeValues(Object.assign({}, baseCfg(scope), stored(scope))) }
   function displayValue(def, value) {
     if (def.type === "checkbox") return value ? "开" : "关"
     return Number(value).toFixed(def.step < 1 ? 2 : 0).replace(/\.00$/g, "")
