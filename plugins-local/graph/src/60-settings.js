@@ -47,9 +47,10 @@
     if (def.max != null) num = Math.min(def.max, num)
     return num
   }
-  function normalizeValues(values) {
+  function normalizeValues(scope, values) {
     sections.forEach(function (section) {
       section.controls.forEach(function (def) {
+        if (!controlVisible(scope, def)) return
         if (values[def.key] != null) values[def.key] = clampValue(def, values[def.key])
       })
     })
@@ -57,10 +58,10 @@
   }
   function baseCfg(scope) {
     var el = document.querySelector(selectorFor(scope))
-    return normalizeValues(Object.assign({}, fallback, readJson(el && (el.dataset.baseCfg || el.dataset.cfg))))
+    return normalizeValues(scope, Object.assign({}, fallback, readJson(el && (el.dataset.baseCfg || el.dataset.cfg))))
   }
   function stored(scope) { return readJson(localStorage.getItem(storageKeys[scope])) }
-  function settings(scope) { return normalizeValues(Object.assign({}, baseCfg(scope), stored(scope))) }
+  function settings(scope) { return normalizeValues(scope, Object.assign({}, baseCfg(scope), stored(scope))) }
   function displayValue(def, value) {
     if (def.type === "checkbox") return value ? "开" : "关"
     return Number(value).toFixed(def.step < 1 ? 2 : 0).replace(/\.00$/g, "")
