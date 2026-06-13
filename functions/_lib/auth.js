@@ -9,6 +9,16 @@ const jsonHeaders = {
 }
 
 const encoder = new TextEncoder()
+const builtInMaintainerLogins = ["blueraina", "libinyam", "llc-byte", "vesperazephyr"]
+
+function parseLoginList(value) {
+  return new Set(
+    String(value || "")
+      .split(/[,\s]+/u)
+      .map((login) => login.trim().toLowerCase())
+      .filter(Boolean),
+  )
+}
 
 export function json(data, status = 200, headers = {}) {
   return new Response(JSON.stringify(data), {
@@ -45,7 +55,9 @@ export function missingEnv(env, names) {
 }
 
 export function githubAuthConfigured(env) {
-  return missingEnv(env, ["GITHUB_CLIENT_ID", "GITHUB_CLIENT_SECRET", "SESSION_SECRET"]).length === 0
+  return (
+    missingEnv(env, ["GITHUB_CLIENT_ID", "GITHUB_CLIENT_SECRET", "SESSION_SECRET"]).length === 0
+  )
 }
 
 export function parseCookies(request) {
@@ -116,16 +128,23 @@ async function hmacHex(secret, value) {
 }
 
 export function adminLogins(env) {
-  return new Set(
-    String(env.ADMIN_GITHUB_LOGINS || "")
-      .split(/[,\s]+/u)
-      .map((login) => login.trim().toLowerCase())
-      .filter(Boolean),
-  )
+  return parseLoginList(env.ADMIN_GITHUB_LOGINS)
+}
+
+export function maintainerLogins(env) {
+  return new Set([
+    ...builtInMaintainerLogins,
+    ...adminLogins(env),
+    ...parseLoginList(env.MAINTAINER_GITHUB_LOGINS),
+  ])
+}
+
+export function isMaintainerLogin(env, login) {
+  return maintainerLogins(env).has(String(login || "").toLowerCase())
 }
 
 export function isAdminLogin(env, login) {
-  return adminLogins(env).has(String(login || "").toLowerCase())
+  return isMaintainerLogin(env, login)
 }
 
 export function normalizePath(value) {

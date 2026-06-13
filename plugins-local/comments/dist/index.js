@@ -547,7 +547,9 @@ const script = String.raw`(() => {
         auth.innerHTML =
           '<span>登录 GitHub 后可以发表评论，作者和管理员可以删除评论。</span>' +
           '<span class="note-comments-auth-actions">' +
-          '<a class="note-comments-button primary" href="' + escapeAttribute(loginUrl()) + '">GitHub 登录</a>' +
+          '<a class="note-comments-button primary" data-router-ignore href="' +
+          escapeAttribute(loginUrl()) +
+          '">GitHub 登录</a>' +
           "</span>"
       }
     }
@@ -1009,6 +1011,9 @@ const adminCommentsStyles = `.comment-admin {
 .comment-admin-button.danger {
   color: #c92a2a;
 }
+.comment-admin-button[hidden] {
+  display: none;
+}
 .comment-admin-button:disabled {
   cursor: not-allowed;
   opacity: 0.55;
@@ -1120,7 +1125,10 @@ function initCommentAdmin() {
   function setLoginVisible(visible) {
     if (!login) return
     login.hidden = !visible
-    if (visible) login.href = loginUrl()
+    if (visible) {
+      login.href = loginUrl()
+      login.dataset.routerIgnore = ""
+    }
   }
 
   function renderAuth(message) {
