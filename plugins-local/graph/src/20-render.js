@@ -139,6 +139,7 @@ async function renderGraph(container, fullSlug, renderId) {
       id: id,
       text: text,
       isTag: isTag,
+      readingState: isTag ? "" : readingStateForSlug(id),
       folder: folderOf(id),
       x: centerCurrentNode && id === slug ? 0 : (Math.cos(visibleIds.size + nodes.length) * width) / 4,
       y: centerCurrentNode && id === slug ? 0 : (Math.sin(visibleIds.size + nodes.length) * height) / 4,
