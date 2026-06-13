@@ -159,6 +159,12 @@ plugins:
       position: beforeBody
       priority: 22
       condition: not-index
+  - source: ./plugins-local/comments
+    enabled: true
+    layout:
+      position: afterBody
+      priority: 10
+      condition: not-index
   - source: github:quartz-community/page-title
     enabled: true
     layout:
@@ -230,11 +236,13 @@ layout:
       exclude:
         - reader-mode
         - reading-state
+        - comments
       positions:
         right: []
     tag:
       exclude:
         - reader-mode
         - reading-state
+        - comments
       positions:
         right: []
