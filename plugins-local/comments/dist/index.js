@@ -197,6 +197,27 @@ const styles = `.note-comments {
   gap: 0.55rem;
 }
 
+.note-comments-preview-options {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--gray);
+  font-size: 0.86rem;
+}
+
+.note-comments-sync-preview {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.note-comments-sync-preview input {
+  width: auto;
+  accent-color: var(--secondary);
+}
+
 .note-comments-button {
   appearance: none;
   min-height: 2.2rem;
@@ -286,6 +307,7 @@ const script = String.raw`(() => {
     const textarea = root.querySelector("[data-comments-content]")
     const preview = root.querySelector("[data-comments-preview]")
     const previewButton = root.querySelector("[data-comments-preview-button]")
+    const syncPreview = root.querySelector("[data-comments-sync-preview]")
     const counter = root.querySelector("[data-comments-counter]")
 
     if (textarea && counter) {
@@ -297,18 +319,25 @@ const script = String.raw`(() => {
       updateCounter()
     }
 
+    async function updatePreview() {
+      if (!preview || !textarea) return
+      await ensureKatex(root.dataset.commentsKatex)
+      preview.innerHTML = renderMarkdown(textarea.value.trim() || "还没有可预览的内容。")
+      preview.removeAttribute("hidden")
+    }
+
     if (previewButton && preview && textarea) {
-      previewButton.addEventListener("click", async () => {
-        const isHidden = preview.hasAttribute("hidden")
-        if (isHidden) {
-          await ensureKatex(root.dataset.commentsKatex)
-          preview.innerHTML = renderMarkdown(textarea.value.trim() || "还没有可预览的内容。")
-          preview.removeAttribute("hidden")
-          previewButton.textContent = "继续编辑"
-        } else {
-          preview.setAttribute("hidden", "")
-          previewButton.textContent = "预览"
+      previewButton.addEventListener("click", updatePreview)
+    }
+
+    if (syncPreview && preview && textarea) {
+      syncPreview.addEventListener("change", async () => {
+        if (syncPreview.checked) {
+          await updatePreview()
         }
+      })
+      textarea.addEventListener("input", () => {
+        if (syncPreview.checked) updatePreview()
       })
     }
 
@@ -328,6 +357,24 @@ const script = String.raw`(() => {
     return root.dataset.commentPath || "index"
   }
 
+  async function readResponse(response) {
+    const text = await response.text().catch(() => "")
+    if (!text) return {}
+    try {
+      return JSON.parse(text)
+    } catch {
+      return { error: text.trim() }
+    }
+  }
+
+  function responseError(data, fallback, response) {
+    const detail = data && data.error
+      ? (typeof data.error === "string" ? data.error : JSON.stringify(data.error))
+      : ""
+    const prefix = response ? "HTTP " + String(response.status) : ""
+    return [fallback, prefix, detail].filter(Boolean).join("：")
+  }
+
   function setStatus(root, message, isError) {
     const status = root.querySelector("[data-comments-status]")
     if (!status) return
@@ -344,10 +391,10 @@ const script = String.raw`(() => {
       await ensureKatex(root.dataset.commentsKatex)
       const url = apiUrl(root) + "?path=" + encodeURIComponent(commentPath(root))
       const response = await fetch(url, { headers: { Accept: "application/json" } })
-      const data = await response.json().catch(() => ({}))
+      const data = await readResponse(response)
 
       if (!response.ok) {
-        throw new Error(data.error || "评论加载失败")
+        throw new Error(responseError(data, "评论加载失败", response))
       }
 
       renderCommentList(root, Array.isArray(data.comments) ? data.comments : [])
@@ -434,16 +481,19 @@ const script = String.raw`(() => {
           website,
         }),
       })
-      const data = await response.json().catch(() => ({}))
+      const data = await readResponse(response)
 
       if (!response.ok) {
-        throw new Error(data.error || "评论发布失败")
+        throw new Error(responseError(data, "评论发布失败", response))
       }
 
       form.reset()
       const preview = root.querySelector("[data-comments-preview]")
       const previewButton = root.querySelector("[data-comments-preview-button]")
+      const syncPreview = root.querySelector("[data-comments-sync-preview]")
+      if (preview) preview.innerHTML = ""
       preview?.setAttribute("hidden", "")
+      if (syncPreview) syncPreview.checked = false
       if (previewButton) previewButton.textContent = "预览"
       await loadComments(root)
       setStatus(root, "评论已发布。", false)
@@ -749,6 +799,13 @@ const Comments = (opts = {}) => {
             h("div", { class: "note-comments-toolbar" }, [
               h("span", { class: "note-comments-counter", "data-comments-counter": "" }, "0 / " + options.maxLength),
               h("span", { class: "note-comments-actions" }, [
+                h("label", { class: "note-comments-sync-preview" }, [
+                  h("input", {
+                    type: "checkbox",
+                    "data-comments-sync-preview": "",
+                  }),
+                  h("span", null, "同步预览"),
+                ]),
                 h(
                   "button",
                   {
