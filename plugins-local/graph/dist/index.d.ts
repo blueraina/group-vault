@@ -16,6 +16,7 @@ interface D3Config {
     linkWidth: number;
     showArrows: boolean;
     textOpacity: number;
+    alwaysShowLabels?: boolean;
     linkStrength: number;
     removeNodes: string[];
     removeTags: string[];

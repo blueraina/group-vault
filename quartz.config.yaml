@@ -118,8 +118,9 @@ plugins:
     options:
       localGraph:
         showTags: false
-        fontSize: 0.75
+        fontSize: 0.85
         textOpacity: 0.85
+        alwaysShowLabels: true
         removeNodes:
           - 其他信息/维护时间线
       globalGraph:

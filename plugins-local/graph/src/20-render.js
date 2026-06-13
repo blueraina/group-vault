@@ -27,6 +27,7 @@ async function renderGraph(container, fullSlug, renderId) {
   var linkWidth = cfg.linkWidth || 1
   var showArrows = !!cfg.showArrows
   var textOpacity = cfg.textOpacity != null ? cfg.textOpacity : 1
+  var alwaysShowLabels = !!cfg.alwaysShowLabels
   var linkStrengthCfg = cfg.linkStrength || 1
   var removeNodes = cfg.removeNodes || []
   var hiddenNodes = new Set(removeNodes.map(function (n) { return simplifySlug(String(n)) }))
@@ -187,6 +188,7 @@ async function renderGraph(container, fullSlug, renderId) {
       linkWidth: linkWidth,
       showArrows: showArrows,
       textOpacity: textOpacity,
+      alwaysShowLabels: alwaysShowLabels,
       linkStrength: linkStrengthCfg,
       focusOnHover: focusOnHover,
     },

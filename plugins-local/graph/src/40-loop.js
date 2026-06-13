@@ -160,7 +160,7 @@ function wireInteractionsAndLoop(s) {
     stage.position.set(T.x, T.y)
 
     var draggingNow = typeof s.getDragging === "function" && s.getDragging()
-    var hover = draggingNow ? null : s.getHover()
+    var hover = s.getHover()
     var zoomLabelAlpha = Math.max(0, (T.k * o.opacityScale - 1) / 3.75)
 
     // nodes
@@ -171,13 +171,15 @@ function wireInteractionsAndLoop(s) {
       if (n.x == null) continue
       rec.gfx.position.set(n.x + cx, n.y + cy)
       rec.gfx.scale.set(intro)
-      rec.gfx.alpha = (o.focusOnHover && hover !== null ? rec.focus : 1) * intro
+      var dimNodes = o.focusOnHover && hover !== null && !draggingNow
+      rec.gfx.alpha = (dimNodes ? rec.focus : 1) * intro
 
       // label: visible on hover (this node + neighbors) or when zoomed in
       rec.label.position.set(n.x + cx, n.y + cy + rec.radius + 1.5)
       rec.label.scale.set(1 / T.k)
       var hoveredLabel = hover !== null && rec.targetFocus >= 0.9
-      var targetLabelAlpha = hoveredLabel ? o.textOpacity : zoomLabelAlpha * o.textOpacity
+      var defaultLabelAlpha = (o.alwaysShowLabels ? o.textOpacity : zoomLabelAlpha * o.textOpacity)
+      var targetLabelAlpha = hoveredLabel ? o.textOpacity : defaultLabelAlpha
       rec.label.alpha = lerp(rec.label.alpha, Math.min(targetLabelAlpha, 1) * intro, 0.2)
     }
 
@@ -191,8 +193,8 @@ function wireInteractionsAndLoop(s) {
       var g = lr.gfx
       g.clear()
       var activeLink = hover !== null && lr.targetFocus >= 0.9
-      var dimLinks = hover !== null && o.focusOnHover
-      var baseAlpha = dimLinks ? (activeLink ? 0.9 : 0.35 + 0.25 * lr.focus) : 0.6
+      var dimLinks = hover !== null && o.focusOnHover && !draggingNow
+      var baseAlpha = activeLink ? 0.9 : (dimLinks ? 0.35 + 0.25 * lr.focus : 0.6)
       g.moveTo(sx + cx, sy + cy)
       g.lineTo(tx + cx, ty + cy)
       if (o.showArrows) {
