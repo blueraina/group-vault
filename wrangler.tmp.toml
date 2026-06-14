@@ -1,0 +1,8 @@
+﻿name = "group-vault"
+pages_build_output_dir = "public"
+
+[[d1_databases]]
+binding = "COMMENTS_DB"
+database_name = "group-vault-comments"
+database_id = "90c6224f-86b2-4370-a95e-56c271f1a61b"
+migrations_dir = "migrations"
