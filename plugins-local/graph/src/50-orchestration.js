@@ -160,6 +160,7 @@ function startGraphRuntime() {
       if (
         !e.target.closest(".global-graph-container") &&
         !e.target.closest(".global-graph-icon") &&
+        !e.target.closest(".graph-settings-toggle") &&
         !e.target.closest(".graph-settings-panel") &&
         !e.target.closest(".graph-progress-legend")
       ) closeGlobal()
