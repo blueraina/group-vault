@@ -23,6 +23,7 @@ interface D3Config {
     hideOrphans?: boolean;
     removeNodes: string[];
     removeTags: string[];
+    hiddenTags?: string[];
     showTags: boolean;
     focusOnHover?: boolean;
     enableRadial?: boolean;

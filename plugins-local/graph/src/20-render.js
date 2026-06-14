@@ -36,6 +36,8 @@ async function renderGraph(container, fullSlug, renderId) {
   var removeNodes = cfg.removeNodes || []
   var hiddenNodes = new Set(removeNodes.map(function (n) { return simplifySlug(String(n)) }))
   var removeTags = cfg.removeTags || []
+  var removedTags = new Set(removeTags.map(normalizeGraphTag).filter(Boolean))
+  var hiddenTags = new Set((cfg.hiddenTags || []).map(normalizeGraphTag).filter(Boolean))
   var showTags = cfg.showTags
   var focusOnHover = cfg.focusOnHover
 
@@ -52,14 +54,26 @@ async function renderGraph(container, fullSlug, renderId) {
   var width = container.offsetWidth
   var height = Math.max(container.offsetHeight, 250)
 
+  function entryHiddenByTag(entry) {
+    if (!entry || hiddenTags.size === 0) return false
+    var tags = entry.tags || []
+    for (var i = 0; i < tags.length; i++) {
+      if (hiddenTags.has(normalizeGraphTag(tags[i]))) return true
+    }
+    return false
+  }
+  function isHiddenNode(id) {
+    return hiddenNodes.has(id) || entryHiddenByTag(data.get(id))
+  }
+
   // Build link list + tag pseudo-nodes
   var allLinks = []
   var tagNodes = []
   var present = new Set(
-    Array.from(data.keys()).filter(function (k) { return !hiddenNodes.has(k) }),
+    Array.from(data.keys()).filter(function (k) { return !isHiddenNode(k) }),
   )
   data.forEach(function (entry, src) {
-    if (hiddenNodes.has(src)) return
+    if (isHiddenNode(src)) return
     var links = entry.links || []
     for (var i = 0; i < links.length; i++) {
       var dst = simplifySlug(links[i])
@@ -69,8 +83,9 @@ async function renderGraph(container, fullSlug, renderId) {
       var tags = entry.tags || []
       for (var t = 0; t < tags.length; t++) {
         var tag = tags[t]
-        if (removeTags.indexOf(tag) !== -1) continue
-        var tagId = simplifySlug("tags/" + tag)
+        var normalizedTag = normalizeGraphTag(tag)
+        if (removedTags.has(normalizedTag) || hiddenTags.has(normalizedTag)) continue
+        var tagId = simplifySlug("tags/" + normalizedTag)
         if (tagNodes.indexOf(tagId) === -1) tagNodes.push(tagId)
         allLinks.push({ source: src, target: tagId })
       }

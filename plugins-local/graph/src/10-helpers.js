@@ -74,6 +74,12 @@ function readingStateForSlug(slug) {
   return ""
 }
 
+function normalizeGraphTag(tag) {
+  return String(tag || "")
+    .trim()
+    .replace(/^#+/, "")
+}
+
 // localStorage visited set
 var VISITED_KEY = "graph-visited"
 function visitedSet() {
