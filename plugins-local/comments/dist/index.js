@@ -957,6 +957,9 @@ const script = String.raw`(() => {
     return escapeHtml(value).replace(new RegExp(backtick, "g"), "&#96;")
   }
 
+  window.__groupVaultEnsureCommentKatex = ensureKatex
+  window.__groupVaultRenderCommentMarkdown = renderMarkdown
+
   document.addEventListener("nav", initComments)
   document.addEventListener("render", initComments)
   if (document.readyState === "loading") {
@@ -969,6 +972,9 @@ const script = String.raw`(() => {
 const adminCommentsStyles = `.comment-admin {
   border: 1px solid var(--lightgray);
   border-radius: 8px;
+  box-sizing: border-box;
+  max-width: 100%;
+  overflow: hidden;
   padding: 1rem;
 }
 .comment-admin-toolbar {
@@ -977,6 +983,7 @@ const adminCommentsStyles = `.comment-admin {
   justify-content: space-between;
   gap: 0.75rem;
   margin-bottom: 1rem;
+  min-width: 0;
 }
 .comment-admin-status {
   margin: 0;
@@ -1021,6 +1028,7 @@ const adminCommentsStyles = `.comment-admin {
 .comment-admin-list {
   display: grid;
   gap: 0.75rem;
+  min-width: 0;
 }
 .comment-admin-empty {
   margin: 0;
@@ -1029,6 +1037,10 @@ const adminCommentsStyles = `.comment-admin {
 .comment-admin-item {
   border: 1px solid var(--lightgray);
   border-radius: 8px;
+  box-sizing: border-box;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
   padding: 0.9rem;
 }
 .comment-admin-item-header {
@@ -1037,8 +1049,11 @@ const adminCommentsStyles = `.comment-admin {
   gap: 0.75rem;
   justify-content: space-between;
   margin-bottom: 0.7rem;
+  min-width: 0;
 }
 .comment-admin-meta {
+  display: grid;
+  gap: 0.1rem;
   min-width: 0;
 }
 .comment-admin-author {
@@ -1053,14 +1068,39 @@ const adminCommentsStyles = `.comment-admin {
 .comment-admin-path {
   display: inline-block;
   margin-top: 0.2rem;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 .comment-admin-content {
   background: var(--highlight);
   border-radius: 6px;
+  box-sizing: border-box;
+  color: var(--dark);
   margin: 0;
-  overflow-x: auto;
+  max-width: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
   padding: 0.75rem;
-  white-space: pre-wrap;
+}
+.comment-admin-content > :first-child {
+  margin-top: 0;
+}
+.comment-admin-content > :last-child {
+  margin-bottom: 0;
+}
+.comment-admin-content pre {
+  overflow-x: auto;
+  padding: 0.85rem;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--lightgray) 38%, transparent);
+}
+.comment-admin-content code {
+  overflow-wrap: anywhere;
+}
+.comment-admin-content .katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.25rem 0;
 }
 @media (max-width: 640px) {
   .comment-admin-toolbar,
@@ -1122,6 +1162,14 @@ function initCommentAdmin() {
     return date.toLocaleString("zh-CN", { hour12: false })
   }
 
+  async function renderAdminMarkdown(markdown) {
+    const ensureKatex = window.__groupVaultEnsureCommentKatex
+    const renderMarkdown = window.__groupVaultRenderCommentMarkdown
+    if (typeof ensureKatex === "function") await ensureKatex("/static/katex.min.js")
+    if (typeof renderMarkdown === "function") return renderMarkdown(markdown)
+    return "<p>" + escapeHtml(markdown).replace(/\\n/g, "<br>") + "</p>"
+  }
+
   function setLoginVisible(visible) {
     if (!login) return
     login.hidden = !visible
@@ -1143,7 +1191,7 @@ function initCommentAdmin() {
     if (list) list.innerHTML = '<p class="comment-admin-empty">只有笔记维护者可以查看这里。</p>'
   }
 
-  function renderList(comments) {
+  async function renderList(comments) {
     setLoginVisible(false)
     if (!list) return
     if (!comments.length) {
@@ -1167,10 +1215,15 @@ function initCommentAdmin() {
             '</div>' +
             '<button class="comment-admin-button danger" type="button" data-comment-delete="' + escapeAttribute(comment.id) + '">删除</button>' +
           '</div>' +
-          '<pre class="comment-admin-content">' + escapeHtml(comment.content) + '</pre>' +
+          '<div class="comment-admin-content" data-comment-admin-content></div>' +
         '</article>'
       )
     }).join("")
+
+    const bodies = list.querySelectorAll("[data-comment-admin-content]")
+    for (let index = 0; index < bodies.length; index += 1) {
+      bodies[index].innerHTML = await renderAdminMarkdown(comments[index]?.content || "")
+    }
   }
 
   async function loadComments() {
@@ -1192,7 +1245,7 @@ function initCommentAdmin() {
       if (!response.ok) throw new Error(data.error || "评论管理服务暂时不可用")
 
       const comments = Array.isArray(data.comments) ? data.comments : []
-      renderList(comments)
+      await renderList(comments)
       setStatus("已加载 " + comments.length + " 条最新评论", false)
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "评论管理服务暂时不可用", true)
@@ -1203,11 +1256,16 @@ function initCommentAdmin() {
   async function deleteComment(id, button) {
     if (!id || !window.confirm("确定删除这条评论吗？")) return
     if (button) button.disabled = true
+    setStatus("正在删除评论...", false)
     try {
-      const response = await fetch(api + "?id=" + encodeURIComponent(id), { method: "DELETE" })
+      const response = await fetch(api + "?id=" + encodeURIComponent(id), {
+        method: "DELETE",
+        headers: { accept: "application/json" },
+      })
       const data = await response.json().catch(() => ({}))
       if (!response.ok) throw new Error(data.error || "删除失败")
       await loadComments()
+      setStatus("评论已删除", false)
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "删除失败", true)
       if (button) button.disabled = false
@@ -1218,6 +1276,8 @@ function initCommentAdmin() {
   root.addEventListener("click", (event) => {
     const button = event.target?.closest?.("[data-comment-delete]")
     if (!button) return
+    event.preventDefault()
+    event.stopPropagation()
     deleteComment(button.getAttribute("data-comment-delete"), button)
   })
 
