@@ -41,4 +41,4 @@ owner: blueraina
 
 ## 投稿方式
 
-请先阅读 `CONTRIBUTING.md`。有 GitHub 权限的群友可以在 Obsidian 中修改笔记并同步；不熟悉 Git 的群友可以先把内容放到 `inbox/`，由管理员整理。
+请先阅读仓库首页 `README.md` 和 [[其他信息/Obsidian使用与同步教程|Obsidian 使用与同步教程]]。有 GitHub 权限的群友可以在 Obsidian 中修改笔记并同步；不熟悉 Git 的群友可以先把内容放到 `inbox/`，由管理员整理。
