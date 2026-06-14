@@ -147,7 +147,7 @@ node scripts/update-collaborators.mjs
 
 <!-- collaborators:start -->
 
-这些 GitHub 账号拥有本仓库协作权限，也是网站上的默认笔记维护者。
+这些 GitHub 账号拥有本仓库协作权限。
 
 <table>
 <tr>
@@ -183,7 +183,6 @@ node scripts/update-collaborators.mjs
 </table>
 
 <!-- collaborators:end -->
-
 ## 协议
 
 本仓库采用双协议：
