@@ -1,7 +1,7 @@
 ---
 title: 群知识库
 created: 2026-06-02
-updated: 2026-06-05
+updated: 2026-06-15
 tags:
   - 首页
   - 图谱隐藏
@@ -17,6 +17,8 @@ owner: blueraina
 网站基于 Obsidian 与 Quartz 构建，支持搜索、标签、知识图谱、评论、GitHub 登录、已读标记和收藏标记。
 
 **更新:** 通过接入文本嵌入模型与对话模型，实现了**AI辅助查找笔记功能(需要github登录后才能使用)**
+
+项目 GitHub 仓库：[blueraina/group-vault](https://github.com/blueraina/group-vault)
 
 ## 如何使用
 
@@ -35,4 +37,3 @@ owner: blueraina
 ---
 
 **喜欢的话请点个star支持一下吧！这对我真的很重要😭**
-

@@ -207,6 +207,7 @@ plugins:
     enabled: true
     options:
       links:
+        GitHub: https://github.com/blueraina/group-vault
         Quartz: https://quartz.jzhao.xyz
   - source: github:quartz-community/spacer
     enabled: true
