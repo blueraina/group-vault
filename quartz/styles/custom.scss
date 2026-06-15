@@ -2,6 +2,17 @@
 
 // put your custom CSS here!
 
+#quartz-root .sidebar.left > .flex-component {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  align-items: center;
+}
+
+#quartz-root .sidebar.left > .flex-component > * {
+  min-width: 0;
+}
+
 #quartz-root .graph > .graph-settings-panel-local[open] {
   max-height: min(56vh, 34rem) !important;
   overflow-x: hidden !important;
@@ -10,11 +21,26 @@
   scrollbar-gutter: stable;
 }
 
+#quartz-root .graph > .graph-settings-panel-local > summary.graph-settings-title {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-height: 2.75rem;
+  margin: 0 !important;
+  line-height: 1.2;
+}
+
+#quartz-root .graph > .graph-settings-panel-local:not([open]) > summary.graph-settings-title {
+  padding: 0 0.7rem;
+}
+
 #quartz-root .graph > .graph-settings-panel-local[open] > summary {
   position: sticky;
   top: 0;
   z-index: 1;
   background: var(--light);
+  min-height: auto;
+  padding: 0.05rem 0 0.55rem;
 }
 
 #quartz-root .graph-settings-panel .graph-setting-row:has(input[type="checkbox"]) {

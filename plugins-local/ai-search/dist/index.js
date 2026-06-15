@@ -13,10 +13,10 @@ const styles = `.ai-note-search {
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: 0.35rem;
   font: inherit;
   height: 2rem;
-  padding: 0 0.75rem;
+  padding: 0 0.55rem;
   white-space: nowrap;
 }
 
@@ -32,6 +32,11 @@ const styles = `.ai-note-search {
   min-width: 18px;
   stroke: var(--darkgray);
   stroke-width: 1.7;
+}
+
+.ai-note-search-trigger span {
+  font-weight: 600;
+  letter-spacing: 0;
 }
 
 .ai-note-search-overlay {
@@ -500,7 +505,7 @@ const AISearchComponent = ({ displayClass }) =>
         "aria-expanded": "false",
         title: "AI 找笔记",
       },
-      [icon, h("span", null, "AI 找笔记")],
+      [icon, h("span", null, "AI")],
     ),
     h(
       "div",
