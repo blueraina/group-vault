@@ -109,7 +109,7 @@ tags:
 网站部署在 Cloudflare Pages。
 
 ```text
-Build command: npx quartz plugin install && npx quartz build
+Build command: npx quartz plugin install && npm run ai:index && npx quartz build
 Build output directory: public
 D1 binding: COMMENTS_DB
 ```
@@ -123,6 +123,26 @@ SESSION_SECRET
 ADMIN_GITHUB_LOGINS
 MAINTAINER_GITHUB_LOGINS
 ```
+
+AI 找笔记需要在 Cloudflare Pages 配置：
+
+```text
+AI_SEARCH_ENABLED
+AI_EMBEDDING_BASE_URL
+AI_EMBEDDING_API_KEY
+AI_EMBEDDING_MODEL
+AI_CHAT_BASE_URL
+AI_CHAT_API_KEY
+AI_CHAT_MODEL
+AI_CHAT_FALLBACK_1_BASE_URL
+AI_CHAT_FALLBACK_1_API_KEY
+AI_CHAT_FALLBACK_1_MODEL
+AI_CHAT_FALLBACK_2_BASE_URL
+AI_CHAT_FALLBACK_2_API_KEY
+AI_CHAT_FALLBACK_2_MODEL
+```
+
+其中 `*_API_KEY` 应设为 Secret。两个 `AI_CHAT_FALLBACK_*` 模型按 2、3 优先级使用；如果配置某个 fallback，需要同时填齐 `BASE_URL`、`API_KEY` 和 `MODEL`。
 
 D1 迁移：
 

@@ -87,9 +87,14 @@ function requireAiConfig(env) {
     "AI_CHAT_API_KEY",
     "AI_CHAT_MODEL",
   ])
+  const fallbackMissing = incompleteChatFallbackEnv(env)
 
-  if (missing.length > 0) {
-    throw httpError(`模型未配置：${missing.join(", ")}`, 503, "MODEL_NOT_CONFIGURED")
+  if (missing.length > 0 || fallbackMissing.length > 0) {
+    throw httpError(
+      `模型未配置：${[...missing, ...fallbackMissing].join(", ")}`,
+      503,
+      "MODEL_NOT_CONFIGURED",
+    )
   }
 }
 
@@ -122,6 +127,45 @@ async function fetchOpenAIJson({ baseUrl, apiKey, path, body }) {
   return response.json()
 }
 
+function chatProviderConfigs(env) {
+  return [
+    {
+      name: "chat_1",
+      baseUrl: envValue(env, "AI_CHAT_BASE_URL"),
+      apiKey: envValue(env, "AI_CHAT_API_KEY"),
+      model: envValue(env, "AI_CHAT_MODEL"),
+    },
+    {
+      name: "chat_2",
+      baseUrl: envValue(env, "AI_CHAT_FALLBACK_1_BASE_URL"),
+      apiKey: envValue(env, "AI_CHAT_FALLBACK_1_API_KEY"),
+      model: envValue(env, "AI_CHAT_FALLBACK_1_MODEL"),
+    },
+    {
+      name: "chat_3",
+      baseUrl: envValue(env, "AI_CHAT_FALLBACK_2_BASE_URL"),
+      apiKey: envValue(env, "AI_CHAT_FALLBACK_2_API_KEY"),
+      model: envValue(env, "AI_CHAT_FALLBACK_2_MODEL"),
+    },
+  ].filter((provider) => provider.baseUrl && provider.apiKey && provider.model)
+}
+
+function incompleteChatFallbackEnv(env) {
+  const groups = [
+    ["AI_CHAT_FALLBACK_1_BASE_URL", "AI_CHAT_FALLBACK_1_API_KEY", "AI_CHAT_FALLBACK_1_MODEL"],
+    ["AI_CHAT_FALLBACK_2_BASE_URL", "AI_CHAT_FALLBACK_2_API_KEY", "AI_CHAT_FALLBACK_2_MODEL"],
+  ]
+  const missing = []
+
+  for (const group of groups) {
+    const hasAny = group.some((name) => envValue(env, name))
+    if (!hasAny) continue
+    missing.push(...group.filter((name) => !envValue(env, name)))
+  }
+
+  return missing
+}
+
 async function createEmbedding(env, input) {
   const data = await fetchOpenAIJson({
     baseUrl: envValue(env, "AI_EMBEDDING_BASE_URL"),
@@ -140,9 +184,9 @@ async function createEmbedding(env, input) {
   return embedding.map(Number)
 }
 
-async function createChatCompletion(env, messages) {
+async function callChatProvider(provider, messages) {
   const body = {
-    model: envValue(env, "AI_CHAT_MODEL"),
+    model: provider.model,
     messages,
     temperature: 0.2,
     max_tokens: 900,
@@ -151,8 +195,8 @@ async function createChatCompletion(env, messages) {
 
   try {
     return await fetchOpenAIJson({
-      baseUrl: envValue(env, "AI_CHAT_BASE_URL"),
-      apiKey: envValue(env, "AI_CHAT_API_KEY"),
+      baseUrl: provider.baseUrl,
+      apiKey: provider.apiKey,
       path: "/chat/completions",
       body,
     })
@@ -161,12 +205,29 @@ async function createChatCompletion(env, messages) {
     const fallbackBody = { ...body }
     delete fallbackBody.response_format
     return fetchOpenAIJson({
-      baseUrl: envValue(env, "AI_CHAT_BASE_URL"),
-      apiKey: envValue(env, "AI_CHAT_API_KEY"),
+      baseUrl: provider.baseUrl,
+      apiKey: provider.apiKey,
       path: "/chat/completions",
       body: fallbackBody,
     })
   }
+}
+
+async function createChatCompletion(env, messages) {
+  const providers = chatProviderConfigs(env)
+  let lastError = null
+
+  for (const provider of providers) {
+    try {
+      return await callChatProvider(provider, messages)
+    } catch (error) {
+      lastError = error
+    }
+  }
+
+  const error = httpError("所有对话模型暂时不可用", 502, "CHAT_MODEL_UNAVAILABLE")
+  error.cause = lastError
+  throw error
 }
 
 async function fetchIndexFromAssets(request, env, pathname = indexPath) {
