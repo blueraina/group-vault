@@ -158,14 +158,6 @@ node scripts/update-collaborators.mjs
 
 生成结果包括 `data/collaborators.json`、`functions/_lib/maintainers.generated.js`、协作者头像和本 README 的协作者区块。
 
-## 常见问题
-
-- 评论加载失败并提示 `COMMENTS_DB`：检查 Cloudflare D1 binding。
-- 登录提示 `GITHUB_CLIENT_ID is not configured`：检查 Cloudflare 环境变量并重新部署。
-- 提示 `no such column`：远程 D1 还没应用最新 migration。
-- 维护者不能访问评论管理页：重新生成协作者/维护者名单，或检查 `ADMIN_GITHUB_LOGINS`、`MAINTAINER_GITHUB_LOGINS`。
-- 已登录用户数不变：确认 `0003_registered_users.sql` 已应用；这个数字是登录过的用户总数，不是实时在线人数。
-
 ## Collaborators / 协作者
 
 <!-- collaborators:start -->
