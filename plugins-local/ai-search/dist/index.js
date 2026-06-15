@@ -256,6 +256,13 @@ const styles = `.ai-note-search {
 }`
 
 const script = `(() => {
+  const scriptVersion = "2026-06-15-single-submit"
+  const bootKey = "__groupVaultAiSearchBootVersion"
+  const latestRequestKey = "__groupVaultAiSearchLatestRequest"
+
+  if (window[bootKey] === scriptVersion) return
+  window[bootKey] = scriptVersion
+
   const lastResultKey = "group-vault.ai-note-search.last-result"
 
   function currentReturnTo() {
@@ -421,8 +428,16 @@ const script = `(() => {
   }
 
   function setupRoot(root) {
-    if (root.dataset.aiSearchBound === "true") return
+    if (root.dataset.aiSearchManaged === scriptVersion) return
+
+    const previousInput = root.querySelector(".ai-note-search-input")
+    const previousQuery = previousInput ? previousInput.value : ""
+    const wasOpen = root.querySelector(".ai-note-search-overlay")?.classList.contains("active")
+    const freshRoot = root.cloneNode(true)
+    root.replaceWith(freshRoot)
+    root = freshRoot
     root.dataset.aiSearchBound = "true"
+    root.dataset.aiSearchManaged = scriptVersion
 
     const trigger = root.querySelector(".ai-note-search-trigger")
     const overlay = root.querySelector(".ai-note-search-overlay")
@@ -436,8 +451,14 @@ const script = `(() => {
 
     let inFlight = false
     let requestSeq = 0
+    let activeController = null
 
+    if (previousQuery) input.value = previousQuery
     restoreLastResult(root, input)
+    if (wasOpen) {
+      overlay.classList.add("active")
+      trigger.setAttribute("aria-expanded", "true")
+    }
 
     function open() {
       overlay.classList.add("active")
@@ -505,6 +526,9 @@ const script = `(() => {
       inFlight = true
       requestSeq += 1
       const requestId = requestSeq
+      window[latestRequestKey] = (Number(window[latestRequestKey]) || 0) + 1
+      const globalRequestId = window[latestRequestKey]
+      activeController = new AbortController()
       submit.disabled = true
       results.classList.remove("active")
       clear(results)
@@ -515,10 +539,12 @@ const script = `(() => {
           method: "POST",
           headers: { "content-type": "application/json" },
           credentials: "same-origin",
+          signal: activeController.signal,
           body: JSON.stringify({ query: query }),
         })
         const data = await readJson(response)
         if (requestId !== requestSeq) return
+        if (globalRequestId !== window[latestRequestKey]) return
 
         if (!response.ok) {
           if (response.status === 401) {
@@ -532,13 +558,16 @@ const script = `(() => {
         setStatus(root, "", "")
         renderResults(root, data)
         saveLastResult(query, data)
-      } catch {
+      } catch (error) {
+        if (error && error.name === "AbortError") return
         if (requestId !== requestSeq) return
+        if (globalRequestId !== window[latestRequestKey]) return
         setStatus(root, "网络失败或后端暂时不可用。", "error")
       } finally {
         if (requestId === requestSeq) {
           inFlight = false
           submit.disabled = false
+          activeController = null
         }
       }
     })
