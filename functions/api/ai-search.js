@@ -5,6 +5,7 @@ const maxQueryLength = 500
 const minQueryLength = 2
 const recallLimit = 30
 const finalLimit = 8
+const rerankDocumentMaxChars = 1800
 const rateWindowMs = 60 * 1000
 const rateMaxRequests = 10
 const rateBuckets = new Map()
@@ -91,10 +92,11 @@ function requireAiConfig(env) {
     "AI_CHAT_MODEL",
   ])
   const fallbackMissing = incompleteChatFallbackEnv(env)
+  const rerankMissing = incompleteRerankEnv(env)
 
-  if (missing.length > 0 || fallbackMissing.length > 0) {
+  if (missing.length > 0 || fallbackMissing.length > 0 || rerankMissing.length > 0) {
     throw httpError(
-      `模型未配置：${[...missing, ...fallbackMissing].join(", ")}`,
+      `模型未配置：${[...missing, ...fallbackMissing, ...rerankMissing].join(", ")}`,
       503,
       "MODEL_NOT_CONFIGURED",
     )
@@ -167,6 +169,13 @@ function incompleteChatFallbackEnv(env) {
   }
 
   return missing
+}
+
+function incompleteRerankEnv(env) {
+  const group = ["AI_RERANK_BASE_URL", "AI_RERANK_API_KEY", "AI_RERANK_MODEL"]
+  const hasAny = group.some((name) => envValue(env, name))
+  if (!hasAny) return []
+  return group.filter((name) => !envValue(env, name))
 }
 
 async function createEmbedding(env, input) {
@@ -247,7 +256,11 @@ async function readIndexJson(request, env, pathname) {
   const response = await fetchIndexFromAssets(request, env, pathname)
   if (!response.ok) {
     const code = pathname === indexPath ? "INDEX_NOT_FOUND" : "INDEX_SHARD_NOT_FOUND"
-    throw httpError("AI search index file is missing, please rebuild the AI search index", 503, code)
+    throw httpError(
+      "AI search index file is missing, please rebuild the AI search index",
+      503,
+      code,
+    )
   }
   return response.json().catch(() => null)
 }
@@ -336,38 +349,62 @@ function rerankConfigured(env) {
   )
 }
 
+function rerankDocument(candidate) {
+  const text = [
+    `标题：${candidate.title || ""}`,
+    candidate.tags?.length ? `标签：${candidate.tags.join(" ")}` : "",
+    candidate.summary ? `摘要：${candidate.summary}` : "",
+    candidate.text ? `正文片段：${candidate.text}` : "",
+  ]
+    .filter(Boolean)
+    .join("\n")
+    .trim()
+
+  return text.length > rerankDocumentMaxChars ? text.slice(0, rerankDocumentMaxChars) : text
+}
+
 async function maybeRerank(env, query, candidates) {
   if (!rerankConfigured(env) || candidates.length === 0) return candidates
 
   try {
+    const body = {
+      model: envValue(env, "AI_RERANK_MODEL"),
+      query,
+      documents: candidates.map(rerankDocument),
+      return_documents: false,
+      top_n: candidates.length,
+    }
+    const instruction = envValue(env, "AI_RERANK_INSTRUCTION")
+    if (instruction) body.instruction = instruction
+
     const data = await fetchOpenAIJson({
       baseUrl: envValue(env, "AI_RERANK_BASE_URL"),
       apiKey: envValue(env, "AI_RERANK_API_KEY"),
       path: "/rerank",
-      body: {
-        model: envValue(env, "AI_RERANK_MODEL"),
-        query,
-        documents: candidates.map((candidate) =>
-          [candidate.title, candidate.summary, candidate.text].filter(Boolean).join("\n"),
-        ),
-        top_n: finalLimit,
-      },
+      body,
     })
 
     const results = Array.isArray(data?.results) ? data.results : []
     if (results.length === 0) return candidates
 
-    return results
+    const seen = new Set()
+    const reranked = results
       .map((result) => {
-        const candidate = candidates[Number(result.index)]
+        const index = Number(result.index)
+        const candidate = candidates[index]
         if (!candidate) return null
+        seen.add(index)
+        const rerankScore = Number(result.relevance_score ?? result.score ?? candidate.score)
         return {
           ...candidate,
-          rerankScore: Number(result.relevance_score ?? result.score ?? candidate.score),
+          rerankScore: Number.isFinite(rerankScore) ? rerankScore : candidate.score,
         }
       })
       .filter(Boolean)
       .sort((a, b) => (b.rerankScore ?? b.score) - (a.rerankScore ?? a.score))
+
+    const remaining = candidates.filter((_, index) => !seen.has(index))
+    return [...reranked, ...remaining]
   } catch {
     return candidates
   }
@@ -394,6 +431,7 @@ function uniqueNoteCandidates(candidates, limit = finalLimit) {
       summary: candidate.summary || "",
       text: candidate.text || "",
       score: candidate.score || 0,
+      rerankScore: candidate.rerankScore,
     })
     if (notes.length >= limit) break
   }
@@ -409,6 +447,9 @@ function sourcesFromCandidates(candidates) {
     title: candidate.title,
     url: candidate.url,
     score: Number(candidate.score.toFixed(4)),
+    ...(Number.isFinite(candidate.rerankScore)
+      ? { rerankScore: Number(candidate.rerankScore.toFixed(4)) }
+      : {}),
   }))
 }
 

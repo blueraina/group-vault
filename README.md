@@ -18,7 +18,7 @@
 - 笔记维护者可以删除不合适的评论。
 - 评论管理页用于查看近期评论。
 - 全局图谱可以按标签隐藏节点，适合临时隐藏题库类大批量节点。
-- **AI辅助查找笔记功能(需要github登录后才能使用)**  
+- **AI辅助查找笔记功能(需要github登录后才能使用)**
 
 ## 仓库结构
 
@@ -140,9 +140,14 @@ AI_CHAT_FALLBACK_1_MODEL
 AI_CHAT_FALLBACK_2_BASE_URL
 AI_CHAT_FALLBACK_2_API_KEY
 AI_CHAT_FALLBACK_2_MODEL
+AI_RERANK_BASE_URL
+AI_RERANK_API_KEY
+AI_RERANK_MODEL
 ```
 
 其中 `*_API_KEY` 应设为 Secret。两个 `AI_CHAT_FALLBACK_*` 模型按 2、3 优先级使用；如果配置某个 fallback，需要同时填齐 `BASE_URL`、`API_KEY` 和 `MODEL`。
+
+`AI_RERANK_*` 是可选配置。三项都填时，AI 找笔记会先用 embedding 召回候选笔记，再调用 rerank 模型重排候选；不填则直接使用 embedding 相似度排序。如果只填了其中一部分，后端会返回“模型未配置”并提示缺少的变量。
 
 D1 迁移：
 
@@ -198,6 +203,7 @@ node scripts/update-collaborators.mjs
 </table>
 
 <!-- collaborators:end -->
+
 ## 协议
 
 本仓库采用双协议：
