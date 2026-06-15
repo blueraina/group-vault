@@ -147,6 +147,12 @@ plugins:
       group: toolbar
       groupOptions:
         grow: true
+  - source: ./plugins-local/ai-search
+    enabled: true
+    layout:
+      position: left
+      priority: 22
+      group: toolbar
   - source: github:quartz-community/backlinks
     enabled: true
     layout:
@@ -201,6 +207,7 @@ plugins:
     enabled: true
     options:
       links:
+        GitHub: https://github.com/blueraina/group-vault
         Quartz: https://quartz.jzhao.xyz
   - source: github:quartz-community/spacer
     enabled: true
@@ -233,7 +240,7 @@ layout:
     toolbar:
       priority: 35
       direction: row
-      gap: 0.5rem
+      gap: 0.35rem
   byPageType:
     "404":
       positions:

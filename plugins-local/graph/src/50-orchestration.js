@@ -55,6 +55,60 @@ function startGraphRuntime() {
     }
     return false
   }
+  function ensureGlobalProgressLegend(outer) {
+    var legend = outer.querySelector(".graph-progress-legend")
+    if (!legend) {
+      legend = document.createElement("div")
+      legend.className = "graph-progress-legend"
+      legend.setAttribute("aria-label", "图谱标记图例")
+      legend.style.position = "fixed"
+      legend.style.left = "max(1rem, 3vw)"
+      legend.style.bottom = "max(1rem, 3vh)"
+      legend.style.zIndex = "10000"
+      legend.style.display = "inline-flex"
+      legend.style.flexWrap = "wrap"
+      legend.style.alignItems = "center"
+      legend.style.gap = "0.65rem"
+      legend.style.maxWidth = "calc(100vw - 2rem)"
+      legend.style.padding = "0.5rem 0.65rem"
+      legend.style.border = "1px solid var(--lightgray)"
+      legend.style.borderRadius = "8px"
+      legend.style.background = "var(--light)"
+      legend.style.color = "var(--darkgray)"
+      legend.style.boxShadow = "0 12px 30px rgba(0, 0, 0, 0.16)"
+      legend.style.fontSize = "0.82rem"
+      legend.style.lineHeight = "1.2"
+
+      var items = [
+        ["read", "已读"],
+        ["favorite", "收藏"],
+        ["both", "已读且收藏"],
+      ]
+      for (var i = 0; i < items.length; i++) {
+        var item = document.createElement("span")
+        item.style.display = "inline-flex"
+        item.style.alignItems = "center"
+        item.style.gap = "0.32rem"
+        item.style.whiteSpace = "nowrap"
+
+        var swatch = document.createElement("span")
+        swatch.setAttribute("aria-hidden", "true")
+        swatch.style.width = "0.72rem"
+        swatch.style.height = "0.72rem"
+        swatch.style.borderRadius = "50%"
+        swatch.style.background = GRAPH_PROGRESS_COLORS[items[i][0]]
+        swatch.style.boxShadow = "0 0 0 1px rgba(0, 0, 0, 0.14)"
+
+        var label = document.createElement("span")
+        label.textContent = items[i][1]
+
+        item.appendChild(swatch)
+        item.appendChild(label)
+        legend.appendChild(item)
+      }
+      outer.appendChild(legend)
+    }
+  }
   function closeGlobal() {
     clearGlobal()
     for (var i = 0; i < globalOuters.length; i++) {
@@ -70,6 +124,7 @@ function startGraphRuntime() {
     for (var i = 0; i < globalOuters.length; i++) {
       var outer = globalOuters[i]
       outer.classList.add("active")
+      ensureGlobalProgressLegend(outer)
       var sb = outer.closest(".sidebar")
       if (sb) sb.style.zIndex = "1"
       var gc = outer.querySelector(".global-graph-container")
@@ -105,7 +160,9 @@ function startGraphRuntime() {
       if (
         !e.target.closest(".global-graph-container") &&
         !e.target.closest(".global-graph-icon") &&
-        !e.target.closest(".graph-settings-panel")
+        !e.target.closest(".graph-settings-toggle") &&
+        !e.target.closest(".graph-settings-panel") &&
+        !e.target.closest(".graph-progress-legend")
       ) closeGlobal()
     }
     document.addEventListener("click", clickAwayHandler)
@@ -127,6 +184,15 @@ function startGraphRuntime() {
     if (isGlobalOpen()) openGlobal()
   })
   document.addEventListener("themechange", function () {
+    renderLocal()
+    if (isGlobalOpen()) openGlobal()
+  })
+  document.addEventListener("readingstatechange", function () {
+    renderLocal()
+    if (isGlobalOpen()) openGlobal()
+  })
+  window.addEventListener("storage", function (e) {
+    if (!e.key || e.key.indexOf(READING_STATE_PREFIX + ":") !== 0) return
     renderLocal()
     if (isGlobalOpen()) openGlobal()
   })

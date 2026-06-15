@@ -6,6 +6,8 @@ desktop.ini
 # Dependencies and build output
 node_modules/
 public/
+quartz/static/ai-search-index.json
+quartz/static/ai-search-index-shards/
 prof/
 tsconfig.tsbuildinfo
 .quartz-cache/

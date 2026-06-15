@@ -957,6 +957,9 @@ const script = String.raw`(() => {
     return escapeHtml(value).replace(new RegExp(backtick, "g"), "&#96;")
   }
 
+  window.__groupVaultEnsureCommentKatex = ensureKatex
+  window.__groupVaultRenderCommentMarkdown = renderMarkdown
+
   document.addEventListener("nav", initComments)
   document.addEventListener("render", initComments)
   if (document.readyState === "loading") {
@@ -969,6 +972,9 @@ const script = String.raw`(() => {
 const adminCommentsStyles = `.comment-admin {
   border: 1px solid var(--lightgray);
   border-radius: 8px;
+  box-sizing: border-box;
+  max-width: 100%;
+  overflow: hidden;
   padding: 1rem;
 }
 .comment-admin-toolbar {
@@ -977,10 +983,13 @@ const adminCommentsStyles = `.comment-admin {
   justify-content: space-between;
   gap: 0.75rem;
   margin-bottom: 1rem;
+  min-width: 0;
 }
 .comment-admin-status {
   margin: 0;
   color: var(--darkgray);
+  flex: 1 1 auto;
+  min-width: 0;
 }
 .comment-admin-status.is-error {
   color: #d9480f;
@@ -988,7 +997,42 @@ const adminCommentsStyles = `.comment-admin {
 .comment-admin-actions {
   display: inline-flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.5rem;
+  justify-content: flex-end;
+}
+.comment-admin-scope {
+  background: color-mix(in srgb, var(--lightgray) 34%, transparent);
+  border: 1px solid var(--lightgray);
+  border-radius: 6px;
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+}
+.comment-admin-scope[hidden] {
+  display: none;
+}
+.comment-admin-scope-button {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+  color: var(--darkgray);
+  cursor: pointer;
+  display: inline-flex;
+  justify-content: center;
+  min-height: calc(2.25rem - 4px);
+  padding: 0.25rem 0.65rem;
+  white-space: nowrap;
+}
+.comment-admin-scope-button.is-active {
+  background: var(--light);
+  color: var(--dark);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--dark) 12%, transparent);
+}
+.comment-admin-scope-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 .comment-admin-button {
   border: 1px solid var(--lightgray);
@@ -1021,6 +1065,7 @@ const adminCommentsStyles = `.comment-admin {
 .comment-admin-list {
   display: grid;
   gap: 0.75rem;
+  min-width: 0;
 }
 .comment-admin-empty {
   margin: 0;
@@ -1029,6 +1074,10 @@ const adminCommentsStyles = `.comment-admin {
 .comment-admin-item {
   border: 1px solid var(--lightgray);
   border-radius: 8px;
+  box-sizing: border-box;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
   padding: 0.9rem;
 }
 .comment-admin-item-header {
@@ -1037,8 +1086,11 @@ const adminCommentsStyles = `.comment-admin {
   gap: 0.75rem;
   justify-content: space-between;
   margin-bottom: 0.7rem;
+  min-width: 0;
 }
 .comment-admin-meta {
+  display: grid;
+  gap: 0.1rem;
   min-width: 0;
 }
 .comment-admin-author {
@@ -1053,14 +1105,39 @@ const adminCommentsStyles = `.comment-admin {
 .comment-admin-path {
   display: inline-block;
   margin-top: 0.2rem;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 .comment-admin-content {
   background: var(--highlight);
   border-radius: 6px;
+  box-sizing: border-box;
+  color: var(--dark);
   margin: 0;
-  overflow-x: auto;
+  max-width: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
   padding: 0.75rem;
-  white-space: pre-wrap;
+}
+.comment-admin-content > :first-child {
+  margin-top: 0;
+}
+.comment-admin-content > :last-child {
+  margin-bottom: 0;
+}
+.comment-admin-content pre {
+  overflow-x: auto;
+  padding: 0.85rem;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--lightgray) 38%, transparent);
+}
+.comment-admin-content code {
+  overflow-wrap: anywhere;
+}
+.comment-admin-content .katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.25rem 0;
 }
 @media (max-width: 640px) {
   .comment-admin-toolbar,
@@ -1069,8 +1146,12 @@ const adminCommentsStyles = `.comment-admin {
     flex-direction: column;
   }
   .comment-admin-actions,
-  .comment-admin-button {
+  .comment-admin-button,
+  .comment-admin-scope {
     width: 100%;
+  }
+  .comment-admin-scope-button {
+    flex: 1 1 0;
   }
 }`
 
@@ -1085,6 +1166,9 @@ function initCommentAdmin() {
   const list = root.querySelector("[data-comment-admin-list]")
   const refresh = root.querySelector("[data-comment-admin-refresh]")
   const login = root.querySelector("[data-comment-admin-login]")
+  const scopeControls = root.querySelector("[data-comment-admin-scope]")
+  let currentScope = root.dataset.commentAdminScope === "all" ? "all" : "mine"
+  let canViewAll = false
 
   function escapeHtml(value) {
     return String(value || "").replace(/[&<>"']/g, (char) => ({
@@ -1106,6 +1190,10 @@ function initCommentAdmin() {
     status.classList.toggle("is-error", Boolean(isError))
   }
 
+  function scopeLabel(scope) {
+    return scope === "all" ? "全部评论" : "我的评论"
+  }
+
   function loginUrl() {
     return "/api/auth/github?returnTo=" + encodeURIComponent(window.location.pathname + window.location.search + window.location.hash)
   }
@@ -1122,6 +1210,14 @@ function initCommentAdmin() {
     return date.toLocaleString("zh-CN", { hour12: false })
   }
 
+  async function renderAdminMarkdown(markdown) {
+    const ensureKatex = window.__groupVaultEnsureCommentKatex
+    const renderMarkdown = window.__groupVaultRenderCommentMarkdown
+    if (typeof ensureKatex === "function") await ensureKatex("/static/katex.min.js")
+    if (typeof renderMarkdown === "function") return renderMarkdown(markdown)
+    return "<p>" + escapeHtml(markdown).replace(/\\n/g, "<br>") + "</p>"
+  }
+
   function setLoginVisible(visible) {
     if (!login) return
     login.hidden = !visible
@@ -1131,23 +1227,42 @@ function initCommentAdmin() {
     }
   }
 
+  function updateScopeControls() {
+    if (!scopeControls) return
+    scopeControls.hidden = !canViewAll
+    const buttons = scopeControls.querySelectorAll("[data-comment-admin-scope-value]")
+    buttons.forEach((button) => {
+      const value = button.getAttribute("data-comment-admin-scope-value") === "all" ? "all" : "mine"
+      const active = value === currentScope
+      button.classList.toggle("is-active", active)
+      button.setAttribute("aria-pressed", active ? "true" : "false")
+    })
+  }
+
   function renderAuth(message) {
+    canViewAll = false
+    currentScope = "mine"
+    updateScopeControls()
     setLoginVisible(true)
     setStatus(message || "请先登录 GitHub 后再查看评论管理页", true)
-    if (list) list.innerHTML = '<p class="comment-admin-empty">登录后会显示最近评论。</p>'
+    if (list) list.innerHTML = '<p class="comment-admin-empty">登录后会显示你发布过的评论。</p>'
   }
 
   function renderForbidden(message) {
+    canViewAll = false
+    currentScope = "mine"
+    updateScopeControls()
     setLoginVisible(false)
-    setStatus(message || "你没有权限查看评论管理页", true)
-    if (list) list.innerHTML = '<p class="comment-admin-empty">只有笔记维护者可以查看这里。</p>'
+    setStatus(message || "你没有权限执行这个操作", true)
+    if (list) list.innerHTML = '<p class="comment-admin-empty">你可以刷新后查看自己的评论。</p>'
   }
 
-  function renderList(comments) {
+  async function renderList(comments) {
     setLoginVisible(false)
     if (!list) return
     if (!comments.length) {
-      list.innerHTML = '<p class="comment-admin-empty">暂无评论。</p>'
+      const emptyMessage = currentScope === "all" ? "暂无评论。" : "你还没有发布过评论。"
+      list.innerHTML = '<p class="comment-admin-empty">' + emptyMessage + '</p>'
       return
     }
 
@@ -1167,22 +1282,33 @@ function initCommentAdmin() {
             '</div>' +
             '<button class="comment-admin-button danger" type="button" data-comment-delete="' + escapeAttribute(comment.id) + '">删除</button>' +
           '</div>' +
-          '<pre class="comment-admin-content">' + escapeHtml(comment.content) + '</pre>' +
+          '<div class="comment-admin-content" data-comment-admin-content></div>' +
         '</article>'
       )
     }).join("")
+
+    const bodies = list.querySelectorAll("[data-comment-admin-content]")
+    for (let index = 0; index < bodies.length; index += 1) {
+      bodies[index].innerHTML = await renderAdminMarkdown(comments[index]?.content || "")
+    }
   }
 
   async function loadComments() {
-    setStatus("正在加载最新评论...", false)
+    setStatus("正在加载" + scopeLabel(currentScope) + "...", false)
     setLoginVisible(false)
     if (list) list.innerHTML = ""
 
     try {
-      const response = await fetch(api + "?limit=100", { headers: { accept: "application/json" } })
+      const response = await fetch(api + "?limit=100&scope=" + encodeURIComponent(currentScope), { headers: { accept: "application/json" } })
       const data = await response.json().catch(() => ({}))
       if (response.status === 401) {
         renderAuth(data.error)
+        return
+      }
+      if (response.status === 403 && currentScope === "all") {
+        currentScope = "mine"
+        await loadComments()
+        setStatus((data.error || "只有笔记维护者可以查看全部评论") + "，已切回我的评论。", true)
         return
       }
       if (response.status === 403) {
@@ -1191,9 +1317,12 @@ function initCommentAdmin() {
       }
       if (!response.ok) throw new Error(data.error || "评论管理服务暂时不可用")
 
+      canViewAll = Boolean(data.canViewAll)
+      currentScope = data.scope === "all" && canViewAll ? "all" : "mine"
+      updateScopeControls()
       const comments = Array.isArray(data.comments) ? data.comments : []
-      renderList(comments)
-      setStatus("已加载 " + comments.length + " 条最新评论", false)
+      await renderList(comments)
+      setStatus("已加载 " + comments.length + " 条" + (currentScope === "all" ? "最新评论" : "我的评论"), false)
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "评论管理服务暂时不可用", true)
       if (list) list.innerHTML = '<p class="comment-admin-empty">稍后刷新再试。</p>'
@@ -1203,11 +1332,16 @@ function initCommentAdmin() {
   async function deleteComment(id, button) {
     if (!id || !window.confirm("确定删除这条评论吗？")) return
     if (button) button.disabled = true
+    setStatus("正在删除评论...", false)
     try {
-      const response = await fetch(api + "?id=" + encodeURIComponent(id), { method: "DELETE" })
+      const response = await fetch(api + "?id=" + encodeURIComponent(id), {
+        method: "DELETE",
+        headers: { accept: "application/json" },
+      })
       const data = await response.json().catch(() => ({}))
       if (!response.ok) throw new Error(data.error || "删除失败")
       await loadComments()
+      setStatus("评论已删除", false)
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "删除失败", true)
       if (button) button.disabled = false
@@ -1215,9 +1349,23 @@ function initCommentAdmin() {
   }
 
   refresh?.addEventListener("click", loadComments)
+  scopeControls?.addEventListener("click", (event) => {
+    const button = event.target?.closest?.("[data-comment-admin-scope-value]")
+    if (!button) return
+    event.preventDefault()
+    event.stopPropagation()
+    const nextScope = button.getAttribute("data-comment-admin-scope-value") === "all" ? "all" : "mine"
+    if (nextScope === "all" && !canViewAll) return
+    if (nextScope === currentScope) return
+    currentScope = nextScope
+    updateScopeControls()
+    loadComments()
+  })
   root.addEventListener("click", (event) => {
     const button = event.target?.closest?.("[data-comment-delete]")
     if (!button) return
+    event.preventDefault()
+    event.stopPropagation()
     deleteComment(button.getAttribute("data-comment-delete"), button)
   })
 

@@ -158,6 +158,10 @@ const script = `(() => {
     } catch {}
   }
 
+  function notifyReadingStateChanged() {
+    document.dispatchEvent(new CustomEvent("readingstatechange"))
+  }
+
   async function readJson(response) {
     const text = await response.text().catch(() => "")
     if (!text) return {}
@@ -350,6 +354,7 @@ const script = `(() => {
     setState(action, pageId, nextState)
     refreshRoot(root)
     scheduleExplorerMarkers()
+    notifyReadingStateChanged()
     persistRemoteMark(action, pageId, nextState)
   }
 
@@ -375,9 +380,11 @@ const script = `(() => {
     setupReadingStateClickHandler()
     document.querySelectorAll("[data-reading-state]").forEach(setupRoot)
     setupExplorerMarkers()
+    const hadLoadedMarks = remoteState.loaded
     loadRemoteMarks().then(() => {
       document.querySelectorAll("[data-reading-state]").forEach(setupRoot)
       scheduleExplorerMarkers()
+      if (!hadLoadedMarks) notifyReadingStateChanged()
     })
   }
 
