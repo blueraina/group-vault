@@ -16,7 +16,6 @@ const indexCacheTtlMs = 5 * 60 * 1000
 const systemPrompt = `你是一个数学笔记学习导航助手。
 只能基于提供的候选笔记生成推荐。
 不要编造不存在的笔记、链接、标题或结论。
-如果候选笔记相关性不足，要明确说明“没有找到非常匹配的笔记”，并给出最接近的结果。
 输出要简短、清晰、适合学习路径规划。
 每个推荐都必须对应候选笔记中的真实 title 和 url。
 优先给出学习顺序，而不是长篇解释。`
@@ -483,7 +482,7 @@ function validateModelItems(parsed, candidates, weakMatch) {
 function fallbackAnswer(query, candidates, weakMatch) {
   if (candidates.length === 0) return "没有找到合适笔记。"
   const prefix = weakMatch
-    ? "没有找到非常匹配的笔记。下面是当前索引里最接近的阅读入口。"
+    ? "可以先参考下面这些当前索引里较接近的阅读入口。"
     : "可以按下面顺序阅读这些笔记，先建立概念，再看核心结论和例题。"
   return `${prefix}\n学习目标：${query}`
 }
@@ -503,7 +502,6 @@ async function generateReport(env, query, candidates, weakMatch) {
       content: JSON.stringify(
         {
           query,
-          note: weakMatch ? "候选笔记相关性偏弱，请明确提醒用户。" : "",
           outputContract:
             "只输出 JSON：{ answer: string, items: [{ title: string, url: string, reason: string, level: '入门'|'核心'|'进阶'|'例题' }] }",
           candidates: candidates.map((candidate, index) => ({

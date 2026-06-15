@@ -435,6 +435,7 @@ const script = `(() => {
     if (!trigger || !overlay || !close || !form || !input || !submit || !status || !results) return
 
     let inFlight = false
+    let requestSeq = 0
 
     restoreLastResult(root, input)
 
@@ -476,6 +477,15 @@ const script = `(() => {
       if (link) hide()
     })
 
+    input.addEventListener("input", function () {
+      if (inFlight) return
+      if (results.classList.contains("active")) {
+        results.classList.remove("active")
+        clear(results)
+      }
+      setStatus(root, "", "")
+    })
+
     form.addEventListener("submit", async function (event) {
       event.preventDefault()
       if (inFlight) return
@@ -493,6 +503,8 @@ const script = `(() => {
       }
 
       inFlight = true
+      requestSeq += 1
+      const requestId = requestSeq
       submit.disabled = true
       results.classList.remove("active")
       clear(results)
@@ -506,6 +518,7 @@ const script = `(() => {
           body: JSON.stringify({ query: query }),
         })
         const data = await readJson(response)
+        if (requestId !== requestSeq) return
 
         if (!response.ok) {
           if (response.status === 401) {
@@ -520,10 +533,13 @@ const script = `(() => {
         renderResults(root, data)
         saveLastResult(query, data)
       } catch {
+        if (requestId !== requestSeq) return
         setStatus(root, "网络失败或后端暂时不可用。", "error")
       } finally {
-        inFlight = false
-        submit.disabled = false
+        if (requestId === requestSeq) {
+          inFlight = false
+          submit.disabled = false
+        }
       }
     })
   }
