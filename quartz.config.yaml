@@ -147,6 +147,12 @@ plugins:
       group: toolbar
       groupOptions:
         grow: true
+  - source: ./plugins-local/ai-search
+    enabled: true
+    layout:
+      position: left
+      priority: 22
+      group: toolbar
   - source: github:quartz-community/backlinks
     enabled: true
     layout:

@@ -17,6 +17,13 @@ export const Static: QuartzEmitterPlugin = () => ({
   async *emit({ argv, cfg }) {
     const staticPath = joinSegments(QUARTZ, "static")
     const fps = await glob("**", staticPath, cfg.configuration.ignorePatterns)
+    const aiSearchIndex = "ai-search-index.json" as FilePath
+    if (
+      !fps.includes(aiSearchIndex) &&
+      fs.existsSync(joinSegments(staticPath, aiSearchIndex) as FilePath)
+    ) {
+      fps.push(aiSearchIndex)
+    }
     const outputStaticPath = joinSegments(argv.output, "static")
     await fs.promises.mkdir(outputStaticPath, { recursive: true })
     for (const fp of fps) {
