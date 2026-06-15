@@ -256,6 +256,8 @@ const styles = `.ai-note-search {
 }`
 
 const script = `(() => {
+  const lastResultKey = "group-vault.ai-note-search.last-result"
+
   function currentReturnTo() {
     return window.location.pathname + window.location.search + window.location.hash
   }
@@ -277,6 +279,56 @@ const script = `(() => {
 
   function clear(node) {
     while (node.firstChild) node.removeChild(node.firstChild)
+  }
+
+  function storedItems(items) {
+    if (!Array.isArray(items)) return []
+    return items.slice(0, 8).map(function (item) {
+      return {
+        title: String(item && item.title ? item.title : ""),
+        url: String(item && item.url ? item.url : ""),
+        reason: String(item && item.reason ? item.reason : ""),
+        level: String(item && item.level ? item.level : ""),
+      }
+    })
+  }
+
+  function storedSources(sources) {
+    if (!Array.isArray(sources)) return []
+    return sources.slice(0, 30).map(function (source) {
+      return {
+        title: String(source && source.title ? source.title : ""),
+        url: String(source && source.url ? source.url : ""),
+        score: Number(source && source.score ? source.score : 0),
+      }
+    })
+  }
+
+  function saveLastResult(query, data) {
+    try {
+      const payload = {
+        query: String(query || "").slice(0, 500),
+        savedAt: Date.now(),
+        data: {
+          answer: String(data && data.answer ? data.answer : ""),
+          items: storedItems(data && data.items),
+          sources: storedSources(data && data.sources),
+        },
+      }
+      window.sessionStorage.setItem(lastResultKey, JSON.stringify(payload))
+    } catch {}
+  }
+
+  function readLastResult() {
+    try {
+      const raw = window.sessionStorage.getItem(lastResultKey)
+      if (!raw) return null
+      const payload = JSON.parse(raw)
+      if (!payload || typeof payload !== "object" || !payload.data) return null
+      return payload
+    } catch {
+      return null
+    }
   }
 
   function setStatus(root, message, type) {
@@ -359,6 +411,15 @@ const script = `(() => {
     results.appendChild(list)
   }
 
+  function restoreLastResult(root, input) {
+    const payload = readLastResult()
+    if (!payload) return
+
+    if (!input.value && payload.query) input.value = String(payload.query)
+    setStatus(root, "", "")
+    renderResults(root, payload.data)
+  }
+
   function setupRoot(root) {
     if (root.dataset.aiSearchBound === "true") return
     root.dataset.aiSearchBound = "true"
@@ -374,6 +435,8 @@ const script = `(() => {
     if (!trigger || !overlay || !close || !form || !input || !submit || !status || !results) return
 
     let inFlight = false
+
+    restoreLastResult(root, input)
 
     function open() {
       overlay.classList.add("active")
@@ -455,6 +518,7 @@ const script = `(() => {
 
         setStatus(root, "", "")
         renderResults(root, data)
+        saveLastResult(query, data)
       } catch {
         setStatus(root, "网络失败或后端暂时不可用。", "error")
       } finally {
