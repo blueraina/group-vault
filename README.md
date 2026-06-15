@@ -203,7 +203,6 @@ node scripts/update-collaborators.mjs
 </table>
 
 <!-- collaborators:end -->
-
 ## 协议
 
 本仓库采用双协议：
