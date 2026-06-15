@@ -9,9 +9,14 @@ import { simplifySlug, slugifyFilePath } from "@quartz-community/utils"
 
 const root = process.cwd()
 const contentDir = path.join(root, "content")
-const indexPath = path.join(root, "quartz", "static", "ai-search-index.json")
+const staticDir = path.join(root, "quartz", "static")
+const indexPath = path.join(staticDir, "ai-search-index.json")
+const shardDir = path.join(staticDir, "ai-search-index-shards")
 const indexVersion = 1
 const defaultCachePath = "/static/ai-search-index.json"
+const publicShardBasePath = "/static/ai-search-index-shards"
+const defaultMaxShardBytes = 18 * 1024 * 1024
+const embeddingPrecision = 1_000_000
 
 const requiredEmbeddingEnv = [
   "AI_EMBEDDING_BASE_URL",
@@ -58,13 +63,20 @@ async function writeJson(filePath, value) {
   await fs.writeFile(filePath, JSON.stringify(value, null, 2) + "\n", "utf8")
 }
 
+async function writeCompactJson(filePath, value) {
+  await fs.mkdir(path.dirname(filePath), { recursive: true })
+  await fs.writeFile(filePath, JSON.stringify(value) + "\n", "utf8")
+}
+
 async function writeDisabledIndex(reason) {
+  await fs.rm(shardDir, { recursive: true, force: true })
   await writeJson(indexPath, {
     version: indexVersion,
     enabled: false,
     generatedAt: new Date().toISOString(),
     reason,
     chunks: [],
+    shards: [],
     stats: {
       notes: 0,
       chunks: 0,
@@ -208,8 +220,59 @@ async function readConfigBaseUrl() {
   }
 }
 
+function shardPublicPath(index) {
+  return `${publicShardBasePath}/chunks-${String(index).padStart(3, "0")}.json`
+}
+
+function shardFilePath(index) {
+  return path.join(shardDir, `chunks-${String(index).padStart(3, "0")}.json`)
+}
+
+function localStaticPath(publicPath) {
+  const clean = String(publicPath || "").replace(/^\/+/u, "")
+  const relative = clean.startsWith("static/") ? clean.slice("static/".length) : clean
+  return path.join(staticDir, relative)
+}
+
+async function hydrateIndexChunks(manifest, loadShard, label) {
+  if (!manifest?.enabled) return null
+  if (Array.isArray(manifest.chunks)) return manifest
+  if (!Array.isArray(manifest.shards)) return null
+
+  const chunks = []
+  for (const shard of manifest.shards) {
+    const shardPath = String(shard?.path || "")
+    if (!shardPath) continue
+    const shardData = await loadShard(shardPath)
+    const shardChunks = Array.isArray(shardData?.chunks) ? shardData.chunks : []
+    if (shardChunks.length === 0) {
+      console.warn(`[ai:index] skipped empty previous index shard from ${label}: ${shardPath}`)
+      continue
+    }
+    chunks.push(...shardChunks)
+  }
+
+  return chunks.length > 0 ? { ...manifest, chunks } : null
+}
+
+async function fetchJson(url) {
+  const response = await fetch(url, {
+    headers: { accept: "application/json" },
+    signal: AbortSignal.timeout(20000),
+  })
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}`)
+  }
+  return response.json()
+}
+
 async function fetchPreviousIndex() {
-  const local = await readJson(indexPath)
+  const localManifest = await readJson(indexPath)
+  const local = await hydrateIndexChunks(
+    localManifest,
+    (shardPath) => readJson(localStaticPath(shardPath)),
+    "local cache",
+  )
   if (local?.enabled && Array.isArray(local.chunks)) {
     console.log(`[ai:index] using local cache: ${normalizeSlash(path.relative(root, indexPath))}`)
     return local
@@ -221,15 +284,12 @@ async function fetchPreviousIndex() {
   if (!cacheUrl) return null
 
   try {
-    const response = await fetch(cacheUrl, {
-      headers: { accept: "application/json" },
-      signal: AbortSignal.timeout(20000),
-    })
-    if (!response.ok) {
-      console.warn(`[ai:index] previous index unavailable at ${cacheUrl}: HTTP ${response.status}`)
-      return null
-    }
-    const remote = await response.json()
+    const remoteManifest = await fetchJson(cacheUrl)
+    const remote = await hydrateIndexChunks(
+      remoteManifest,
+      (shardPath) => fetchJson(new URL(shardPath, cacheUrl).toString()),
+      cacheUrl,
+    )
     if (remote?.enabled && Array.isArray(remote.chunks)) {
       console.log(`[ai:index] using remote cache: ${cacheUrl}`)
       return remote
@@ -277,6 +337,67 @@ async function embedBatch(texts) {
     if (!Array.isArray(entry.embedding)) throw new Error("Embedding API response is missing a vector")
     return entry.embedding.map(Number)
   })
+}
+
+function compactEmbedding(embedding) {
+  return (embedding || []).map((value) => {
+    const number = Number(value) || 0
+    return Math.round(number * embeddingPrecision) / embeddingPrecision
+  })
+}
+
+function shardMaxBytes() {
+  const configured = Number(envValue("AI_SEARCH_SHARD_MAX_BYTES")) || defaultMaxShardBytes
+  return Math.max(1024 * 1024, Math.min(configured, 24 * 1024 * 1024))
+}
+
+async function writeShardedChunks(chunks) {
+  await fs.rm(shardDir, { recursive: true, force: true })
+  await fs.mkdir(shardDir, { recursive: true })
+
+  const maxBytes = shardMaxBytes()
+  const shards = []
+  let shardIndex = 0
+  let shardChunks = []
+
+  async function flushShard() {
+    if (shardChunks.length === 0) return
+
+    const payload = { version: indexVersion, chunks: shardChunks }
+    const text = JSON.stringify(payload)
+    const bytes = Buffer.byteLength(text, "utf8")
+    const publicPath = shardPublicPath(shardIndex)
+    const filePath = shardFilePath(shardIndex)
+    await writeCompactJson(filePath, payload)
+    shards.push({ path: publicPath, chunks: shardChunks.length, bytes })
+    shardIndex += 1
+    shardChunks = []
+  }
+
+  for (const chunk of chunks) {
+    const candidate = [...shardChunks, chunk]
+    const bytes = Buffer.byteLength(JSON.stringify({ version: indexVersion, chunks: candidate }), "utf8")
+    if (shardChunks.length > 0 && bytes > maxBytes) {
+      await flushShard()
+    }
+
+    shardChunks.push(chunk)
+
+    if (shardChunks.length === 1) {
+      const singleBytes = Buffer.byteLength(
+        JSON.stringify({ version: indexVersion, chunks: shardChunks }),
+        "utf8",
+      )
+      if (singleBytes > maxBytes) {
+        console.warn(
+          `[ai:index] a single chunk is ${singleBytes} bytes, above shard target ${maxBytes} bytes`,
+        )
+      }
+    }
+  }
+
+  await flushShard()
+  return shards
 }
 
 async function embedChangedChunks(chunks) {
@@ -402,8 +523,11 @@ async function main() {
     text: chunk.text,
     hash: chunk.hash,
     embeddingModel,
-    embedding: chunk.embedding,
+    embedding: compactEmbedding(chunk.embedding),
   }))
+
+  const shards = await writeShardedChunks(outputChunks)
+  const shardBytes = shards.reduce((total, shard) => total + shard.bytes, 0)
 
   await writeJson(indexPath, {
     version: indexVersion,
@@ -412,10 +536,12 @@ async function main() {
     embeddingModel,
     dimensions: outputChunks[0]?.embedding?.length || 0,
     notes,
-    chunks: outputChunks,
+    shards,
     stats: {
       notes: notes.length,
       chunks: chunks.length,
+      shardFiles: shards.length,
+      shardBytes,
       reused,
       embedded: changed.length,
       removed,
@@ -423,7 +549,7 @@ async function main() {
   })
 
   console.log(
-    `[ai:index] wrote ${normalizeSlash(path.relative(root, indexPath))}: ${notes.length} notes, ${chunks.length} chunks, ${reused} reused, ${changed.length} embedded, ${removed} removed`,
+    `[ai:index] wrote ${normalizeSlash(path.relative(root, indexPath))}: ${notes.length} notes, ${chunks.length} chunks, ${shards.length} shard files, ${reused} reused, ${changed.length} embedded, ${removed} removed`,
   )
 }
 

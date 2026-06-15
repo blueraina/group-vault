@@ -169,14 +169,23 @@ async function createChatCompletion(env, messages) {
   }
 }
 
-async function fetchIndexFromAssets(request, env) {
+async function fetchIndexFromAssets(request, env, pathname = indexPath) {
   if (env.ASSETS && typeof env.ASSETS.fetch === "function") {
-    const url = new URL(indexPath, request.url)
+    const url = new URL(pathname, request.url)
     return env.ASSETS.fetch(url)
   }
 
-  const url = new URL(indexPath, request.url)
+  const url = new URL(pathname, request.url)
   return fetch(url)
+}
+
+async function readIndexJson(request, env, pathname) {
+  const response = await fetchIndexFromAssets(request, env, pathname)
+  if (!response.ok) {
+    const code = pathname === indexPath ? "INDEX_NOT_FOUND" : "INDEX_SHARD_NOT_FOUND"
+    throw httpError("AI search index file is missing, please rebuild the AI search index", 503, code)
+  }
+  return response.json().catch(() => null)
 }
 
 async function loadIndex(request, env) {
@@ -191,6 +200,34 @@ async function loadIndex(request, env) {
   const index = await response.json().catch(() => null)
   if (!index?.enabled || !Array.isArray(index.chunks) || index.chunks.length === 0) {
     throw httpError("AI 搜索索引未启用或为空", 503, "INDEX_DISABLED")
+  }
+
+  cachedIndex = index
+  cachedIndexAt = now
+  return index
+}
+
+async function loadSearchIndex(request, env) {
+  const now = Date.now()
+  if (cachedIndex && now - cachedIndexAt < indexCacheTtlMs) return cachedIndex
+
+  const manifest = await readIndexJson(request, env, indexPath)
+  const chunks = []
+
+  if (Array.isArray(manifest?.chunks)) {
+    chunks.push(...manifest.chunks)
+  } else if (Array.isArray(manifest?.shards)) {
+    for (const shard of manifest.shards) {
+      const shardPath = String(shard?.path || "")
+      if (!shardPath) continue
+      const shardIndex = await readIndexJson(request, env, shardPath)
+      if (Array.isArray(shardIndex?.chunks)) chunks.push(...shardIndex.chunks)
+    }
+  }
+
+  const index = manifest ? { ...manifest, chunks } : null
+  if (!index?.enabled || !Array.isArray(index.chunks) || index.chunks.length === 0) {
+    throw httpError("AI search index is disabled or empty", 503, "INDEX_DISABLED")
   }
 
   cachedIndex = index
@@ -440,7 +477,7 @@ async function handlePost(request, env) {
   checkRateLimit(user, request)
   requireAiConfig(env)
 
-  const index = await loadIndex(request, env)
+  const index = await loadSearchIndex(request, env)
   const queryEmbedding = await createEmbedding(env, query)
   const recalled = recallChunks(index, queryEmbedding)
   const reranked = await maybeRerank(env, query, recalled)
