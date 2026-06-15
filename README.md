@@ -1,6 +1,8 @@
 # 群知识库
 
-群知识库是一个由群友共同维护的 Obsidian Markdown 笔记库。维护者主要在 Obsidian 中编辑，通过 Obsidian Git 插件同步到 GitHub；网站由 Quartz 构建并发布到 Cloudflare Pages。**喜欢的话请点个star吧！**
+群知识库是一个由群友共同维护的 Obsidian Markdown 笔记库。维护者主要在 Obsidian 中编辑，通过 Obsidian Git 插件同步到 GitHub；网站由 Quartz 构建并发布到 Cloudflare Pages。
+
+**如果觉得这个项目有用，欢迎点个 Star 支持一下，这对我真的很重要 : )**
 
 网站地址：<https://group-vault.pages.dev/>
 
