@@ -75,9 +75,14 @@ async function renderGraph(container, fullSlug, renderId) {
     var hasTags = Array.isArray(entry.tags) && entry.tags.length > 0
     return !hasContent && !hasLinks && !hasTags
   }
+  function entryIsTagPage(id) {
+    if (!id.startsWith("tags/")) return false
+    var tag = normalizeGraphTag(id.substring(5))
+    return !showTags || removedTags.has(tag) || hiddenTags.has(tag)
+  }
   function isHiddenNode(id) {
     var entry = data.get(id)
-    return hiddenNodes.has(id) || entryIsFolderPage(entry) || entryHiddenByTag(entry)
+    return hiddenNodes.has(id) || entryIsTagPage(id) || entryIsFolderPage(entry) || entryHiddenByTag(entry)
   }
 
   // Build link list + tag pseudo-nodes
