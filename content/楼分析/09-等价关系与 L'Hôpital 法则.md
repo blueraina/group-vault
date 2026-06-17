@@ -263,7 +263,7 @@ $$
 > \lim_{x\to 0}\left[\frac{1}{\ln(x + \sqrt{1 + x^2})} -\frac{1}{\ln(1 + x)}\right].
 > $$
 >
-> 解法I
+> 解法$I$
 > $$
 > \begin{array}{l} \lim _ {x \to 0} \left[ \frac {1}{\ln (x + \sqrt {1 + x ^ {2}})} - \frac {1}{\ln (1 + x)} \right] \\ = \lim _ {x \rightarrow 0} \frac {- \ln \frac {x + \sqrt {1 + x ^ {2}}}{1 + x}}{\ln (x + \sqrt {1 + x ^ {2}}) \ln (1 + x)} \tag {通分} \\ \end{array}
 > $$
@@ -273,6 +273,7 @@ $$
 > $$
 > \begin{array}{l} = \lim _ {x \rightarrow 0} \frac {1 - \sqrt {1 + x ^ {2}}}{x ^ {2}} \quad (\text {整理简化}) \\ = - \frac {1}{2}. \quad (\text {等价关系}) \\ \end{array}
 > $$
+
 **法II**
 若利用[[#命题 9.2|命题 9.2]], 取 $F(x) = \ln(1 + x)$ , 则 $\lim_{x \to 0} F'(x) = 1$ . 因此, 本例也可以这样写
 $$
@@ -410,7 +411,7 @@ $$
 ### 例 9.16
 
 > [!question] 例 9.16
-> 设 f 在 R 上连续, b > a > 0, 对任何 $x \in R$ , 成立
+> 设 $f$ 在 $R$ 上连续, $b$ > $a$ > 0, 对任何 $x \in R$ , 成立
 > $$
 > \varliminf_ {t \to 0} \frac {f (x + b t) + f (x + a t) - f (x - a t) - f (x - b t)}{t} > 0,
 > $$
@@ -441,7 +442,7 @@ $$
 ### 例 9.17
 
 > [!question] 例 9.17
-> 设 f 在 R 上连续, 对任何 $x \in R$ , 成立
+> 设 $f$ 在 $R$ 上连续, 对任何 $x \in R$ , 成立
 > $$
 > \varliminf_ {\delta \rightarrow 0 ^ {+}} \int_ {0} ^ {1} \frac {f (x + \delta t) - f (x - \delta t)}{\delta} \mathrm{d} t > 0,
 > $$

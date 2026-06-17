@@ -112,6 +112,7 @@ $$
 > $$
 > \begin{array}{l} \int_ {0} ^ {\frac {\pi}{2}} \sin^ {p} x \cos^ {q} x \mathrm{d} x = \int_ {0} ^ {1} t ^ {p} (1 - t ^ {2}) ^ {\frac {q - 1}{2}} \mathrm{d} t \\ = \frac {1}{2} \int_ {0} ^ {1} s ^ {\frac {p - 1}{2}} (1 - s) ^ {\frac {q - 1}{2}} \mathrm{d} s = \frac {1}{2} \mathrm{B} \left(\frac {p + 1}{2}, \frac {q + 1}{2}\right) \\ = \frac {1}{2} \frac {\Gamma \left(\frac {p + 1}{2}\right) \Gamma \left(\frac {q + 1}{2}\right)}{\Gamma \left(\frac {p + q}{2} + 1\right)}. \\ \end{array}
 > $$
+
 ### 例 10.2
 
 > [!question] 例 10.2
@@ -125,6 +126,7 @@ $$
 > $$
 > \begin{array}{l} = \frac {1}{q} \int_ {0} ^ {1} (1 - t) ^ {\frac {p + 1}{q} - 1} t ^ {r - 1 - \frac {p + 1}{q}} d t \\ = \frac {1}{q} \mathrm{B} \left(\frac {p + 1}{q}, r - \frac {p + 1}{q}\right) \\ = \frac {\Gamma \left(\frac {p + 1}{q}\right) \Gamma \left(r - \frac {p + 1}{q}\right)}{q \Gamma (r)}. \\ \end{array}
 > $$
+
 ### 例 10.3
 
 > [!question] 例 10.3
@@ -136,6 +138,7 @@ $$
 > $$
 > \int_ {- 1} ^ {1} (1 - x) ^ {p - 1} (1 + x) ^ {q - 1} \mathrm{d} x = 2 ^ {p + q - 1} \mathrm{B} (p, q).
 > $$
+
 ### 例 10.4
 
 > [!question] 例 10.4
@@ -271,6 +274,7 @@ $$
 > $$
 > \begin{array}{l} \int_ {0} ^ {1} \frac {x ^ {\alpha} - 1}{1 - x} \mathrm{d} x = \int_ {0} ^ {1} \sum_ {n = 0} ^ {\infty} (x ^ {\alpha} - 1) x ^ {n} \mathrm{d} x \\ = \sum_ {n = 0} ^ {\infty} \left(\frac {1}{n + 1 + \alpha} - \frac {1}{n + 1}\right) = \psi (1) - \psi (1 + \alpha). \\ \end{array}
 > $$
+
 ### 例 10.10
 
 > [!question] 例 10.10
@@ -278,6 +282,7 @@ $$
 > $$
 > \begin{array}{l} \int_ {0} ^ {1} \frac {x ^ {\alpha - 1} \ln x}{1 - x} \mathrm{d} x = \frac {\mathrm{d}}{\mathrm{d} \alpha} \left(\int_ {0} ^ {1} \frac {x ^ {\alpha - 1} - 1}{1 - x} \mathrm{d} x\right) \\ = \frac {\mathrm{d}}{\mathrm{d} \alpha} [ \psi (1) - \psi (\alpha) ] = - \psi^ {\prime} (\alpha). \\ \end{array}
 > $$
+
 ### 例 10.11
 
 > [!question] 例 10.11
@@ -342,7 +347,7 @@ $$
 > \int_0^{+\infty}\frac{\ln x}{x^2 - 1}\mathrm{d}x.
 > $$
 >
-> 解法I
+> 解法$I$
 > $$
 > \int_ {0} ^ {+ \infty} \frac {\ln x}{x ^ {2} - 1} \mathrm{d} x = \int_ {1} ^ {+ \infty} \frac {\ln x}{x ^ {2} - 1} \mathrm{d} x + \int_ {0} ^ {1} \frac {\ln x}{x ^ {2} - 1} \mathrm{d} x
 > $$
@@ -369,6 +374,7 @@ $$
 > $$
 > \int_ {0} ^ {+ \infty} \frac {\ln x}{x ^ {2} - 1} \mathrm{d} x = \frac {\pi^ {2}}{4}.
 > $$
+
 **法II**
 $$
 \int_0^{+\infty}\frac{\ln x}{x^2 - 1}\mathrm{d}x = 2\int_0^1\frac{\ln x}{x^2 - 1}\mathrm{d}x
