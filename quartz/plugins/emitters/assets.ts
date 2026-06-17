@@ -40,6 +40,18 @@ const copyFile = async (argv: Argv, fp: FilePath) => {
   return dest
 }
 
+const copyRootAsset = async (argv: Argv, fp: FilePath) => {
+  const src = joinSegments("assets", fp) as FilePath
+  const name = slugifyFilePath(fp)
+  const dest = joinSegments(argv.output, "assets", name) as FilePath
+
+  const dir = path.dirname(dest) as FilePath
+  await fs.promises.mkdir(dir, { recursive: true })
+
+  await fs.promises.copyFile(src, dest)
+  return dest
+}
+
 export const Assets: QuartzEmitterPlugin = () => {
   return {
     name: "Assets",
@@ -48,6 +60,13 @@ export const Assets: QuartzEmitterPlugin = () => {
       const fps = await filesToCopy(ctx.argv, ctx.cfg, excludeExtensions)
       for (const fp of fps) {
         yield copyFile(ctx.argv, fp)
+      }
+
+      if (fs.existsSync("assets")) {
+        const rootAssetFiles = await glob("**", "assets", ctx.cfg.configuration.ignorePatterns)
+        for (const fp of rootAssetFiles) {
+          yield copyRootAsset(ctx.argv, fp)
+        }
       }
     },
     async *partialEmit(ctx, _content, _resources, changeEvents) {
