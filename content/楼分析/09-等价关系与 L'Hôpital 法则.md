@@ -25,7 +25,14 @@ tags:
 
 首先, 我们请大家注意以下这些极限以及它们的变形:
 $$
-\begin{array}{l} \lim _ {x \to 0} \frac {\sin x}{x} = 1, \\ \lim _ {x \to 0} \frac {\ln (1 + x)}{x} = 1, \\ \lim _ {x \to 0} \frac {\mathrm{e} ^ {x} - 1}{x} = 1, \\ \lim _ {x \to 0} \frac {(1 + x) ^ {\alpha} - 1}{x} = \alpha , \quad \forall \alpha \in \mathbb {R}, \\ \lim _ {x \to 0 ^ {+}} x ^ {\alpha} \ln x = 0, \quad \forall \alpha > 0, \\ \lim _ {x \to + \infty} \frac {x ^ {\alpha}}{\mathrm{e} ^ {x}} = 0, \quad \forall \alpha \in \mathbb {R}. \\ \end{array}
+\begin{aligned}
+\lim _ {x \to 0} \frac {\sin x}{x} &= 1, \\[6pt]
+\lim _ {x \to 0} \frac {\ln (1 + x)}{x} &= 1, \\[6pt]
+\lim _ {x \to 0} \frac {\mathrm{e} ^ {x} - 1}{x} &= 1, \\[6pt]
+\lim _ {x \to 0} \frac {(1 + x) ^ {\alpha} - 1}{x} &= \alpha , \quad \forall \alpha \in \mathbb {R}, \\[6pt]
+\lim _ {x \to 0 ^ {+}} x ^ {\alpha} \ln x &= 0, \quad \forall \alpha > 0, \\[6pt]
+\lim _ {x \to + \infty} \frac {x ^ {\alpha}}{\mathrm{e} ^ {x}} &= 0, \quad \forall \alpha \in \mathbb {R}.
+\end{aligned}
 $$
 进一步, 我们请大家关注以下几个明显的结果.
 
@@ -80,7 +87,12 @@ $$
 **解**
 对于此例的分母, 宜先利用等价关系, 而不宜直接对分母求导.
 $$
-\begin{array}{l} \lim _ {x \rightarrow 0} \frac {\tan x - x}{x \sin^ {2} x} = \lim _ {x \rightarrow 0} \frac {\tan x - x}{x ^ {3}} \quad (\sin x \sim x) \\ = \lim _ {x \rightarrow 0} \frac {\sec^ {2} x - 1}{3 x ^ {2}} \quad (\text {L'Hôpital法则}) \\ = \lim _ {x \rightarrow 0} \frac {\tan^ {2} x}{3 x ^ {2}} \quad (\text {整理}) \\ = \frac {1}{3}. \\ \end{array}
+\begin{aligned}
+\lim _ {x \rightarrow 0} \frac {\tan x - x}{x \sin^ {2} x} &= \lim _ {x \rightarrow 0} \frac {\tan x - x}{x ^ {3}} \quad (\sin x \sim x) \\[6pt]
+&= \lim _ {x \rightarrow 0} \frac {\sec^ {2} x - 1}{3 x ^ {2}} \quad (\text {L'Hôpital法则}) \\[6pt]
+&= \lim _ {x \rightarrow 0} \frac {\tan^ {2} x}{3 x ^ {2}} \quad (\text {整理}) \\[6pt]
+&= \frac {1}{3}.
+\end{aligned}
 $$
 ### 例 9.2
 
@@ -93,7 +105,10 @@ $$
 **解**
 计算过程中能够化简的应尽量化简.
 $$
-\begin{array}{l} \lim _ {x \rightarrow 0} \left(\frac {1}{x ^ {2}} - \cot^ {2} x\right) = \lim _ {x \rightarrow 0} \frac {\tan^ {2} x - x ^ {2}}{x ^ {2} \tan^ {2} x} \quad (\text {整理}) \\ = \lim _ {x \rightarrow 0} \frac {(\tan x - x) (\tan x + x)}{x ^ {4}} \quad (\tan x \sim x) \\ \end{array}
+\begin{aligned}
+\lim _ {x \rightarrow 0} \left(\frac {1}{x ^ {2}} - \cot^ {2} x\right) &= \lim _ {x \rightarrow 0} \frac {\tan^ {2} x - x ^ {2}}{x ^ {2} \tan^ {2} x} \quad (\text {整理}) \\[6pt]
+&= \lim _ {x \rightarrow 0} \frac {(\tan x - x) (\tan x + x)}{x ^ {4}} \quad (\tan x \sim x)
+\end{aligned}
 $$
 $$
 = 2 \lim _ {x \rightarrow 0} \frac {\tan x - x}{x ^ {3}} \quad (\tan x \sim x)
@@ -176,15 +191,31 @@ $$
 $$
 法 I 下面第一步中把分子拆开是求导时一个常用的技巧.
 $$
-\begin{array}{l} \lim _ {x \rightarrow 0} \frac {\ln \frac {1 + \tan x}{1 + \sin x}}{\sin^ {3} x} = \lim _ {x \rightarrow 0} \frac {\ln (1 + \tan x) - \ln (1 + \sin x)}{x ^ {3}} \quad (\sin x \sim x) \\ = \lim _ {x \rightarrow 0} \frac {\frac {\sec^ {2} x}{1 + \tan x} - \frac {\cos x}{1 + \sin x}}{3 x ^ {2}} \quad (\text {L'Hôpital法则}) \\ = \lim _ {x \rightarrow 0} \frac {\sec^ {2} x - \cos x + \tan^ {2} x \sin x}{3 x ^ {2} (1 + \tan x) (1 + \sin x)} \quad (\text {整理}) \\ = \lim _ {x \rightarrow 0} \frac {\sec^ {2} x - \cos x}{3 x ^ {2}} \quad (\text {化简}) \\ = \lim _ {x \rightarrow 0} \frac {2 \sec^ {2} x \tan x + \sin x}{6 x} \quad (\text {L'Hôpital法则}) \\ = \frac {1}{2}. \quad (\tan x \sim x, \sin x \sim x) \\ \end{array}
+\begin{aligned}
+\lim _ {x \rightarrow 0} \frac {\ln \frac {1 + \tan x}{1 + \sin x}}{\sin^ {3} x} &= \lim _ {x \rightarrow 0} \frac {\ln (1 + \tan x) - \ln (1 + \sin x)}{x ^ {3}} \quad (\sin x \sim x) \\[6pt]
+&= \lim _ {x \rightarrow 0} \frac {\frac {\sec^ {2} x}{1 + \tan x} - \frac {\cos x}{1 + \sin x}}{3 x ^ {2}} \quad (\text {L'Hôpital法则}) \\[6pt]
+&= \lim _ {x \rightarrow 0} \frac {\sec^ {2} x - \cos x + \tan^ {2} x \sin x}{3 x ^ {2} (1 + \tan x) (1 + \sin x)} \quad (\text {整理}) \\[6pt]
+&= \lim _ {x \rightarrow 0} \frac {\sec^ {2} x - \cos x}{3 x ^ {2}} \quad (\text {化简}) \\[6pt]
+&= \lim _ {x \rightarrow 0} \frac {2 \sec^ {2} x \tan x + \sin x}{6 x} \quad (\text {L'Hôpital法则}) \\[6pt]
+&= \frac {1}{2}. \quad (\tan x \sim x, \sin x \sim x)
+\end{aligned}
 $$
 或者我们可以这样计算倒数第二步的极限:
 $$
-\begin{array}{l} \lim _ {x \rightarrow 0} \frac {\sec^ {2} x - \cos x}{3 x ^ {2}} = \lim _ {x \rightarrow 0} \frac {1 - \cos^ {3} x}{3 x ^ {2} \cos^ {2} x} \\ = \lim _ {x \rightarrow 0} \frac {1 - \cos^ {3} x}{3 x ^ {2}} \quad (\text {化简}) \\ = \lim _ {x \rightarrow 0} \frac {3 \cos^ {2} x \sin x}{6 x} \quad (\mathrm{L} ^ {\prime} \text {Hôpital法则}) \\ = \frac {1}{2}. \\ \end{array}
+\begin{aligned}
+\lim _ {x \rightarrow 0} \frac {\sec^ {2} x - \cos x}{3 x ^ {2}} &= \lim _ {x \rightarrow 0} \frac {1 - \cos^ {3} x}{3 x ^ {2} \cos^ {2} x} \\[6pt]
+&= \lim _ {x \rightarrow 0} \frac {1 - \cos^ {3} x}{3 x ^ {2}} \quad (\text {化简}) \\[6pt]
+&= \lim _ {x \rightarrow 0} \frac {3 \cos^ {2} x \sin x}{6 x} \quad (\mathrm{L} ^ {\prime} \text {Hôpital法则}) \\[6pt]
+&= \frac {1}{2}.
+\end{aligned}
 $$
 这对于不熟悉求导公式 $(\sec x)' = \sec x \tan x$ 的读者不失为一个简便的方法.
 $$
-\begin{array}{l} = \lim _ {x \rightarrow 0} \frac {\tan x - \sin x}{x ^ {3} (1 + \sin x)} \quad (\text {整理}) \\ = \lim _ {x \to 0} \frac {\tan x - \sin x}{x ^ {3}} \quad (\text {化简}) \\ = \lim _ {x \rightarrow 0} \frac {\sec^ {2} x - \cos x}{3 x ^ {2}} \quad (\mathrm{L} ^ {\prime} \text {Hôpital法则}) \\ \end{array}
+\begin{aligned}
+&= \lim _ {x \rightarrow 0} \frac {\tan x - \sin x}{x ^ {3} (1 + \sin x)} \quad (\text {整理}) \\[6pt]
+&\quad = \lim _ {x \to 0} \frac {\tan x - \sin x}{x ^ {3}} \quad (\text {化简}) \\[6pt]
+&\quad = \lim _ {x \rightarrow 0} \frac {\sec^ {2} x - \cos x}{3 x ^ {2}} \quad (\mathrm{L} ^ {\prime} \text {Hôpital法则})
+\end{aligned}
 $$
 **法II**
 $$
@@ -194,14 +225,24 @@ $$
 = \frac {1}{2}. \quad (\text {见法I})
 $$
 $$
-\begin{array}{l} = \lim _ {x \rightarrow 0} \frac {\tan x - \sin x}{x ^ {3} (1 + \sin x)} \quad (\text {整理}) \\ = \lim _ {x \rightarrow 0} \frac {1 - \cos x}{x ^ {2}} \quad (\tan x \sim x) \\ = \lim _ {x \rightarrow 0} \frac {\sin x}{2 x} \quad (\text {L'Hôpital法则}) \\ = \frac {1}{2}. \quad (\sin x \sim x) \\ \end{array}
+\begin{aligned}
+&= \lim _ {x \rightarrow 0} \frac {\tan x - \sin x}{x ^ {3} (1 + \sin x)} \quad (\text {整理}) \\[6pt]
+&\quad = \lim _ {x \rightarrow 0} \frac {1 - \cos x}{x ^ {2}} \quad (\tan x \sim x) \\[6pt]
+&\quad = \lim _ {x \rightarrow 0} \frac {\sin x}{2 x} \quad (\text {L'Hôpital法则}) \\[6pt]
+&\quad = \frac {1}{2}. \quad (\sin x \sim x)
+\end{aligned}
 $$
 **法III**
 $$
 \lim_{x\to0}\frac{\ln\frac{1+\tan x}{1+\sin x}}{\sin^{3}x}=\lim_{x\to0}\frac{\frac{1+\tan x}{1+\sin x}-1}{x^{3}}\quad(\ln(1+y)\sim y(y\to0),\sin x\sim x)
 $$
 $$
-\begin{array}{l} = \lim _ {x \rightarrow 0} \frac {\tan x - \sin x}{x ^ {3}} \quad (\text {命题} 9. 2, \text {等价关系}) \\ = \lim _ {x \rightarrow 0} \frac {1 - \cos x}{x ^ {2}} \quad (\tan x \sim x) \\ = \lim _ {x \rightarrow 0} \frac {\sin x}{2 x} \quad (\text {L'Hôpital法则}) \\ = \frac {1}{2}. \quad (\sin x \sim x) \\ \end{array}
+\begin{aligned}
+&= \lim _ {x \rightarrow 0} \frac {\tan x - \sin x}{x ^ {3}} \quad (\text {命题} 9. 2, \text {等价关系}) \\[6pt]
+&\quad = \lim _ {x \rightarrow 0} \frac {1 - \cos x}{x ^ {2}} \quad (\tan x \sim x) \\[6pt]
+&\quad = \lim _ {x \rightarrow 0} \frac {\sin x}{2 x} \quad (\text {L'Hôpital法则}) \\[6pt]
+&\quad = \frac {1}{2}. \quad (\sin x \sim x)
+\end{aligned}
 $$
 法IV $\lim_{x\to 0}\frac{\ln(1 + \tan x) - \ln(1 + \sin x)}{\sin^3x}$
 
@@ -222,12 +263,20 @@ $$
 **解**
 法 I 用 L'Hôpital 法则.
 $$
-\begin{array}{l} \lim _ {x \rightarrow 0} \frac {\sin (\sin x) - x}{x ^ {3}} = \lim _ {x \rightarrow 0} \frac {\cos (\sin x) \cos x - 1}{3 x ^ {2}} \quad \text {(L'Hôpital法则)} \\ = \lim _ {x \rightarrow 0} \frac {- \sin (\sin x) \cos^ {2} x - \cos (\sin x) \sin x}{6 x} \quad \text {(L'Hôpital法则)} \\ = - \frac {1}{3}. \quad (\sin (\sin x) \sim x, \sin x \sim x) \\ \end{array}
+\begin{aligned}
+\lim _ {x \rightarrow 0} \frac {\sin (\sin x) - x}{x ^ {3}} &= \lim _ {x \rightarrow 0} \frac {\cos (\sin x) \cos x - 1}{3 x ^ {2}} \quad \text {(L'Hôpital法则)} \\[6pt]
+&= \lim _ {x \rightarrow 0} \frac {- \sin (\sin x) \cos^ {2} x - \cos (\sin x) \sin x}{6 x} \quad \text {(L'Hôpital法则)} \\[6pt]
+&= - \frac {1}{3}. \quad (\sin (\sin x) \sim x, \sin x \sim x)
+\end{aligned}
 $$
 **法II**
 $\lim_{x\to 0}\frac{\sin(\sin x) - x}{x^3} = \lim_{x\to 0}\frac{\sin x - \arcsin x}{x^3}$ （[[#命题 9.1|命题9.1]]或[[#命题 9.2|命题9.2]]）
 $$
-\begin{array}{l} = \lim _ {x \rightarrow 0} \frac {\cos x - \frac {1}{\sqrt {1 - x ^ {2}}}}{3 x ^ {2}} \quad (\text {L'Hôpital法则}) \\ = \lim _ {x \rightarrow 0} \frac {- \sin x - x \left(1 - x ^ {2}\right) ^ {- 3 / 2}}{6 x} \quad \text {(L'Hôpital法则)} \\ = - \frac {1}{3}. \\ \end{array}
+\begin{aligned}
+&= \lim _ {x \rightarrow 0} \frac {\cos x - \frac {1}{\sqrt {1 - x ^ {2}}}}{3 x ^ {2}} \quad (\text {L'Hôpital法则}) \\[6pt]
+&\quad = \lim _ {x \rightarrow 0} \frac {- \sin x - x \left(1 - x ^ {2}\right) ^ {- 3 / 2}}{6 x} \quad \text {(L'Hôpital法则)} \\[6pt]
+&\quad = - \frac {1}{3}.
+\end{aligned}
 $$
 **法III**
 $$
@@ -255,7 +304,11 @@ $$
 \lim_{x\to 0}\frac{\tan(\tan x) - \sin(\sin x)}{\tan x - \sin x}
 $$
 $$
-\begin{array}{l} = \lim _ {x \rightarrow 0} \frac {\tan (\tan x) - \tan (\sin x)}{\tan x - \sin x} + \lim _ {x \rightarrow 0} \frac {\tan (\sin x) - \sin (\sin x)}{\tan x - \sin x} \quad (\text {分拆}) \\ = 1 + 1 \quad (\text {第一式命题} 9. 2, \text {第二式命题} 9. 1) \\ = 2. \\ \end{array}
+\begin{aligned}
+&= \lim _ {x \rightarrow 0} \frac {\tan (\tan x) - \tan (\sin x)}{\tan x - \sin x} + \lim _ {x \rightarrow 0} \frac {\tan (\sin x) - \sin (\sin x)}{\tan x - \sin x} \quad (\text {分拆}) \\[6pt]
+&\quad = 1 + 1 \quad (\text {第一式命题} 9. 2, \text {第二式命题} 9. 1) \\[6pt]
+&\quad = 2.
+\end{aligned}
 $$
 ### 例 9.9
 
@@ -264,22 +317,31 @@ $$
 > $$
 > \lim_{x\to 0}\left[\frac{1}{\ln(x + \sqrt{1 + x^2})} -\frac{1}{\ln(1 + x)}\right].
 > $$
->
-> 解法$I$
-> $$
-> \begin{array}{l} \lim _ {x \to 0} \left[ \frac {1}{\ln (x + \sqrt {1 + x ^ {2}})} - \frac {1}{\ln (1 + x)} \right] \\ = \lim _ {x \rightarrow 0} \frac {- \ln \frac {x + \sqrt {1 + x ^ {2}}}{1 + x}}{\ln (x + \sqrt {1 + x ^ {2}}) \ln (1 + x)} \tag {通分} \\ \end{array}
-> $$
-> $$
-> = \lim _ {x \rightarrow 0} \frac {1 - \frac {x + \sqrt {1 + x ^ {2}}}{1 + x}}{x ^ {2}} \quad (\text {等价关系})
-> $$
-> $$
-> \begin{array}{l} = \lim _ {x \rightarrow 0} \frac {1 - \sqrt {1 + x ^ {2}}}{x ^ {2}} \quad (\text {整理简化}) \\ = - \frac {1}{2}. \quad (\text {等价关系}) \\ \end{array}
-> $$
+
+**法 I**
+$$
+\begin{aligned}
+\lim_{x\to 0}\left[\frac{1}{\ln(x+\sqrt{1+x^2})}-\frac{1}{\ln(1+x)}\right]
+&= \lim_{x\to 0}\frac{-\ln\frac{x+\sqrt{1+x^2}}{1+x}}
+{\ln(x+\sqrt{1+x^2})\ln(1+x)}
+\quad(\text{通分}) \\[6pt]
+&= \lim_{x\to 0}\frac{1-\frac{x+\sqrt{1+x^2}}{1+x}}{x^2}
+\quad(\text{等价关系}) \\[6pt]
+&= \lim_{x\to 0}\frac{1-\sqrt{1+x^2}}{x^2}
+\quad(\text{整理简化}) \\[6pt]
+&= -\frac{1}{2}.
+\end{aligned}
+$$
 
 **法II**
 若利用[[#命题 9.2|命题 9.2]], 取 $F(x) = \ln(1 + x)$ , 则 $\lim_{x \to 0} F'(x) = 1$ . 因此, 本例也可以这样写
 $$
-\begin{array}{l} \lim _ {x \to 0} \left[ \frac {1}{\ln (x + \sqrt {1 + x ^ {2}})} - \frac {1}{\ln (1 + x)} \right] \\ = \lim _ {x \rightarrow 0} \frac {\ln (1 + x) - \ln \left(x + \sqrt {1 + x ^ {2}}\right)}{\ln \left(x + \sqrt {1 + x ^ {2}}\right) \ln (1 + x)} \quad (\text {通分}) \\ = \lim _ {x \rightarrow 0} \frac {x - (x + \sqrt {1 + x ^ {2}} - 1)}{x ^ {2}} \quad (\text {命题9.2,等价关系}) \\ = \lim _ {x \rightarrow 0} \frac {1 - \sqrt {1 + x ^ {2}}}{x ^ {2}} \quad (\text {整理简化}) \\ = - \frac {1}{2}. \quad (\text {等价关系}) \\ \end{array}
+\begin{aligned}
+\lim _ {x \to 0} \left[ \frac {1}{\ln (x + \sqrt {1 + x ^ {2}})} - \frac {1}{\ln (1 + x)} \right] &= \lim _ {x \rightarrow 0} \frac {\ln (1 + x) - \ln \left(x + \sqrt {1 + x ^ {2}}\right)}{\ln \left(x + \sqrt {1 + x ^ {2}}\right) \ln (1 + x)} \quad (\text {通分}) \\[6pt]
+&= \lim _ {x \rightarrow 0} \frac {x - (x + \sqrt {1 + x ^ {2}} - 1)}{x ^ {2}} \quad (\text {命题9.2,等价关系}) \\[6pt]
+&= \lim _ {x \rightarrow 0} \frac {1 - \sqrt {1 + x ^ {2}}}{x ^ {2}} \quad (\text {整理简化}) \\[6pt]
+&= - \frac {1}{2}. \quad (\text {等价关系})
+\end{aligned}
 $$
 在本例中, 由于 $F$ 是对数函数, 其函数值的差可以化为商的函数值, 因此, 这两种解法没有多大的区别.
 
@@ -294,7 +356,21 @@ $$
 **解**
 考虑 $F(x) = (1 + x)^{\frac{1}{x}}$ ，则 $\lim_{x\to 0}F'(x) = -\frac{\mathrm{e}}{2}$ . 因此
 $$
-\begin{array}{l} \lim _ {x \to 0} \frac {\left(1 + \frac {x}{1 + x}\right) ^ {\frac {1 + x}{x}} - (1 + \tan x) ^ {\frac {1}{\tan x}}}{x ^ {2}} \\ = - \frac {\mathrm{e}}{2} \lim _ {x \rightarrow 0} \frac {\frac {x}{1 + x} - \tan x}{x ^ {2}} \tag {命题9.2} \\ = - \frac {\mathrm{e}}{2} \lim _ {x \rightarrow 0} \frac {\frac {1}{(1 + x) ^ {2}} - \sec^ {2} x}{2 x} \quad (\text {L'Hôpital法则}) \\ = - \frac {\mathrm{e}}{2} \lim _ {x \rightarrow 0} \frac {\frac {1}{(1 + x) ^ {2}} - 1 - \tan^ {2} x}{2 x} = \frac {\mathrm{e}}{2}. \quad (\text {等价关系}) \\ \end{array}
+\begin{aligned}
+&\lim_{x\to 0}
+\frac{\left(1+\frac{x}{1+x}\right)^{\frac{1+x}{x}}
+-(1+\tan x)^{\frac{1}{\tan x}}}{x^2} \\[6pt]
+&= -\frac{\mathrm{e}}{2}
+\lim_{x\to 0}\frac{\frac{x}{1+x}-\tan x}{x^2}
+\quad(\text{命题 9.2}) \\[6pt]
+&= -\frac{\mathrm{e}}{2}
+\lim_{x\to 0}\frac{\frac{1}{(1+x)^2}-\sec^2 x}{2x}
+\quad(\text{L'Hôpital 法则}) \\[6pt]
+&= -\frac{\mathrm{e}}{2}
+\lim_{x\to 0}\frac{\frac{1}{(1+x)^2}-1-\tan^2x}{2x}
+\quad(\text{等价关系}) \\[6pt]
+&= \frac{\mathrm{e}}{2}.
+\end{aligned}
 $$
 ### 例 9.11
 
@@ -315,7 +391,10 @@ F (\tan x) - F (x) = F ^ {\prime} [ x + \theta_ {x} (\tan x - x) ] (\tan x - x).
 $$
 从而利用 $\lim_{x\to 0}\frac{F'(x)}{x} = -\sec^22$ 可得
 $$
-\begin{array}{l} \lim _ {x \to 0} \frac {\tan [ 1 + \cos (\tan x) ] - \tan (1 + \cos x)}{x ^ {4}} \\ = \lim _ {x \rightarrow 0} \frac {F ^ {\prime} [ x + \theta_ {x} (\tan x - x) ]}{x} \lim _ {x \rightarrow 0} \frac {\tan x - x}{x ^ {3}} \\ = - \frac {1}{3 \cos^ {2} 2}. \\ \end{array}
+\begin{aligned}
+\lim _ {x \to 0} \frac {\tan [ 1 + \cos (\tan x) ] - \tan (1 + \cos x)}{x ^ {4}} &= \lim _ {x \rightarrow 0} \frac {F ^ {\prime} [ x + \theta_ {x} (\tan x - x) ]}{x} \lim _ {x \rightarrow 0} \frac {\tan x - x}{x ^ {3}} \\[6pt]
+&= - \frac {1}{3 \cos^ {2} 2}.
+\end{aligned}
 $$
 我们把上述结果一般化成以下结果.
 
@@ -390,7 +469,13 @@ g (x) = x + b _ {3} x ^ {3} + b _ {5} x ^ {5} + b _ {7} x ^ {7} + o (x ^ {7}), \
 $$
 则
 $$
-\begin{array}{l} f (g (x)) = g (x) + a _ {3} g ^ {3} (x) + a _ {5} g ^ {5} (x) + a _ {7} g ^ {7} (x) + o \left(x ^ {7}\right) \\ = x + b _ {3} x ^ {3} + b _ {5} x ^ {5} + b _ {7} x ^ {7} + a _ {3} (x + b _ {3} x ^ {3} + b _ {5} x ^ {5}) ^ {3} + \\ a _ {5} (x + b _ {3} x ^ {3}) ^ {5} + a _ {7} x ^ {7} + o (x ^ {7}) \\ = x + \left(a _ {3} + b _ {3}\right) x ^ {3} + \left(a _ {5} + b _ {5} + 3 a _ {3} b _ {3}\right) x ^ {5} + \\ (a _ {7} + b _ {7} + 3 a _ {3} b _ {3} ^ {2} + 3 a _ {3} b _ {5} + 5 a _ {5} b _ {3}) x ^ {7} + o (x ^ {7}), \quad x \rightarrow 0 \\ \end{array}
+\begin{aligned}
+f (g (x)) &= g (x) + a _ {3} g ^ {3} (x) + a _ {5} g ^ {5} (x) + a _ {7} g ^ {7} (x) + o \left(x ^ {7}\right) \\[6pt]
+&= x + b _ {3} x ^ {3} + b _ {5} x ^ {5} + b _ {7} x ^ {7} + a _ {3} (x + b _ {3} x ^ {3} + b _ {5} x ^ {5}) ^ {3} + \\[6pt]
+&\quad a _ {5} (x + b _ {3} x ^ {3}) ^ {5} + a _ {7} x ^ {7} + o (x ^ {7}) \\[6pt]
+&= x + \left(a _ {3} + b _ {3}\right) x ^ {3} + \left(a _ {5} + b _ {5} + 3 a _ {3} b _ {3}\right) x ^ {5} + \\[6pt]
+&\quad (a _ {7} + b _ {7} + 3 a _ {3} b _ {3} ^ {2} + 3 a _ {3} b _ {5} + 5 a _ {5} b _ {3}) x ^ {7} + o (x ^ {7}), \quad x \rightarrow 0
+\end{aligned}
 $$
 因此，
 $$
@@ -405,7 +490,18 @@ $$
 $$
 得到
 $$
-\begin{array}{l} \lim _ {x \rightarrow 0} \frac {\sin (\tan x) - \tan (\sin x)}{x ^ {7}} = \lim _ {x \rightarrow 0} \frac {\sin x - \tan [ \sin (\arctan x) ]}{x ^ {7}} \tag {命题9.1} \\ = \lim _ {x \rightarrow 0} \frac {\arctan (\sin x) - \sin (\arctan x)}{x ^ {7}} \quad (\text {命题} 9. 2) \\ = \frac {1}{3 !} \left(\frac {1}{3} - \frac {1}{3 !}\right) + \frac {2}{3 \cdot 5 !} - \frac {2}{5 \cdot 3 !} = - \frac {1}{30}. \\ \end{array}
+\begin{aligned}
+\lim_{x\to 0}\frac{\sin(\tan x)-\tan(\sin x)}{x^7}
+&= \lim_{x\to 0}
+\frac{\sin x-\tan[\sin(\arctan x)]}{x^7}
+\quad(\text{命题 9.1}) \\[6pt]
+&= \lim_{x\to 0}
+\frac{\arctan(\sin x)-\sin(\arctan x)}{x^7}
+\quad(\text{命题 9.2}) \\[6pt]
+&= \frac{1}{3!}\left(\frac{1}{3}-\frac{1}{3!}\right)
+  +\frac{2}{3\cdot 5!}-\frac{2}{5\cdot 3!} \\[6pt]
+&= -\frac{1}{30}.
+\end{aligned}
 $$
 **注 9.3** ^zhu-9-3
 显然, 我们也可以利用 $\sin (\arctan x) = \frac{x}{\sqrt{1 + x^2}}$ .
@@ -435,7 +531,10 @@ G (x) = F (x) - F (A) - \frac {F (B) - F (A)}{B - A} (x - A).
 $$
 如若不然, 注意到 $G(A) = G(B) = 0$ , 我们有 $\xi \in (A, B)$ 使得 $G(\xi) = \max_{x \in [A, B]} G(x)$ . 易见
 $$
-\begin{array}{l} \lim _ {t \to 0} \frac {a F (\xi + b t) + b F (\xi + a t) + b F (\xi - a t) + a F (\xi - b t) - 2 (a + b) F (\xi)}{t ^ {2}} \\ \geqslant \varliminf_ {t \rightarrow 0} \frac {a G (\xi + b t) + b G (\xi + a t) + b G (\xi - a t) + a G (\xi - b t) - 2 (a + b) G (\xi)}{t ^ {2}} \leqslant 0. \\ \end{array}
+\begin{aligned}
+\lim _ {t \to 0} \frac {a F (\xi + b t) + b F (\xi + a t) + b F (\xi - a t) + a F (\xi - b t) - 2 (a + b) F (\xi)}{t ^ {2}} \\[6pt]
+&\quad \geqslant \varliminf_ {t \rightarrow 0} \frac {a G (\xi + b t) + b G (\xi + a t) + b G (\xi - a t) + a G (\xi - b t) - 2 (a + b) G (\xi)}{t ^ {2}} \leqslant 0.
+\end{aligned}
 $$
 得到矛盾. 因此, $F$ 是严格凸函数, 从而 $f = F'$ 严格单增.
 
@@ -457,7 +556,11 @@ $$
 $$
 则类似上一例, 有
 $$
-\begin{array}{l} \varliminf_ {\delta \to 0 ^ {+}} \int_ {0} ^ {1} \frac {F (x + \delta t) + F (x - \delta t) - 2 F (x)}{\delta^ {2} t} \mathrm{d} t \\ \geqslant \varliminf_ {\delta \rightarrow 0 ^ {+}} \frac {1}{2 \delta} \frac {\partial}{\partial \delta} \int_ {0} ^ {1} \frac {F (x + \delta t) + F (x - \delta t) - 2 F (x)}{t} \mathrm{d} t \\ = \varliminf_ {\delta \rightarrow 0 ^ {+}} \int_ {0} ^ {1} \frac {f (x + \delta t) - f (x - \delta t)}{2 \delta} \mathrm{d} t > 0. \\ \end{array}
+\begin{aligned}
+\varliminf_ {\delta \to 0 ^ {+}} \int_ {0} ^ {1} \frac {F (x + \delta t) + F (x - \delta t) - 2 F (x)}{\delta^ {2} t} \mathrm{d} t \\[6pt]
+&\quad \geqslant \varliminf_ {\delta \rightarrow 0 ^ {+}} \frac {1}{2 \delta} \frac {\partial}{\partial \delta} \int_ {0} ^ {1} \frac {F (x + \delta t) + F (x - \delta t) - 2 F (x)}{t} \mathrm{d} t \\[6pt]
+&\quad = \varliminf_ {\delta \rightarrow 0 ^ {+}} \int_ {0} ^ {1} \frac {f (x + \delta t) - f (x - \delta t)}{2 \delta} \mathrm{d} t > 0.
+\end{aligned}
 $$
 进而可证 $F$ 是严格凸函数. 最后得到 $f$ 严格单增.
 

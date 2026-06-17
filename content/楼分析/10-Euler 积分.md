@@ -45,11 +45,20 @@ $$
 $$
 从而 $\forall n\geqslant 1,$
 $$
-\begin{array}{l} \psi (x) - \psi (y) = \psi (x + 1) - \psi (y + 1) - \left(\frac {1}{x} - \frac {1}{y}\right) = \dots \\ = \psi (x + n) - \psi (y + n) - \sum_ {k = 0} ^ {n - 1} \left(\frac {1}{x + k} - \frac {1}{y + k}\right). \tag {10.5} \\ \end{array}
+\begin{aligned}
+\psi(x)-\psi(y)
+&= \psi(x+1)-\psi(y+1)-\left(\frac{1}{x}-\frac{1}{y}\right) \\[6pt]
+&= \dots \\[6pt]
+&= \psi(x+n)-\psi(y+n)
+  -\sum_{k=0}^{n-1}\left(\frac{1}{x+k}-\frac{1}{y+k}\right).
+\end{aligned} \tag{10.5}
 $$
 另一方面, 由于 $\psi$ 单调增加, 所以当 $y \leqslant x \leqslant y + 1$ 时,
 $$
-\begin{array}{l} 0 \leqslant \psi (x + n) - \psi (y + n) \\ = \frac {1}{x + n - 1} + \psi (x + n - 1) - \psi (y + n) \\ \leqslant \frac {1}{x + n - 1}, \quad \forall n \geqslant 1. \\ \end{array}
+\begin{aligned}
+0 \leqslant \psi (x + n) - \psi (y + n) &= \frac {1}{x + n - 1} + \psi (x + n - 1) - \psi (y + n) \\[6pt]
+&\leqslant \frac {1}{x + n - 1}, \quad \forall n \geqslant 1.
+\end{aligned}
 $$
 由此得到
 $$
@@ -112,7 +121,11 @@ $$
 > [!question] 例 10.1
 > 设 $p > -1, q > -1$ ，则
 > $$
-> \begin{array}{l} \int_ {0} ^ {\frac {\pi}{2}} \sin^ {p} x \cos^ {q} x \mathrm{d} x = \int_ {0} ^ {1} t ^ {p} (1 - t ^ {2}) ^ {\frac {q - 1}{2}} \mathrm{d} t \\ = \frac {1}{2} \int_ {0} ^ {1} s ^ {\frac {p - 1}{2}} (1 - s) ^ {\frac {q - 1}{2}} \mathrm{d} s = \frac {1}{2} \mathrm{B} \left(\frac {p + 1}{2}, \frac {q + 1}{2}\right) \\ = \frac {1}{2} \frac {\Gamma \left(\frac {p + 1}{2}\right) \Gamma \left(\frac {q + 1}{2}\right)}{\Gamma \left(\frac {p + q}{2} + 1\right)}. \\ \end{array}
+> \begin{aligned}
+> \int_ {0} ^ {\frac {\pi}{2}} \sin^ {p} x \cos^ {q} x \mathrm{d} x &= \int_ {0} ^ {1} t ^ {p} (1 - t ^ {2}) ^ {\frac {q - 1}{2}} \mathrm{d} t \\[6pt]
+> &= \frac {1}{2} \int_ {0} ^ {1} s ^ {\frac {p - 1}{2}} (1 - s) ^ {\frac {q - 1}{2}} \mathrm{d} s &= \frac {1}{2} \mathrm{B} \left(\frac {p + 1}{2}, \frac {q + 1}{2}\right) \\[6pt]
+> &= \frac {1}{2} \frac {\Gamma \left(\frac {p + 1}{2}\right) \Gamma \left(\frac {q + 1}{2}\right)}{\Gamma \left(\frac {p + q}{2} + 1\right)}.
+> \end{aligned}
 > $$
 
 ### 例 10.2
@@ -126,7 +139,11 @@ $$
 > = \frac {1}{q} \int_ {0} ^ {1} \left(\frac {1}{t} - 1\right) ^ {\frac {p + 1}{q} - 1} t ^ {r - 2} \mathrm{d} t
 > $$
 > $$
-> \begin{array}{l} = \frac {1}{q} \int_ {0} ^ {1} (1 - t) ^ {\frac {p + 1}{q} - 1} t ^ {r - 1 - \frac {p + 1}{q}} d t \\ = \frac {1}{q} \mathrm{B} \left(\frac {p + 1}{q}, r - \frac {p + 1}{q}\right) \\ = \frac {\Gamma \left(\frac {p + 1}{q}\right) \Gamma \left(r - \frac {p + 1}{q}\right)}{q \Gamma (r)}. \\ \end{array}
+> \begin{aligned}
+> &= \frac {1}{q} \int_ {0} ^ {1} (1 - t) ^ {\frac {p + 1}{q} - 1} t ^ {r - 1 - \frac {p + 1}{q}} d t \\[6pt]
+> &\quad = \frac {1}{q} \mathrm{B} \left(\frac {p + 1}{q}, r - \frac {p + 1}{q}\right) \\[6pt]
+> &\quad = \frac {\Gamma \left(\frac {p + 1}{q}\right) \Gamma \left(r - \frac {p + 1}{q}\right)}{q \Gamma (r)}.
+> \end{aligned}
 > $$
 
 ### 例 10.3
@@ -134,7 +151,11 @@ $$
 > [!question] 例 10.3
 > 设 $a, b \in \mathbb{R}, p > 0, q > 0$ ，则
 > $$
-> \begin{array}{l} \int_ {a} ^ {b} (b - x) ^ {p - 1} (x - a) ^ {q - 1} \mathrm{d} x \\ = (b - a) ^ {p + q - 1} \int_ {0} ^ {1} (1 - t) ^ {p - 1} t ^ {q - 1} \mathrm{d} t \quad (\text {作变量代换} x = a + t (b - a)) \\ = (b - a) ^ {p + q - 1} \mathrm{B} (p, q). \\ \end{array}
+> \begin{aligned}
+> \int_ {a} ^ {b} (b - x) ^ {p - 1} (x - a) ^ {q - 1} \mathrm{d} x &= (b - a) ^ {p + q - 1} \int_ {0} ^ {1} (1 - t) ^ {p - 1} t ^ {q - 1} \mathrm{d} t \quad (\text {作变量代换} x \\[6pt]
+> &= a + t (b - a)) \\[6pt]
+> &= (b - a) ^ {p + q - 1} \mathrm{B} (p, q).
+> \end{aligned}
 > $$
 > 特别地，
 > $$
@@ -173,7 +194,14 @@ $$
 \gamma=\lim_{n\to+\infty}\left(\frac{1}{1}+\frac{1}{2}+\cdots+\frac{1}{n}-\ln n\right)
 $$
 $$
-\begin{array}{l} = \lim _ {n \rightarrow + \infty} \left(\sum_ {k = 1} ^ {n} \int_ {0} ^ {1} x ^ {k - 1} \mathrm{d} x - \int_ {1} ^ {n} \frac {1}{x} \mathrm{d} x\right) \\ = \lim _ {n \rightarrow + \infty} \left(\int_ {0} ^ {1} \frac {1 - x ^ {n}}{1 - x} \mathrm{d} x - \int_ {1} ^ {n} \frac {1}{x} \mathrm{d} x\right) \\ = \lim _ {n \rightarrow + \infty} \left[ \int_ {0} ^ {n} \frac {1 - \left(1 - \frac {t}{n}\right) ^ {n}}{t} \mathrm{d} t - \int_ {1} ^ {n} \frac {1}{x} \mathrm{d} x \right] \\ = \lim _ {n \rightarrow + \infty} \left[ \int_ {0} ^ {1} \frac {1 - \left(1 - \frac {x}{n}\right) ^ {n}}{x} \mathrm{d} x - \int_ {1} ^ {n} \frac {\left(1 - \frac {x}{n}\right) ^ {n}}{x} \mathrm{d} x \right] \\ = \int_ {0} ^ {1} \frac {1 - \mathrm{e} ^ {- x}}{x} \mathrm{d} x - \int_ {1} ^ {+ \infty} \frac {\mathrm{e} ^ {- x}}{x} \mathrm{d} x \\ = - \int_ {0} ^ {+ \infty} \mathrm{e} ^ {- x} \ln x \mathrm{d} x = - \Gamma^ {\prime} (1). \\ \end{array}
+\begin{aligned}
+&= \lim _ {n \rightarrow + \infty} \left(\sum_ {k = 1} ^ {n} \int_ {0} ^ {1} x ^ {k - 1} \mathrm{d} x - \int_ {1} ^ {n} \frac {1}{x} \mathrm{d} x\right) \\[6pt]
+&= \lim _ {n \rightarrow + \infty} \left(\int_ {0} ^ {1} \frac {1 - x ^ {n}}{1 - x} \mathrm{d} x - \int_ {1} ^ {n} \frac {1}{x} \mathrm{d} x\right) \\[6pt]
+&= \lim _ {n \rightarrow + \infty} \left[ \int_ {0} ^ {n} \frac {1 - \left(1 - \frac {t}{n}\right) ^ {n}}{t} \mathrm{d} t - \int_ {1} ^ {n} \frac {1}{x} \mathrm{d} x \right] \\[6pt]
+&= \lim _ {n \rightarrow + \infty} \left[ \int_ {0} ^ {1} \frac {1 - \left(1 - \frac {x}{n}\right) ^ {n}}{x} \mathrm{d} x - \int_ {1} ^ {n} \frac {\left(1 - \frac {x}{n}\right) ^ {n}}{x} \mathrm{d} x \right] \\[6pt]
+&= \int_ {0} ^ {1} \frac {1 - \mathrm{e} ^ {- x}}{x} \mathrm{d} x - \int_ {1} ^ {+ \infty} \frac {\mathrm{e} ^ {- x}}{x} \mathrm{d} x \\[6pt]
+&= - \int_ {0} ^ {+ \infty} \mathrm{e} ^ {- x} \ln x \mathrm{d} x &= - \Gamma^ {\prime} (1).
+\end{aligned}
 $$
 **法III**
 $$
@@ -209,7 +237,12 @@ $$
 \sum_{n=1}^{\infty}\frac{1}{n(n+\alpha)}=\sum_{n=1}^{\infty}\int_{0}^{1}\frac{t^{n+\alpha-1}}{n}\mathrm{d}t=-\int_{0}^{1}t^{\alpha-1}\ln(1-t)\mathrm{d}t
 $$
 $$
-\begin{array}{l} = - \left[ \frac {\partial}{\partial y} \int_ {0} ^ {1} t ^ {\alpha - 1} (1 - t) ^ {y - 1} \mathrm{d} t \right] \Bigg | _ {y = 1} \\ = - \frac {\partial \mathrm{B} (\alpha , y)}{\partial y} \Bigg | _ {y = 1} = - \frac {\partial}{\partial y} \frac {\Gamma (\alpha) \Gamma (y)}{\Gamma (\alpha + y)} \Bigg | _ {y = 1} \\ = - \frac {\Gamma^ {\prime} (1)}{\alpha} + \frac {\Gamma^ {\prime} (\alpha + 1)}{\alpha \Gamma (\alpha + 1)}. \\ \end{array}
+\begin{aligned}
+&= - \left[ \frac {\partial}{\partial y} \int_ {0} ^ {1} t ^ {\alpha - 1} (1 - t) ^ {y - 1} \mathrm{d} t \right] \Bigg | _ {y = 1} \\[6pt]
+&= - \frac {\partial \mathrm{B} (\alpha , y)}{\partial y} \Bigg | _ {y = 1} \\[6pt]
+&= - \frac {\partial}{\partial y} \frac {\Gamma (\alpha) \Gamma (y)}{\Gamma (\alpha + y)} \Bigg | _ {y \\[6pt] = 1} \\[6pt]
+&= - \frac {\Gamma^ {\prime} (1)}{\alpha} + \frac {\Gamma^ {\prime} (\alpha + 1)}{\alpha \Gamma (\alpha + 1)}.
+\end{aligned}
 $$
 ### 例 10.6
 
@@ -237,12 +270,22 @@ $$
 \sum_{n=1}^{\infty} \frac{1}{n^2 - \alpha^2} = \frac{1}{2\alpha} \sum_{n=1}^{\infty} \left( \frac{1}{n - \alpha} - \frac{1}{n + \alpha} \right)
 $$
 $$
-\begin{array}{l} = \frac {1}{2 \alpha} [ \psi (1 + \alpha) - \psi (1 - \alpha) ] \\ = \frac {1}{2 \alpha} \left[ \frac {1}{\alpha} + \psi (\alpha) - \psi (1 - \alpha) \right] \\ = \frac {1}{2 \alpha^ {2}} + \frac {1}{2 \alpha} \frac {\mathrm{d}}{\mathrm{d} \alpha} \ln [ \Gamma (\alpha) \Gamma (1 - \alpha) ] \\ = \frac {1}{2 \alpha^ {2}} - \frac {\pi \cot (\alpha \pi)}{2 \alpha}. \\ \end{array}
+\begin{aligned}
+&= \frac {1}{2 \alpha} [ \psi (1 + \alpha) - \psi (1 - \alpha) ] \\[6pt]
+&\quad = \frac {1}{2 \alpha} \left[ \frac {1}{\alpha} + \psi (\alpha) - \psi (1 - \alpha) \right] \\[6pt]
+&\quad = \frac {1}{2 \alpha^ {2}} + \frac {1}{2 \alpha} \frac {\mathrm{d}}{\mathrm{d} \alpha} \ln [ \Gamma (\alpha) \Gamma (1 - \alpha) ] \\[6pt]
+&\quad = \frac {1}{2 \alpha^ {2}} - \frac {\pi \cot (\alpha \pi)}{2 \alpha}.
+\end{aligned}
 $$
 **注 10.1** ^zhu-10-1
 另一方面,
 $$
-\begin{array}{l} \sum_ {n = 1} ^ {\infty} \frac {1}{n ^ {2} - \alpha^ {2}} = \sum_ {n = 1} ^ {\infty} \frac {1}{n ^ {2}} \sum_ {k = 1} ^ {\infty} \frac {\alpha^ {2 (k - 1)}}{n ^ {2 (k - 1)}} \\ = \sum_ {k = 1} ^ {\infty} \sum_ {n = 1} ^ {\infty} \frac {\alpha^ {2 (k - 1)}}{n ^ {2 k}} = \sum_ {k = 1} ^ {\infty} \zeta (2 k) \alpha^ {2 (k - 1)}. \\ \end{array}
+\begin{aligned}
+\sum_ {n = 1} ^ {\infty} \frac {1}{n ^ {2} - \alpha^ {2}} \\[6pt]
+&= \sum_ {n \\[6pt] = 1} ^ {\infty} \frac {1}{n ^ {2}} \sum_ {k \\[6pt] = 1} ^ {\infty} \frac {\alpha^ {2 (k - 1)}}{n ^ {2 (k - 1)}} \\[6pt]
+&= \sum_ {k = 1} ^ {\infty} \sum_ {n \\[6pt] = 1} ^ {\infty} \frac {\alpha^ {2 (k - 1)}}{n ^ {2 k}} \\[6pt]
+&= \sum_ {k \\[6pt] = 1} ^ {\infty} \zeta (2 k) \alpha^ {2 (k - 1)}.
+\end{aligned}
 $$
 因此
 $$
@@ -259,13 +302,23 @@ $$
 **解**
 可以由[[#例 10.7|例 10.7]] 的结果作如下猜想:
 $$
-\begin{array}{l} \sum_ {n = 1} ^ {\infty} \frac {1}{n ^ {2} + \alpha^ {2}} = \frac {1}{2 (\mathrm{i} \alpha) ^ {2}} - \frac {\pi \cos (\mathrm{i} \alpha \pi)}{2 \mathrm{i} \alpha \sin (\mathrm{i} \alpha \pi)} \\ = - \frac {1}{2 \alpha^ {2}} + \frac {\pi}{2 \alpha \tanh (\alpha \pi)}. \\ \end{array}
+\begin{aligned}
+\sum_ {n = 1} ^ {\infty} \frac {1}{n ^ {2} + \alpha^ {2}} \\[6pt]
+&= \frac {1}{2 (\mathrm{i} \alpha) ^ {2}} - \frac {\pi \cos (\mathrm{i} \alpha \pi)}{2 \mathrm{i} \alpha \sin (\mathrm{i} \alpha \pi)} \\[6pt]
+&= - \frac {1}{2 \alpha^ {2}} + \frac {\pi}{2 \alpha \tanh (\alpha \pi)}.
+\end{aligned}
 $$
 由解析函数理论即可直接得到上述结果, 在实数范围内则可作如下解答:
 
 对于 $0 < \alpha < 1$ ，有
 $$
-\begin{array}{l} \sum_ {n = 1} ^ {\infty} \frac {1}{n ^ {2} + \alpha^ {2}} = \sum_ {n = 1} ^ {\infty} \frac {1}{n ^ {2}} \sum_ {k = 1} ^ {\infty} \frac {(- 1) ^ {k - 1} \alpha^ {2 (k - 1)}}{n ^ {2 (k - 1)}} \\ = \sum_ {k = 1} ^ {\infty} \sum_ {n = 1} ^ {\infty} \frac {(- 1) ^ {k - 1} \alpha^ {2 (k - 1)}}{n ^ {2 k}} = \sum_ {k = 1} ^ {\infty} (- 1) ^ {k - 1} \zeta (2 k) \alpha^ {2 (k - 1)} \\ = \frac {\pi}{2 \alpha} \left[ \coth (\alpha \pi) - \frac {1}{\alpha \pi} \right] = - \frac {1}{2 \alpha^ {2}} + \frac {\pi}{2 \alpha} \coth (\alpha \pi). \\ \end{array}
+\begin{aligned}
+\sum_ {n = 1} ^ {\infty} \frac {1}{n ^ {2} + \alpha^ {2}} \\[6pt]
+&= \sum_ {n \\[6pt] = 1} ^ {\infty} \frac {1}{n ^ {2}} \sum_ {k \\[6pt] = 1} ^ {\infty} \frac {(- 1) ^ {k - 1} \alpha^ {2 (k - 1)}}{n ^ {2 (k - 1)}} \\[6pt]
+&= \sum_ {k = 1} ^ {\infty} \sum_ {n \\[6pt] = 1} ^ {\infty} \frac {(- 1) ^ {k - 1} \alpha^ {2 (k - 1)}}{n ^ {2 k}} \\[6pt]
+&= \sum_ {k \\[6pt] = 1} ^ {\infty} (- 1) ^ {k - 1} \zeta (2 k) \alpha^ {2 (k - 1)} \\[6pt]
+&= \frac {\pi}{2 \alpha} \left[ \coth (\alpha \pi) - \frac {1}{\alpha \pi} \right] &= - \frac {1}{2 \alpha^ {2}} + \frac {\pi}{2 \alpha} \coth (\alpha \pi).
+\end{aligned}
 $$
 利用连续性, 上式对于 $\alpha = 1$ 也成立. 利用 (实) 解析性, 可以说明上式对所有 $\alpha > 0$ 成立 (详细讨论请见 \[10\]).
 
@@ -274,7 +327,12 @@ $$
 > [!question] 例 10.9
 > 对于 $\alpha > -1$ ，有
 > $$
-> \begin{array}{l} \int_ {0} ^ {1} \frac {x ^ {\alpha} - 1}{1 - x} \mathrm{d} x = \int_ {0} ^ {1} \sum_ {n = 0} ^ {\infty} (x ^ {\alpha} - 1) x ^ {n} \mathrm{d} x \\ = \sum_ {n = 0} ^ {\infty} \left(\frac {1}{n + 1 + \alpha} - \frac {1}{n + 1}\right) = \psi (1) - \psi (1 + \alpha). \\ \end{array}
+> \begin{aligned}
+> \int_ {0} ^ {1} \frac {x ^ {\alpha} - 1}{1 - x} \mathrm{d} x &= \int_ {0} ^ {1} \sum_ {n \\[6pt]
+> &= 0} ^ {\infty} (x ^ {\alpha} - 1) x ^ {n} \mathrm{d} x \\[6pt]
+> &= \sum_ {n = 0} ^ {\infty} \left(\frac {1}{n + 1 + \alpha} - \frac {1}{n + 1}\right) \\[6pt]
+> &= \psi (1) - \psi (1 + \alpha).
+> \end{aligned}
 > $$
 
 ### 例 10.10
@@ -282,7 +340,10 @@ $$
 > [!question] 例 10.10
 > 对于 $\alpha > 0$ , 有
 > $$
-> \begin{array}{l} \int_ {0} ^ {1} \frac {x ^ {\alpha - 1} \ln x}{1 - x} \mathrm{d} x = \frac {\mathrm{d}}{\mathrm{d} \alpha} \left(\int_ {0} ^ {1} \frac {x ^ {\alpha - 1} - 1}{1 - x} \mathrm{d} x\right) \\ = \frac {\mathrm{d}}{\mathrm{d} \alpha} [ \psi (1) - \psi (\alpha) ] = - \psi^ {\prime} (\alpha). \\ \end{array}
+> \begin{aligned}
+> \int_ {0} ^ {1} \frac {x ^ {\alpha - 1} \ln x}{1 - x} \mathrm{d} x &= \frac {\mathrm{d}}{\mathrm{d} \alpha} \left(\int_ {0} ^ {1} \frac {x ^ {\alpha - 1} - 1}{1 - x} \mathrm{d} x\right) \\[6pt]
+> &= \frac {\mathrm{d}}{\mathrm{d} \alpha} [ \psi (1) - \psi (\alpha) ] &= - \psi^ {\prime} (\alpha).
+> \end{aligned}
 > $$
 
 ### 例 10.11
@@ -303,7 +364,13 @@ $$
 I = \frac{\pi}{4}\int_0^1\frac{\ln t\ln\sqrt{1 - t^2}}{\sqrt{1 - t^2}}\mathrm{d}t = \frac{\pi}{32}\int_0^1\frac{\ln s\ln(1 - s)}{\sqrt{s}\sqrt{1 - s}}\mathrm{d}s
 $$
 $$
-\begin{array}{l} = \left. \frac {\pi}{32} \left[ \frac {\partial^ {2}}{\partial \alpha \partial \beta} \int_ {0} ^ {1} s ^ {- \frac {1}{2} + \alpha} (1 - s) ^ {- \frac {1}{2} + \beta} d s \right] \right| _ {\alpha = 0, \beta = 0} \\ = \left. \frac {\pi}{32} \left[ \frac {\partial^ {2}}{\partial \alpha \partial \beta} \frac {\Gamma \left(\frac {1}{2} + \alpha\right) \Gamma \left(\frac {1}{2} + \beta\right)}{\Gamma (1 + \alpha + \beta)} \right] \right| _ {\alpha = 0, \beta = 0} \\ = \frac {\pi}{32} \Gamma^ {2} \left(\frac {1}{2}\right) \left\{\left[ \psi \left(\frac {1}{2}\right) - \psi (1) \right] ^ {2} - \psi^ {\prime} (1) \right\} \\ = \frac {\pi^ {2}}{32} \left[ (- 2 \ln 2) ^ {2} - \frac {\pi^ {2}}{6} \right] \\ = \frac {\pi^ {2}}{8} \ln^ {2} 2 - \frac {\pi^ {4}}{192}. \\ \end{array}
+\begin{aligned}
+&= \left. \frac {\pi}{32} \left[ \frac {\partial^ {2}}{\partial \alpha \partial \beta} \int_ {0} ^ {1} s ^ {- \frac {1}{2} + \alpha} (1 - s) ^ {- \frac {1}{2} + \beta} d s \right] \right| _ {\alpha = 0, \beta \\[6pt] = 0} \\[6pt]
+&= \left. \frac {\pi}{32} \left[ \frac {\partial^ {2}}{\partial \alpha \partial \beta} \frac {\Gamma \left(\frac {1}{2} + \alpha\right) \Gamma \left(\frac {1}{2} + \beta\right)}{\Gamma (1 + \alpha + \beta)} \right] \right| _ {\alpha = 0, \beta \\[6pt] = 0} \\[6pt]
+&= \frac {\pi}{32} \Gamma^ {2} \left(\frac {1}{2}\right) \left\{\left[ \psi \left(\frac {1}{2}\right) - \psi (1) \right] ^ {2} - \psi^ {\prime} (1) \right\} \\[6pt]
+&= \frac {\pi^ {2}}{32} \left[ (- 2 \ln 2) ^ {2} - \frac {\pi^ {2}}{6} \right] \\[6pt]
+&= \frac {\pi^ {2}}{8} \ln^ {2} 2 - \frac {\pi^ {4}}{192}.
+\end{aligned}
 $$
 **法II**
 利用
@@ -348,34 +415,41 @@ $$
 > $$
 > \int_0^{+\infty}\frac{\ln x}{x^2 - 1}\mathrm{d}x.
 > $$
->
-> 解法$I$
-> $$
-> \int_ {0} ^ {+ \infty} \frac {\ln x}{x ^ {2} - 1} \mathrm{d} x = \int_ {1} ^ {+ \infty} \frac {\ln x}{x ^ {2} - 1} \mathrm{d} x + \int_ {0} ^ {1} \frac {\ln x}{x ^ {2} - 1} \mathrm{d} x
-> $$
-> $$
-> = 2 \int_ {0} ^ {1} {\frac {\ln x}{x ^ {2} - 1}} \mathrm{d} x = - \int_ {0} ^ {1} {\frac {\ln x}{2 \sqrt {x} (1 - x)}} \mathrm{d} x
-> $$
-> $$
-> = - \frac {1}{2} \lim _ {\alpha \rightarrow \frac {1}{2}} \lim _ {\beta \rightarrow 0 ^ {+}} \frac {\partial}{\partial \alpha} \int_ {0} ^ {1} x ^ {\alpha - 1} (1 - x) ^ {\beta - 1} d x
-> $$
-> $$
-> = - \frac {1}{2} \lim _ {\alpha \rightarrow \frac {1}{2}} \lim _ {\beta \rightarrow 0 ^ {+}} \frac {\partial}{\partial \alpha} \frac {\Gamma (\alpha) \Gamma (\beta)}{\Gamma (\alpha + \beta)}
-> $$
-> $$
-> = - \frac {1}{2} \lim _ {\alpha \to \frac {1}{2}} \lim _ {\beta \to 0 ^ {+}} \frac {\Gamma (\alpha) \Gamma (\beta)}{\Gamma (\alpha + \beta)} [ \psi (\alpha) - \psi (\beta + \alpha) ]
-> $$
-> $$
-> = - \frac {1}{2} \lim _ {\alpha \to \frac {1}{2}} \lim _ {\beta \to 0 ^ {+}} \frac {1}{\beta} \left[ \psi (\alpha) - \psi (\beta + \alpha) \right] = \frac {1}{2} \psi^ {\prime} \left(\frac {1}{2}\right).
-> $$
-> 另一方面，对
-> $$
-> \ln \left[ \Gamma \left(\frac {1}{2} - s\right) \Gamma \left(\frac {1}{2} + s\right) \right] = \ln \frac {\pi}{\sin \left(\frac {1}{2} - s\right) \pi}, \quad s \in \left(- \frac {1}{2}, \frac {1}{2}\right)
-> $$
-> 求导两次得到 $\psi^{\prime}\left(\frac{1}{2}\right) = \frac{\pi^{2}}{2}$ . 所以
-> $$
-> \int_ {0} ^ {+ \infty} \frac {\ln x}{x ^ {2} - 1} \mathrm{d} x = \frac {\pi^ {2}}{4}.
-> $$
+
+**法 I**
+$$
+\begin{aligned}
+\int_0^{+\infty}\frac{\ln x}{x^2-1}\,\mathrm{d}x
+&= \int_1^{+\infty}\frac{\ln x}{x^2-1}\,\mathrm{d}x
+  +\int_0^1\frac{\ln x}{x^2-1}\,\mathrm{d}x \\[6pt]
+&= 2\int_0^1\frac{\ln x}{x^2-1}\,\mathrm{d}x
+\\[6pt]
+&= -\int_0^1\frac{\ln x}{2\sqrt{x}(1-x)}\,\mathrm{d}x \\[6pt]
+&= -\frac{1}{2}\lim_{\alpha\to\frac{1}{2}}\lim_{\beta\to 0^+}
+\frac{\partial}{\partial\alpha}
+\int_0^1 x^{\alpha-1}(1-x)^{\beta-1}\,\mathrm{d}x \\[6pt]
+&= -\frac{1}{2}\lim_{\alpha\to\frac{1}{2}}\lim_{\beta\to 0^+}
+\frac{\partial}{\partial\alpha}
+\frac{\Gamma(\alpha)\Gamma(\beta)}{\Gamma(\alpha+\beta)} \\[6pt]
+&= -\frac{1}{2}\lim_{\alpha\to\frac{1}{2}}\lim_{\beta\to 0^+}
+\frac{\Gamma(\alpha)\Gamma(\beta)}{\Gamma(\alpha+\beta)}
+[\psi(\alpha)-\psi(\beta+\alpha)] \\[6pt]
+&= -\frac{1}{2}\lim_{\alpha\to\frac{1}{2}}\lim_{\beta\to 0^+}
+\frac{1}{\beta}[\psi(\alpha)-\psi(\beta+\alpha)]
+\\[6pt]
+&= \frac{1}{2}\psi'\left(\frac{1}{2}\right).
+\end{aligned}
+$$
+另一方面，对
+$$
+\ln\left[\Gamma\left(\frac{1}{2}-s\right)\Gamma\left(\frac{1}{2}+s\right)\right]
+= \ln\frac{\pi}{\sin\left(\frac{1}{2}-s\right)\pi},
+\quad s\in\left(-\frac{1}{2},\frac{1}{2}\right)
+$$
+求导两次得到 $\psi'\left(\frac{1}{2}\right)=\frac{\pi^2}{2}$ . 所以
+$$
+\int_0^{+\infty}\frac{\ln x}{x^2-1}\,\mathrm{d}x=\frac{\pi^2}{4}.
+$$
 
 **法II**
 $$

@@ -44,10 +44,16 @@ $$
 
 容易证明上面三个定义是等价的. 比如, [[#定义 2.1|定义 2.1]] 和[[#定义 2.2|定义 2.2]] 的等价性可由下式得到: $\forall a, b \in \mathbb{R}$ ,
 $$
-\begin{array}{l} \lim _ {n \to + \infty} \left(1 + \frac {a + \mathrm{i} b}{n}\right) ^ {n} \\ = \lim _ {n \rightarrow + \infty} \left[\left(1 + \frac {a}{n}\right) ^ {2} + \frac {b ^ {2}}{n ^ {2}} \right] ^ {\frac {n}{2}}. \\ \lim _ {n \to + \infty} \left\{\cos \left[ \arcsin \frac {b}{\sqrt {(n + a) ^ {2} + b ^ {2}}} \right] + \mathrm{i} \sin \left[ \arcsin \frac {b}{\sqrt {(n + a) ^ {2} + b ^ {2}}} \right] \right\} ^ {n} \\ = \lim _ {n \rightarrow + \infty} \left(1 + \frac {2 a}{n} + \frac {a ^ {2} + b ^ {2}}{n ^ {2}}\right) ^ {\frac {n}{2}}. \\ \end{array}
+\begin{aligned}
+\lim _ {n \to + \infty} \left(1 + \frac {a + \mathrm{i} b}{n}\right) ^ {n} &= \lim _ {n \rightarrow + \infty} \left[\left(1 + \frac {a}{n}\right) ^ {2} + \frac {b ^ {2}}{n ^ {2}} \right] ^ {\frac {n}{2}}. \\[6pt]
+&\quad \lim _ {n \to + \infty} \left\{\cos \left[ \arcsin \frac {b}{\sqrt {(n + a) ^ {2} + b ^ {2}}} \right] + \mathrm{i} \sin \left[ \arcsin \frac {b}{\sqrt {(n + a) ^ {2} + b ^ {2}}} \right] \right\} ^ {n} \\[6pt]
+&= \lim _ {n \rightarrow + \infty} \left(1 + \frac {2 a}{n} + \frac {a ^ {2} + b ^ {2}}{n ^ {2}}\right) ^ {\frac {n}{2}}.
+\end{aligned}
 $$
 $$
-\begin{array}{l} \lim _ {n \to + \infty} \left\{\cos \left[ n \arcsin \frac {b}{\sqrt {(n + a) ^ {2} + b ^ {2}}} \right] + \mathrm{i} \sin \left[ n \arcsin \frac {b}{\sqrt {(n + a) ^ {2} + b ^ {2}}} \right] \right\} \\ = \mathrm{e} ^ {a} (\cos b + \mathrm{i} \sin b). \\ \end{array}
+\begin{aligned}
+\lim _ {n \to + \infty} \left\{\cos \left[ n \arcsin \frac {b}{\sqrt {(n + a) ^ {2} + b ^ {2}}} \right] + \mathrm{i} \sin \left[ n \arcsin \frac {b}{\sqrt {(n + a) ^ {2} + b ^ {2}}} \right] \right\} &= \mathrm{e} ^ {a} (\cos b + \mathrm{i} \sin b).
+\end{aligned}
 $$
 还可以证明 $\mathrm{e}^z$ 满足指数函数的一些基本性质：
 
