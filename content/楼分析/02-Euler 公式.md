@@ -139,7 +139,8 @@ $$
 &= \int_{0}^{\frac{\pi}{2}}\left(\frac{\mathrm{e}^{\mathrm{i}x}-\mathrm{e}^{-\mathrm{i}x}}{2\mathrm{i}}\right)^{10}\,\mathrm{d}x \\
 &= \frac{1}{2^{10}}\int_{0}^{\frac{\pi}{2}}\sum_{k=0}^{10}C_{10}^{k}(-1)^{k+1}\mathrm{e}^{(10-2k)\mathrm{i}x}\,\mathrm{d}x \\
 &= \frac{1}{2^{10}}\cdot C_{10}^{5}\cdot \frac{\pi}{2}
- = \frac{63\pi}{512}.
+\\
+&= \frac{63\pi}{512}.
 \end{aligned}
 $$
 ### 例 2.4
@@ -187,7 +188,8 @@ $$
 &= \operatorname{Re}\int_{a}^{b}\mathrm{d}y\int_{0}^{1}x^{y+\mathrm{i}}\,\mathrm{d}x \\
 &= \operatorname{Re}\int_{a}^{b}\frac{1}{y+1+\mathrm{i}}\,\mathrm{d}y \\
 &= \int_{a}^{b}\frac{y+1}{(y+1)^{2}+1}\,\mathrm{d}y
- = \frac{1}{2}\ln\frac{(b+1)^{2}+1}{(a+1)^{2}+1}.
+\\
+&= \frac{1}{2}\ln\frac{(b+1)^{2}+1}{(a+1)^{2}+1}.
 \end{aligned}
 $$
 ### 例 2.7
@@ -222,13 +224,17 @@ $$
 \begin{aligned}
 \sum_{n=1}^{\infty}\frac{\sin nx}{n}
 &= \operatorname{Im}\sum_{n=1}^{\infty}\frac{\mathrm{e}^{\mathrm{i}nx}}{n}
- = \operatorname{Im}\int_{0}^{1}\sum_{n=1}^{\infty}t^{n-1}\mathrm{e}^{\mathrm{i}nx}\,\mathrm{d}t \\
+\\
+&= \operatorname{Im}\int_{0}^{1}\sum_{n=1}^{\infty}t^{n-1}\mathrm{e}^{\mathrm{i}nx}\,\mathrm{d}t \\
 &= \operatorname{Im}\int_{0}^{1}\frac{\mathrm{e}^{\mathrm{i}x}}{1-t\mathrm{e}^{\mathrm{i}x}}\,\mathrm{d}t
- = \int_{0}^{1}\frac{\sin x}{(t-\cos x)^{2}+\sin^{2}x}\,\mathrm{d}t \\
+\\
+&= \int_{0}^{1}\frac{\sin x}{(t-\cos x)^{2}+\sin^{2}x}\,\mathrm{d}t \\
 &= \int_{-\cot x}^{\frac{1-\cos x}{\sin x}}\frac{1}{s^{2}+1}\,\mathrm{d}s
- = \arctan \frac{1-\cos x}{\sin x}-\arctan(-\cot x) \\
+\\
+&= \arctan \frac{1-\cos x}{\sin x}-\arctan(-\cot x) \\
 &= \arctan\left(\tan \frac{x}{2}\right)-\arctan\left[\tan\left(x-\frac{\pi}{2}\right)\right]
- = \frac{\pi-x}{2}, \qquad \forall x\in(0,2\pi).
+\\
+&= \frac{\pi-x}{2}, \qquad \forall x\in(0,2\pi).
 \end{aligned}
 $$
 类似地可以得到
