@@ -19,6 +19,7 @@
     linkStrength: 1,
     linkDistance: 30,
     hideOrphans: false,
+    hideFolderPages: false,
     showTags: true,
     hiddenTags: [],
   }
@@ -55,6 +56,7 @@
       title: "过滤",
       controls: [
         { key: "showTags", label: "显示标签节点", type: "checkbox", scopes: ["global"] },
+        { key: "hideFolderPages", label: "隐藏目录页", type: "checkbox", scopes: ["global"] },
         { key: "hiddenTags", label: "按标签隐藏笔记", type: "tag-list", scopes: ["global"] },
       ],
     },

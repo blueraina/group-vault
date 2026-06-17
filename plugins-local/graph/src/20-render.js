@@ -33,6 +33,7 @@ async function renderGraph(container, fullSlug, renderId) {
   var centerCurrentNode = !!cfg.centerCurrentNode
   var enableRadial = cfg.enableRadial !== false
   var hideOrphans = !!cfg.hideOrphans
+  var hideFolderPages = !!cfg.hideFolderPages
   var removeNodes = cfg.removeNodes || []
   var hiddenNodes = new Set(removeNodes.map(function (n) { return simplifySlug(String(n)) }))
   var removeTags = cfg.removeTags || []
@@ -62,8 +63,21 @@ async function renderGraph(container, fullSlug, renderId) {
     }
     return false
   }
+  function entryIsFolderPage(entry) {
+    if (!hideFolderPages || !entry) return false
+    var rawSlug = String(entry.slug || "")
+    var filePath = String(entry.filePath || "")
+    var isIndexPage = rawSlug.endsWith("/index") || filePath.endsWith("/index.md")
+    if (!isIndexPage) return false
+
+    var hasContent = !!String(entry.content || "").trim()
+    var hasLinks = Array.isArray(entry.links) && entry.links.length > 0
+    var hasTags = Array.isArray(entry.tags) && entry.tags.length > 0
+    return !hasContent && !hasLinks && !hasTags
+  }
   function isHiddenNode(id) {
-    return hiddenNodes.has(id) || entryHiddenByTag(data.get(id))
+    var entry = data.get(id)
+    return hiddenNodes.has(id) || entryIsFolderPage(entry) || entryHiddenByTag(entry)
   }
 
   // Build link list + tag pseudo-nodes

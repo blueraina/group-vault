@@ -131,6 +131,7 @@ plugins:
           - 其他信息/评论管理
       globalGraph:
         showTags: false
+        hideFolderPages: true
         linkOpacity: 1.15
         hideOrphans: false
         removeNodes:
