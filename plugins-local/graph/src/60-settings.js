@@ -19,6 +19,7 @@
     linkStrength: 1,
     linkDistance: 30,
     hideOrphans: false,
+    showTags: true,
     hiddenTags: [],
   }
   var liveKeys = {
@@ -52,7 +53,10 @@
     },
     {
       title: "过滤",
-      controls: [{ key: "hiddenTags", label: "隐藏标签", type: "tag-list", scopes: ["global"] }],
+      controls: [
+        { key: "showTags", label: "显示标签节点", type: "checkbox", scopes: ["global"] },
+        { key: "hiddenTags", label: "按标签隐藏笔记", type: "tag-list", scopes: ["global"] },
+      ],
     },
     {
       title: "外观",
