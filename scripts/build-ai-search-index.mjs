@@ -401,15 +401,37 @@ async function writeShardedChunks(chunks) {
 }
 
 async function embedChangedChunks(chunks) {
-  const batchSize = Math.max(1, Math.min(Number(envValue("AI_EMBEDDING_BATCH_SIZE")) || 16, 64))
+  const batchSize = Math.max(1, Math.min(Number(envValue("AI_EMBEDDING_BATCH_SIZE")) || 8, 64))
+
+  async function embedAdaptiveBatch(batch, startNumber) {
+    try {
+      const embeddings = await embedBatch(batch.map((chunk) => chunk.embeddingText))
+      for (let j = 0; j < batch.length; j += 1) {
+        batch[j].embedding = embeddings[j]
+      }
+    } catch (error) {
+      if (batch.length === 1) {
+        const chunk = batch[0]
+        const location = `${chunk.filePath}#chunk-${chunk.chunkIndex}`
+        throw new Error(
+          `Embedding failed for ${location}: ${error instanceof Error ? error.message : String(error)}`,
+        )
+      }
+
+      const middle = Math.ceil(batch.length / 2)
+      const endNumber = startNumber + batch.length - 1
+      console.warn(
+        `[ai:index] embedding ${startNumber}-${endNumber} failed; retrying as smaller batches`,
+      )
+      await embedAdaptiveBatch(batch.slice(0, middle), startNumber)
+      await embedAdaptiveBatch(batch.slice(middle), startNumber + middle)
+    }
+  }
 
   for (let i = 0; i < chunks.length; i += batchSize) {
     const batch = chunks.slice(i, i + batchSize)
     console.log(`[ai:index] embedding ${i + 1}-${i + batch.length} of ${chunks.length}`)
-    const embeddings = await embedBatch(batch.map((chunk) => chunk.embeddingText))
-    for (let j = 0; j < batch.length; j += 1) {
-      batch[j].embedding = embeddings[j]
-    }
+    await embedAdaptiveBatch(batch, i + 1)
   }
 }
 
