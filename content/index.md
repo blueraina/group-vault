@@ -16,7 +16,7 @@ owner: blueraina
 
 网站基于 Obsidian 与 Quartz 构建，支持搜索、标签、知识图谱、评论、GitHub 登录、已读标记和收藏标记。
 
-通过 **AI查询改写+embedding 检索+BM25F 稀疏检索+PageRank 加权+RRF 融合排序+rerank 精排与对话模型生成报告**，实现了**AI精准查找笔记功能(需要github登录后才能使用)**
+更加精确的AI查找笔记功能(需要github登录后才能使用)
 
 项目 GitHub 仓库：[blueraina/group-vault](https://github.com/blueraina/group-vault)
 
