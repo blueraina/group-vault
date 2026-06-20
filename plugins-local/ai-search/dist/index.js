@@ -175,7 +175,6 @@ const styles = `.ai-note-search {
   margin: 0 0 0.9rem;
   color: var(--dark);
   line-height: 1.55;
-  white-space: pre-line;
 }
 
 .ai-note-search-list {
@@ -242,6 +241,19 @@ const styles = `.ai-note-search {
   padding-left: 0.65rem;
 }
 
+.ai-note-search-math-display {
+  display: block;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.2rem 0;
+}
+
+.ai-note-search-math-fallback {
+  font-family: var(--codeFont);
+  font-size: 0.92em;
+  white-space: normal;
+}
+
 .ai-note-search-login {
   color: var(--secondary);
   font-weight: 700;
@@ -272,7 +284,7 @@ const styles = `.ai-note-search {
 }`
 
 const script = `(() => {
-  const scriptVersion = "2026-06-20-location-hints"
+  const scriptVersion = "2026-06-20-ai-math-render"
   const bootKey = "__groupVaultAiSearchBootVersion"
   const latestRequestKey = "__groupVaultAiSearchLatestRequest"
 
@@ -280,6 +292,7 @@ const script = `(() => {
   window[bootKey] = scriptVersion
 
   const lastResultKey = "group-vault.ai-note-search.last-result"
+  const katexState = { promise: null }
 
   function currentReturnTo() {
     return window.location.pathname + window.location.search + window.location.hash
@@ -302,6 +315,124 @@ const script = `(() => {
 
   function clear(node) {
     while (node.firstChild) node.removeChild(node.firstChild)
+  }
+
+  function ensureKatex(src) {
+    if (!src || window.katex) return Promise.resolve()
+    if (katexState.promise) return katexState.promise
+    katexState.promise = new Promise(function (resolve) {
+      const existing = document.querySelector('script[data-ai-search-katex="true"]')
+      if (existing) {
+        existing.addEventListener("load", function () { resolve() }, { once: true })
+        existing.addEventListener("error", function () { resolve() }, { once: true })
+        return
+      }
+      const script = document.createElement("script")
+      script.src = src
+      script.defer = true
+      script.dataset.aiSearchKatex = "true"
+      script.onload = function () { resolve() }
+      script.onerror = function () { resolve() }
+      document.head.append(script)
+    })
+    return katexState.promise
+  }
+
+  function isEscaped(value, index) {
+    let count = 0
+    for (let i = index - 1; i >= 0 && value[i] === "\\\\"; i -= 1) count += 1
+    return count % 2 === 1
+  }
+
+  function findDelimiter(value, delimiter, start) {
+    let index = value.indexOf(delimiter, start)
+    while (index !== -1) {
+      if (!isEscaped(value, index)) return index
+      index = value.indexOf(delimiter, index + delimiter.length)
+    }
+    return -1
+  }
+
+  function findNextMath(value, start) {
+    const delimiters = [
+      { open: "$$", close: "$$", display: true },
+      { open: "\\\\[", close: "\\\\]", display: true },
+      { open: "\\\\(", close: "\\\\)", display: false },
+      { open: "$", close: "$", display: false },
+    ]
+    let best = null
+
+    for (const delimiter of delimiters) {
+      const openIndex = findDelimiter(value, delimiter.open, start)
+      if (openIndex === -1) continue
+      if (
+        delimiter.open === "$" &&
+        (value[openIndex - 1] === "$" || value[openIndex + 1] === "$")
+      ) {
+        continue
+      }
+      const contentStart = openIndex + delimiter.open.length
+      const closeIndex = findDelimiter(value, delimiter.close, contentStart)
+      if (closeIndex === -1) continue
+      if (
+        delimiter.close === "$" &&
+        (value[closeIndex - 1] === "$" || value[closeIndex + 1] === "$")
+      ) {
+        continue
+      }
+      if (!best || openIndex < best.openIndex) {
+        best = { ...delimiter, openIndex, contentStart, closeIndex }
+      }
+    }
+
+    return best
+  }
+
+  function appendPlainTextWithBreaks(node, value) {
+    const parts = String(value || "").split("\\n")
+    for (let i = 0; i < parts.length; i += 1) {
+      if (i > 0) node.appendChild(document.createElement("br"))
+      if (parts[i]) node.appendChild(document.createTextNode(parts[i]))
+    }
+  }
+
+  function appendMath(node, tex, displayMode) {
+    const wrapper = document.createElement(displayMode ? "div" : "span")
+    wrapper.className = displayMode
+      ? "ai-note-search-math ai-note-search-math-display"
+      : "ai-note-search-math"
+
+    if (window.katex) {
+      try {
+        window.katex.render(String(tex || "").trim(), wrapper, {
+          displayMode: Boolean(displayMode),
+          throwOnError: false,
+          strict: "ignore",
+          output: "html",
+        })
+        node.appendChild(wrapper)
+        return
+      } catch {}
+    }
+
+    wrapper.classList.add("ai-note-search-math-fallback")
+    wrapper.textContent = displayMode ? "$$" + tex + "$$" : "$" + tex + "$"
+    node.appendChild(wrapper)
+  }
+
+  function appendMathText(node, value) {
+    const text = String(value || "")
+    let cursor = 0
+
+    while (cursor < text.length) {
+      const token = findNextMath(text, cursor)
+      if (!token) break
+      appendPlainTextWithBreaks(node, text.slice(cursor, token.openIndex))
+      appendMath(node, text.slice(token.contentStart, token.closeIndex), token.display)
+      cursor = token.closeIndex + token.close.length
+    }
+
+    appendPlainTextWithBreaks(node, text.slice(cursor))
   }
 
   function storedItems(items) {
@@ -386,15 +517,15 @@ const script = `(() => {
     return "网络失败或后端暂时不可用。"
   }
 
-  function renderResults(root, data) {
+  function renderResults(root, data, options) {
     const results = root.querySelector(".ai-note-search-results")
     if (!results) return
     clear(results)
     results.classList.add("active")
 
-    const answer = document.createElement("p")
+    const answer = document.createElement("div")
     answer.className = "ai-note-search-answer"
-    answer.textContent = data.answer || "没有找到合适笔记。"
+    appendMathText(answer, data.answer || "没有找到合适笔记。")
     results.appendChild(answer)
 
     const items = Array.isArray(data.items) ? data.items : []
@@ -424,28 +555,34 @@ const script = `(() => {
       link.textContent = item.title || item.url || "未命名笔记"
       head.appendChild(link)
 
-      const reason = document.createElement("p")
+      const reason = document.createElement("div")
       reason.className = "ai-note-search-reason"
-      reason.textContent = item.reason || "这篇笔记与当前学习目标较接近。"
+      appendMathText(reason, item.reason || "这篇笔记与当前学习目标较接近。")
 
       li.appendChild(head)
       if (item.locationHint) {
-        const location = document.createElement("p")
+        const location = document.createElement("div")
         location.className = "ai-note-search-location"
-        location.textContent = "相关内容：" + item.locationHint
+        appendMathText(location, "相关内容：" + item.locationHint)
         li.appendChild(location)
       }
       li.appendChild(reason)
       if (item.relevantExcerpt) {
-        const excerpt = document.createElement("p")
+        const excerpt = document.createElement("div")
         excerpt.className = "ai-note-search-excerpt"
-        excerpt.textContent = "相关片段：" + item.relevantExcerpt
+        appendMathText(excerpt, "相关片段：" + item.relevantExcerpt)
         li.appendChild(excerpt)
       }
       list.appendChild(li)
     }
 
     results.appendChild(list)
+
+    if ((!options || !options.skipKatexRefresh) && !window.katex) {
+      ensureKatex("/static/katex.min.js").then(function () {
+        if (window.katex) renderResults(root, data, { skipKatexRefresh: true })
+      })
+    }
   }
 
   function restoreLastResult(root, input) {
