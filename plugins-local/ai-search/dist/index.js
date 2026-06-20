@@ -226,6 +226,15 @@ const styles = `.ai-note-search {
   line-height: 1.45;
 }
 
+.ai-note-search-excerpt {
+  margin: 0.45rem 0 0;
+  border-left: 2px solid var(--lightgray);
+  color: var(--darkgray);
+  font-size: 0.9rem;
+  line-height: 1.45;
+  padding-left: 0.65rem;
+}
+
 .ai-note-search-login {
   color: var(--secondary);
   font-weight: 700;
@@ -256,7 +265,7 @@ const styles = `.ai-note-search {
 }`
 
 const script = `(() => {
-  const scriptVersion = "2026-06-15-single-submit"
+  const scriptVersion = "2026-06-20-hybrid-search"
   const bootKey = "__groupVaultAiSearchBootVersion"
   const latestRequestKey = "__groupVaultAiSearchLatestRequest"
 
@@ -295,6 +304,7 @@ const script = `(() => {
         title: String(item && item.title ? item.title : ""),
         url: String(item && item.url ? item.url : ""),
         reason: String(item && item.reason ? item.reason : ""),
+        relevantExcerpt: String(item && item.relevantExcerpt ? item.relevantExcerpt : ""),
         level: String(item && item.level ? item.level : ""),
       }
     })
@@ -412,6 +422,12 @@ const script = `(() => {
 
       li.appendChild(head)
       li.appendChild(reason)
+      if (item.relevantExcerpt) {
+        const excerpt = document.createElement("p")
+        excerpt.className = "ai-note-search-excerpt"
+        excerpt.textContent = "相关片段：" + item.relevantExcerpt
+        li.appendChild(excerpt)
+      }
       list.appendChild(li)
     }
 

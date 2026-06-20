@@ -201,6 +201,164 @@ function chunkText(text, maxChars = 1600, overlapChars = 180) {
   return chunks
 }
 
+function withoutMarkdownExtension(value) {
+  return String(value || "").replace(/\.md$/iu, "")
+}
+
+function addUniqueMapValue(map, key, value) {
+  const normalized = String(key || "").trim()
+  if (!normalized) return
+  const existing = map.get(normalized)
+  if (existing && existing !== value) {
+    map.set(normalized, null)
+  } else if (!map.has(normalized)) {
+    map.set(normalized, value)
+  }
+}
+
+function buildLinkResolver(records) {
+  const byRelative = new Map()
+  const bySlug = new Map()
+  const byName = new Map()
+  const byTitle = new Map()
+
+  for (const record of records) {
+    addUniqueMapValue(byRelative, record.relativePath, record.slug)
+    addUniqueMapValue(byRelative, withoutMarkdownExtension(record.relativePath), record.slug)
+    addUniqueMapValue(bySlug, record.slug, record.slug)
+    addUniqueMapValue(byName, path.posix.basename(record.relativePath, ".md"), record.slug)
+    addUniqueMapValue(byTitle, record.title, record.slug)
+  }
+
+  return { byRelative, bySlug, byName, byTitle }
+}
+
+function cleanLinkTarget(target) {
+  let value = String(target || "").trim()
+  if (!value) return ""
+  value = value.replace(/^<|>$/gu, "")
+  try {
+    value = decodeURIComponent(value)
+  } catch {}
+  value = value.split("|")[0].split("#")[0].trim().replace(/\\/gu, "/")
+  if (!value || value.startsWith("#")) return ""
+  if (/^[a-z][a-z0-9+.-]*:/iu.test(value)) return ""
+  if (/\.(?:png|jpe?g|gif|webp|svg|avif|bmp|pdf|mp3|mp4|mov|zip|7z|rar)$/iu.test(value)) {
+    return ""
+  }
+  return value.replace(/^\/+/u, "")
+}
+
+function lookupResolvedSlug(resolver, candidate) {
+  const clean = candidate.replace(/^\/+/u, "")
+  const noExt = withoutMarkdownExtension(clean)
+  const withExt = clean.endsWith(".md") ? clean : `${clean}.md`
+  const attempts = [clean, noExt, withExt]
+
+  for (const attempt of attempts) {
+    const direct = resolver.byRelative.get(attempt)
+    if (direct) return direct
+  }
+
+  for (const attempt of attempts) {
+    const slug = slugifyFilePath(attempt)
+    const direct = resolver.bySlug.get(slug)
+    if (direct) return direct
+  }
+
+  if (!clean.includes("/")) {
+    const byName = resolver.byName.get(noExt)
+    if (byName) return byName
+    const byTitle = resolver.byTitle.get(noExt)
+    if (byTitle) return byTitle
+  }
+
+  return null
+}
+
+function resolveInternalLink(target, sourceRelativePath, resolver) {
+  const clean = cleanLinkTarget(target)
+  if (!clean) return null
+
+  const candidates = []
+  const sourceDir = path.posix.dirname(sourceRelativePath)
+  candidates.push(clean)
+  if (clean.startsWith(".")) {
+    candidates.push(path.posix.normalize(path.posix.join(sourceDir, clean)))
+  } else {
+    candidates.push(path.posix.normalize(path.posix.join(sourceDir, clean)))
+  }
+
+  for (const candidate of candidates) {
+    const slug = lookupResolvedSlug(resolver, candidate)
+    if (slug) return slug
+  }
+
+  return null
+}
+
+function extractOutgoingLinks(body, sourceRelativePath, resolver, sourceSlug) {
+  const outgoing = new Set()
+
+  for (const match of body.matchAll(/!?\[\[([^\]]+)\]\]/gu)) {
+    const slug = resolveInternalLink(match[1], sourceRelativePath, resolver)
+    if (slug && slug !== sourceSlug) outgoing.add(slug)
+  }
+
+  for (const match of body.matchAll(/!?\[[^\]]*\]\(([^)]+)\)/gu)) {
+    const slug = resolveInternalLink(match[1], sourceRelativePath, resolver)
+    if (slug && slug !== sourceSlug) outgoing.add(slug)
+  }
+
+  return [...outgoing].sort((a, b) => a.localeCompare(b))
+}
+
+function computePageRank(records, damping = 0.85, iterations = 25) {
+  const slugs = records.map((record) => record.slug)
+  const noteCount = slugs.length
+  if (noteCount === 0) return new Map()
+
+  const slugSet = new Set(slugs)
+  const outgoing = new Map(
+    records.map((record) => [
+      record.slug,
+      record.outgoing.filter((slug) => slugSet.has(slug) && slug !== record.slug),
+    ]),
+  )
+  let ranks = new Map(slugs.map((slug) => [slug, 1 / noteCount]))
+
+  for (let iteration = 0; iteration < iterations; iteration += 1) {
+    const next = new Map(slugs.map((slug) => [slug, (1 - damping) / noteCount]))
+    let sinkRank = 0
+
+    for (const slug of slugs) {
+      const targets = outgoing.get(slug) || []
+      const rank = ranks.get(slug) || 0
+      if (targets.length === 0) {
+        sinkRank += rank
+        continue
+      }
+
+      const share = (damping * rank) / targets.length
+      for (const target of targets) next.set(target, (next.get(target) || 0) + share)
+    }
+
+    if (sinkRank > 0) {
+      const sinkShare = (damping * sinkRank) / noteCount
+      for (const slug of slugs) next.set(slug, (next.get(slug) || 0) + sinkShare)
+    }
+
+    ranks = next
+  }
+
+  const maxRank = Math.max(...ranks.values(), 0)
+  if (maxRank > 0) {
+    for (const slug of slugs) ranks.set(slug, Number(((ranks.get(slug) || 0) / maxRank).toFixed(6)))
+  }
+
+  return ranks
+}
+
 function joinApiUrl(baseUrl, pathname) {
   const base = baseUrl.replace(/\/+$/u, "")
   return base + pathname
@@ -441,8 +599,7 @@ async function collectChunks() {
     absolute: true,
     gitignore: true,
   })
-  const notes = []
-  const chunks = []
+  const records = []
 
   for (const file of files.sort((a, b) => a.localeCompare(b))) {
     const raw = await fs.readFile(file, "utf8")
@@ -457,24 +614,75 @@ async function collectChunks() {
     const cleaned = cleanMarkdown(body)
     const summary = summarize(cleaned)
     const noteChunks = chunkText(cleaned || title)
-    notes.push({ title, slug, url, relativePath, tags, summary })
+    records.push({
+      title,
+      slug,
+      url,
+      relativePath,
+      tags,
+      summary,
+      body,
+      noteChunks,
+      outgoing: [],
+      incomingCount: 0,
+      graphRank: 0,
+    })
+  }
 
-    for (let index = 0; index < noteChunks.length; index += 1) {
-      const text = noteChunks[index]
-      const hash = hashObject({ title, slug, url, tags, text })
+  const resolver = buildLinkResolver(records)
+  const incoming = new Map(records.map((record) => [record.slug, 0]))
+
+  for (const record of records) {
+    record.outgoing = extractOutgoingLinks(record.body, record.relativePath, resolver, record.slug)
+    for (const target of record.outgoing) {
+      incoming.set(target, (incoming.get(target) || 0) + 1)
+    }
+  }
+
+  const pageRanks = computePageRank(records)
+  const notes = []
+  const chunks = []
+
+  for (const record of records) {
+    record.incomingCount = incoming.get(record.slug) || 0
+    record.graphRank = pageRanks.get(record.slug) || 0
+    notes.push({
+      title: record.title,
+      slug: record.slug,
+      url: record.url,
+      relativePath: record.relativePath,
+      tags: record.tags,
+      summary: record.summary,
+      outgoing: record.outgoing,
+      incomingCount: record.incomingCount,
+      graphRank: record.graphRank,
+    })
+
+    for (let index = 0; index < record.noteChunks.length; index += 1) {
+      const text = record.noteChunks[index]
+      const hash = hashObject({
+        title: record.title,
+        slug: record.slug,
+        url: record.url,
+        tags: record.tags,
+        text,
+      })
       chunks.push({
-        id: `${slug}#chunk-${index}`,
-        noteId: slug,
+        id: `${record.slug}#chunk-${index}`,
+        noteId: record.slug,
         chunkIndex: index,
-        title,
-        slug,
-        url,
-        tags,
-        filePath: relativePath,
-        summary,
+        title: record.title,
+        slug: record.slug,
+        url: record.url,
+        tags: record.tags,
+        filePath: record.relativePath,
+        summary: record.summary,
         text,
         hash,
-        embeddingText: [title, tags.join(" "), summary, text].filter(Boolean).join("\n"),
+        graphRank: record.graphRank,
+        embeddingText: [record.title, record.tags.join(" "), record.summary, text]
+          .filter(Boolean)
+          .join("\n"),
       })
     }
   }
@@ -544,6 +752,7 @@ async function main() {
     summary: chunk.summary,
     text: chunk.text,
     hash: chunk.hash,
+    graphRank: chunk.graphRank,
     embeddingModel,
     embedding: compactEmbedding(chunk.embedding),
   }))
