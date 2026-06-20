@@ -26,6 +26,7 @@ const systemPrompt = `你是一个数学笔记学习导航助手，面向正在�
 先用 2-4 句话概括推荐路线，再给出 3-8 篇推荐笔记。
 每篇推荐都必须对应候选笔记中的真实 title 和 url。
 每篇推荐理由要具体说明：它和用户问题的关系、适合放在这个顺序的原因。
+每篇推荐尽量包含 locationHint：如果候选 excerpt 中出现明确相关的定义、定理、命题、引理、推论、例题、习题、问题或题号，就提取一个最相关的名称或编号；如果 excerpt 没有明确内容，locationHint 留空字符串，不要编造。
 每篇推荐必须包含 relevantExcerpt，用 1-2 句话概括候选 excerpt 中最相关的片段；只能概括候选片段，不要编造小节名、页码、章节号或不存在的锚点。
 如果候选笔记只覆盖了问题的一部分，不要直接说“没有找到非常匹配的笔记”，而是说明当前笔记更接近哪些方向，并给出最值得先看的入口。
 除非候选列表为空，否则不要回答“没有找到合适笔记”。
@@ -878,6 +879,18 @@ function fallbackRelevantExcerpt(candidate) {
   return text.length > 180 ? text.slice(0, 180) + "..." : text
 }
 
+function fallbackLocationHint(candidate) {
+  const text = String(candidate.text || "").replace(/\s+/gu, " ").trim()
+  if (!text) return ""
+
+  const match = text.match(
+    /(定义|定理|命题|引理|推论|例题|例|习题|问题|题)\s*([0-9一二三四五六七八九十百]+(?:[.．、-][0-9一二三四五六七八九十百]+)*)?[^。！？\n]{0,48}/u,
+  )
+  if (!match) return ""
+
+  return match[0].replace(/[，,；;：:。！？\s]+$/u, "").slice(0, 80)
+}
+
 function validateModelItems(parsed, candidates, weakMatch) {
   const byUrl = new Map(candidates.map((candidate) => [candidate.url, candidate]))
   const used = new Set()
@@ -892,6 +905,9 @@ function validateModelItems(parsed, candidates, weakMatch) {
       title: candidate.title,
       url: candidate.url,
       reason: String(item?.reason || "").trim() || fallbackReason(candidate, weakMatch),
+      locationHint: (
+        String(item?.locationHint || "").trim() || fallbackLocationHint(candidate)
+      ).slice(0, 100),
       relevantExcerpt: (
         String(item?.relevantExcerpt || "").trim() || fallbackRelevantExcerpt(candidate)
       ).slice(0, 260),
@@ -908,6 +924,7 @@ function validateModelItems(parsed, candidates, weakMatch) {
       title: candidate.title,
       url: candidate.url,
       reason: fallbackReason(candidate, weakMatch),
+      locationHint: fallbackLocationHint(candidate),
       relevantExcerpt: fallbackRelevantExcerpt(candidate).slice(0, 260),
       level: candidate.level,
     })
@@ -941,7 +958,7 @@ async function generateReport(env, query, queryVariants, candidates, weakMatch) 
           query,
           searchQueries: queryVariants,
           outputContract:
-            "只输出 JSON：{ answer: string, items: [{ title: string, url: string, reason: string, relevantExcerpt: string, level: '入门'|'核心'|'进阶'|'例题' }] }。answer 用 2-4 句话写成自然的学习建议；reason 要具体说明推荐原因；relevantExcerpt 用 1-2 句话概括候选 excerpt 里最相关的片段，不要编造小节名、页码、章节号或链接锚点。",
+            "只输出 JSON：{ answer: string, items: [{ title: string, url: string, reason: string, locationHint: string, relevantExcerpt: string, level: '入门'|'核心'|'进阶'|'例题' }] }。answer 用 2-4 句话写成自然的学习建议；reason 要具体说明推荐原因；locationHint 只从候选 excerpt 里提取明确相关的定义、定理、命题、引理、推论、例题、习题、问题或题号，找不到就留空字符串；relevantExcerpt 用 1-2 句话概括候选 excerpt 里最相关的片段，不要编造小节名、页码、章节号或链接锚点。",
           candidates: candidates.map((candidate, index) => ({
             order: index + 1,
             title: candidate.title,

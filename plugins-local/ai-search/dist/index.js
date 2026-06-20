@@ -226,6 +226,13 @@ const styles = `.ai-note-search {
   line-height: 1.45;
 }
 
+.ai-note-search-location {
+  margin: 0.45rem 0 0;
+  color: var(--dark);
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+
 .ai-note-search-excerpt {
   margin: 0.45rem 0 0;
   border-left: 2px solid var(--lightgray);
@@ -265,7 +272,7 @@ const styles = `.ai-note-search {
 }`
 
 const script = `(() => {
-  const scriptVersion = "2026-06-20-hybrid-search"
+  const scriptVersion = "2026-06-20-location-hints"
   const bootKey = "__groupVaultAiSearchBootVersion"
   const latestRequestKey = "__groupVaultAiSearchLatestRequest"
 
@@ -304,6 +311,7 @@ const script = `(() => {
         title: String(item && item.title ? item.title : ""),
         url: String(item && item.url ? item.url : ""),
         reason: String(item && item.reason ? item.reason : ""),
+        locationHint: String(item && item.locationHint ? item.locationHint : ""),
         relevantExcerpt: String(item && item.relevantExcerpt ? item.relevantExcerpt : ""),
         level: String(item && item.level ? item.level : ""),
       }
@@ -421,6 +429,12 @@ const script = `(() => {
       reason.textContent = item.reason || "这篇笔记与当前学习目标较接近。"
 
       li.appendChild(head)
+      if (item.locationHint) {
+        const location = document.createElement("p")
+        location.className = "ai-note-search-location"
+        location.textContent = "相关内容：" + item.locationHint
+        li.appendChild(location)
+      }
       li.appendChild(reason)
       if (item.relevantExcerpt) {
         const excerpt = document.createElement("p")
