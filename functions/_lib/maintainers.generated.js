@@ -4,9 +4,11 @@
 // prettier-ignore
 export const generatedMaintainerLogins = [
   "blueraina",
+  "hanfengqaq",
   "libinyam",
   "llc-byte",
   "vesperazephyr",
+  "yiran-frank-mao",
 ]
 
 export const generatedMaintainerSource = {

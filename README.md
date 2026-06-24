@@ -175,6 +175,13 @@ node scripts/update-collaborators.mjs
   <sub><b>@blueraina</b></sub>
 </td>
 <td align="center">
+  <a href="https://github.com/hanfengQAQ">
+    <img src="content/assets/collaborators/hanfengqaq.png" width="64" height="64" alt="@hanfengQAQ" />
+  </a>
+  <br />
+  <sub><b>@hanfengQAQ</b></sub>
+</td>
+<td align="center">
   <a href="https://github.com/libinyam">
     <img src="content/assets/collaborators/libinyam.png" width="64" height="64" alt="@libinyam" />
   </a>
@@ -194,6 +201,13 @@ node scripts/update-collaborators.mjs
   </a>
   <br />
   <sub><b>@VesperaZephyr</b></sub>
+</td>
+<td align="center">
+  <a href="https://github.com/yiran-frank-mao">
+    <img src="content/assets/collaborators/yiran-frank-mao.png" width="64" height="64" alt="@yiran-frank-mao" />
+  </a>
+  <br />
+  <sub><b>@yiran-frank-mao</b></sub>
 </td>
 </tr>
 </table>
