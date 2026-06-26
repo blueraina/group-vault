@@ -130,12 +130,22 @@ function legacyReadingStateKey(action, slug) {
 function hasReadingState(action, slug) {
   try {
     var identity = noteIdentityForSlug(slug)
-    if (localStorage.getItem(readingStateKey(action, identity.noteId)) !== null) return true
+    var canonicalKey = readingStateKey(action, identity.noteId)
+    if (localStorage.getItem(canonicalKey) !== null) return true
 
     for (var i = 0; i < identity.aliases.length; i++) {
+      var aliasKey = readingStateKey(action, identity.aliases[i])
+      var aliasValue = localStorage.getItem(aliasKey)
+      if (aliasValue !== null) {
+        if (aliasKey !== canonicalKey) {
+          localStorage.setItem(canonicalKey, aliasValue || new Date().toISOString())
+        }
+        return true
+      }
+
       var legacyValue = localStorage.getItem(legacyReadingStateKey(action, identity.aliases[i]))
       if (legacyValue !== null) {
-        localStorage.setItem(readingStateKey(action, identity.noteId), legacyValue || new Date().toISOString())
+        localStorage.setItem(canonicalKey, legacyValue || new Date().toISOString())
         return true
       }
     }

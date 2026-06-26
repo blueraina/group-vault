@@ -191,12 +191,22 @@ const script = `(() => {
   function getState(action, pageId) {
     try {
       const identity = identityForPageId(pageId)
-      if (localStorage.getItem(stateKey(action, identity.noteId)) !== null) return true
+      const canonicalKey = stateKey(action, identity.noteId)
+      if (localStorage.getItem(canonicalKey) !== null) return true
 
       for (const alias of identity.aliases) {
+        const aliasKey = stateKey(action, alias)
+        const aliasValue = localStorage.getItem(aliasKey)
+        if (aliasValue !== null) {
+          if (aliasKey !== canonicalKey) {
+            localStorage.setItem(canonicalKey, aliasValue || new Date().toISOString())
+          }
+          return true
+        }
+
         const legacyValue = localStorage.getItem(legacyStateKey(action, alias))
         if (legacyValue !== null) {
-          localStorage.setItem(stateKey(action, identity.noteId), legacyValue || new Date().toISOString())
+          localStorage.setItem(canonicalKey, legacyValue || new Date().toISOString())
           return true
         }
       }
@@ -213,9 +223,16 @@ const script = `(() => {
       const key = stateKey(action, identity.noteId)
       if (isActive) {
         localStorage.setItem(key, new Date().toISOString())
+        identity.aliases.forEach((alias) => {
+          const aliasKey = stateKey(action, alias)
+          if (aliasKey !== key) localStorage.removeItem(aliasKey)
+        })
       } else {
         localStorage.removeItem(key)
-        identity.aliases.forEach((alias) => localStorage.removeItem(legacyStateKey(action, alias)))
+        identity.aliases.forEach((alias) => {
+          localStorage.removeItem(stateKey(action, alias))
+          localStorage.removeItem(legacyStateKey(action, alias))
+        })
       }
     } catch {}
   }

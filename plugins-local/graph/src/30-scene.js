@@ -21,7 +21,7 @@ async function setupPixiScene(ctx) {
   var root = getComputedStyle(document.documentElement)
   var colorCurrent = resolveColor(root.getPropertyValue("--secondary").trim(), "#284b63")
   var colorVisited = resolveColor(root.getPropertyValue("--tertiary").trim(), "#84a59d")
-  var colorDefault = resolveColor(root.getPropertyValue("--gray").trim(), "#b8b8b8")
+  var colorDefault = resolveColor("#9ca3af", "rgb(156, 163, 175)")
   var colorLink = resolveColor(root.getPropertyValue("--lightgray").trim(), "#e5e5e5")
   var colorText = resolveColor(root.getPropertyValue("--darkgray").trim(), "#4e4e4e")
   var colorStrongText = resolveColor(root.getPropertyValue("--dark").trim(), "#2b2b2b")
