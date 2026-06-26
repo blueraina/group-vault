@@ -47,18 +47,6 @@ async function setupPixiScene(ctx) {
   var hexFavorite = toHex(colorFavorite)
   var hexBoth = toHex(colorBoth)
 
-  // Folder hue -> distinct node colors, blended toward the theme so they stay tasteful.
-  function hslToHex(h, s, l) {
-    s /= 100; l /= 100
-    var k = function (n) { return (n + h / 30) % 12 }
-    var a = s * Math.min(l, 1 - l)
-    var f = function (n) {
-      var c = l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)))
-      return Math.round(255 * c)
-    }
-    return (f(0) << 16) | (f(8) << 8) | f(4)
-  }
-  var folderColors = new Map()
   function colorForNode(node) {
     if (!node.isTag) {
       if (node.readingState === "both") return hexBoth
@@ -67,12 +55,7 @@ async function setupPixiScene(ctx) {
     }
     if (node.id === slug) return hexCurrent
     if (node.isTag) return hexVisited
-    var folder = node.folder
-    if (folder === "__root__") return visited.has(node.id) ? hexVisited : hexDefault
-    if (!folderColors.has(folder)) {
-      folderColors.set(folder, hslToHex(hashHue(folder), 55, 60))
-    }
-    return folderColors.get(folder)
+    return hexDefault
   }
   function currentRadiusOf(node) {
     return baseRadiusOf(node) * (o.nodeSize || 1)

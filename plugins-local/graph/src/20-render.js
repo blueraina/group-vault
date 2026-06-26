@@ -47,6 +47,7 @@ async function renderGraph(container, fullSlug, renderId) {
     var raw = await fetchData
     data = new Map()
     for (var key in raw) data.set(simplifySlug(key), raw[key])
+    await loadGraphNoteIdMap()
   } catch (e) {
     console.error("[Graph] Error loading data:", e)
     return function () {}

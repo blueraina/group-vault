@@ -6,6 +6,7 @@ import process from "node:process"
 import { globby } from "globby"
 import YAML from "yaml"
 import { simplifySlug, slugifyFilePath } from "@quartz-community/utils"
+import { updateNoteIdRegistry } from "./lib/note-id-registry.mjs"
 
 const root = process.cwd()
 const contentDir = path.join(root, "content")
@@ -619,6 +620,7 @@ async function collectChunks() {
       slug,
       url,
       relativePath,
+      frontmatter,
       tags,
       summary,
       body,
@@ -639,6 +641,8 @@ async function collectChunks() {
     }
   }
 
+  const noteRegistry = await updateNoteIdRegistry(records, { root, staticDir })
+  const slugToNoteId = new Map(Object.entries(noteRegistry.slugToId || {}))
   const pageRanks = computePageRank(records)
   const notes = []
   const chunks = []
@@ -647,6 +651,8 @@ async function collectChunks() {
     record.incomingCount = incoming.get(record.slug) || 0
     record.graphRank = pageRanks.get(record.slug) || 0
     notes.push({
+      id: record.noteId,
+      noteId: record.noteId,
       title: record.title,
       slug: record.slug,
       url: record.url,
@@ -654,6 +660,9 @@ async function collectChunks() {
       tags: record.tags,
       summary: record.summary,
       outgoing: record.outgoing,
+      outgoingNoteIds: record.outgoing
+        .map((slug) => slugToNoteId.get(slug) || slug)
+        .filter((noteId) => noteId && noteId !== record.noteId),
       incomingCount: record.incomingCount,
       graphRank: record.graphRank,
     })
@@ -661,15 +670,14 @@ async function collectChunks() {
     for (let index = 0; index < record.noteChunks.length; index += 1) {
       const text = record.noteChunks[index]
       const hash = hashObject({
+        noteId: record.noteId,
         title: record.title,
-        slug: record.slug,
-        url: record.url,
         tags: record.tags,
         text,
       })
       chunks.push({
-        id: `${record.slug}#chunk-${index}`,
-        noteId: record.slug,
+        id: `${record.noteId}#chunk-${index}`,
+        noteId: record.noteId,
         chunkIndex: index,
         title: record.title,
         slug: record.slug,
@@ -691,6 +699,8 @@ async function collectChunks() {
 }
 
 async function main() {
+  const { notes, chunks } = await collectChunks()
+
   if (!envFlag("AI_SEARCH_ENABLED")) {
     await writeDisabledIndex("AI_SEARCH_ENABLED is not true")
     return
@@ -709,7 +719,6 @@ async function main() {
     if (chunk?.id) previousChunks.set(chunk.id, chunk)
   }
 
-  const { notes, chunks } = await collectChunks()
   const embeddingModel = envValue("AI_EMBEDDING_MODEL")
   const changed = []
   let reused = 0

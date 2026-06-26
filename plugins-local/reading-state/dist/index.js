@@ -81,7 +81,9 @@ const style = `.reading-state {
 }`
 
 const script = `(() => {
-  const storagePrefix = "group-vault:reading-state:v1"
+  const legacyStoragePrefix = "group-vault:reading-state:v1"
+  const storagePrefix = "group-vault:reading-state:v2"
+  const noteIdMapPath = "/static/note-id-map.json"
   const marksApi = "/api/marks"
   const sessionApi = "/api/auth/session"
   const activeText = {
@@ -89,14 +91,25 @@ const script = `(() => {
     favorite: { on: "★", off: "☆" },
   }
   const globalStateKey = "__groupVaultReadingState"
+  const noteMapState =
+    (window.__groupVaultNoteIdMap ??= { loaded: false, loading: null, slugToId: {}, notes: {} })
   const remoteState = { loaded: false, loading: null, authenticated: false }
   let explorerObserver = null
   let explorerUpdateQueued = false
   const explorerUpdateDelays = [0, 80, 250]
 
+  function normalizePageId(value) {
+    return (
+      String(value || "")
+        .replace(/^\\/+|\\/+$/g, "")
+        .replace(/\\.html$/u, "")
+        .replace(/\\/index$/u, "") || "index"
+    )
+  }
+
   function pageIdFor(root) {
     const slug = root.dataset.readingSlug
-    if (slug) return slug.replace(/^\\/+|\\/+$/g, "").replace(/\\/index$/u, "") || "index"
+    if (slug) return normalizePageId(slug)
 
     let pathname = window.location.pathname
     try {
@@ -108,7 +121,7 @@ const script = `(() => {
       pathname = pathname.slice(basepath.length)
     }
 
-    return pathname.replace(/^\\/+|\\/+$/g, "").replace(/\\/index$/u, "") || "index"
+    return normalizePageId(pathname)
   }
 
   function pageIdForHref(href) {
@@ -124,24 +137,71 @@ const script = `(() => {
         pathname = pathname.slice(basepath.length)
       }
 
-      return (
-        pathname
-          .replace(/^\\/+|\\/+$/g, "")
-          .replace(/\\.html$/u, "")
-          .replace(/\\/index$/u, "") || "index"
-      )
+      return normalizePageId(pathname)
     } catch {
       return ""
     }
   }
 
-  function stateKey(action, pageId) {
-    return \`\${storagePrefix}:\${action}:\${pageId}\`
+  async function loadNoteIdMap() {
+    if (noteMapState.loaded) return noteMapState
+    if (noteMapState.loading) return noteMapState.loading
+
+    noteMapState.loading = (async () => {
+      try {
+        const response = await fetch(noteIdMapPath, { headers: { Accept: "application/json" } })
+        const data = await readJson(response)
+        if (response.ok && data && typeof data === "object") {
+          noteMapState.slugToId = data.slugToId || {}
+          noteMapState.notes = data.notes || {}
+        }
+      } catch {
+        noteMapState.slugToId = noteMapState.slugToId || {}
+        noteMapState.notes = noteMapState.notes || {}
+      } finally {
+        noteMapState.loaded = true
+        noteMapState.loading = null
+      }
+      return noteMapState
+    })()
+
+    return noteMapState.loading
+  }
+
+  function identityForPageId(pageId) {
+    const slug = normalizePageId(pageId)
+    const mappedId = noteMapState.slugToId?.[slug]
+    const noteId = normalizePageId(mappedId || slug)
+    const note = noteMapState.notes?.[noteId] || {}
+    const aliases = [slug, noteId, note.slug, ...(Array.isArray(note.aliases) ? note.aliases : [])]
+      .map(normalizePageId)
+      .filter(Boolean)
+
+    return { slug, noteId, aliases: Array.from(new Set(aliases)) }
+  }
+
+  function stateKey(action, noteId) {
+    return \`\${storagePrefix}:\${action}:\${noteId}\`
+  }
+
+  function legacyStateKey(action, pageId) {
+    return \`\${legacyStoragePrefix}:\${action}:\${pageId}\`
   }
 
   function getState(action, pageId) {
     try {
-      return localStorage.getItem(stateKey(action, pageId)) !== null
+      const identity = identityForPageId(pageId)
+      if (localStorage.getItem(stateKey(action, identity.noteId)) !== null) return true
+
+      for (const alias of identity.aliases) {
+        const legacyValue = localStorage.getItem(legacyStateKey(action, alias))
+        if (legacyValue !== null) {
+          localStorage.setItem(stateKey(action, identity.noteId), legacyValue || new Date().toISOString())
+          return true
+        }
+      }
+
+      return false
     } catch {
       return false
     }
@@ -149,11 +209,13 @@ const script = `(() => {
 
   function setState(action, pageId, isActive) {
     try {
-      const key = stateKey(action, pageId)
+      const identity = identityForPageId(pageId)
+      const key = stateKey(action, identity.noteId)
       if (isActive) {
         localStorage.setItem(key, new Date().toISOString())
       } else {
         localStorage.removeItem(key)
+        identity.aliases.forEach((alias) => localStorage.removeItem(legacyStateKey(action, alias)))
       }
     } catch {}
   }
@@ -191,8 +253,9 @@ const script = `(() => {
         const data = await readJson(marksResponse)
         if (marksResponse.ok && Array.isArray(data.marks)) {
           data.marks.forEach((mark) => {
-            if (mark && mark.path && mark.mark_type) {
-              setState(mark.mark_type, mark.path, true)
+            const markPageId = mark?.note_id || mark?.noteId || mark?.path
+            if (mark && markPageId && mark.mark_type) {
+              setState(mark.mark_type, markPageId, true)
             }
           })
         }
@@ -216,6 +279,7 @@ const script = `(() => {
     if (!authenticated) return
 
     try {
+      const identity = identityForPageId(pageId)
       await fetch(marksApi, {
         method: "PUT",
         headers: {
@@ -223,7 +287,9 @@ const script = `(() => {
           Accept: "application/json",
         },
         body: JSON.stringify({
-          path: pageId,
+          path: identity.slug,
+          noteId: identity.noteId,
+          aliases: identity.aliases,
           markType: action,
           active: isActive,
         }),
@@ -339,7 +405,7 @@ const script = `(() => {
     observeExplorerMarkers()
   }
 
-  function handleReadingStateClick(event) {
+  async function handleReadingStateClick(event) {
     const button = event.target?.closest?.("[data-reading-action]")
     if (!button) return
 
@@ -349,6 +415,7 @@ const script = `(() => {
     const action = button.dataset.readingAction
     if (!action) return
 
+    await loadNoteIdMap()
     const pageId = pageIdFor(root)
     const nextState = !getState(action, pageId)
     setState(action, pageId, nextState)
@@ -381,7 +448,7 @@ const script = `(() => {
     document.querySelectorAll("[data-reading-state]").forEach(setupRoot)
     setupExplorerMarkers()
     const hadLoadedMarks = remoteState.loaded
-    loadRemoteMarks().then(() => {
+    loadNoteIdMap().then(() => loadRemoteMarks()).then(() => {
       document.querySelectorAll("[data-reading-state]").forEach(setupRoot)
       scheduleExplorerMarkers()
       if (!hadLoadedMarks) notifyReadingStateChanged()

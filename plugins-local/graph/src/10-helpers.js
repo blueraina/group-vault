@@ -41,12 +41,59 @@ function clearChildren(el) {
   while (el.firstChild) el.removeChild(el.firstChild)
 }
 
-// Reading-state marks share the same localStorage format as the reading-state plugin.
-var READING_STATE_PREFIX = "group-vault:reading-state:v1"
+// Reading-state marks share note IDs with the reading-state plugin.
+var READING_STATE_LEGACY_PREFIX = "group-vault:reading-state:v1"
+var READING_STATE_PREFIX = "group-vault:reading-state:v2"
+var GRAPH_NOTE_ID_MAP_PATH = "/static/note-id-map.json"
 var GRAPH_PROGRESS_COLORS = {
   read: "#2a9d8f",
   favorite: "#e9b44c",
   both: "#e84a5f",
+}
+var graphNoteMapState = window.__groupVaultNoteIdMap || {
+  loaded: false,
+  loading: null,
+  slugToId: {},
+  notes: {},
+}
+window.__groupVaultNoteIdMap = graphNoteMapState
+
+function loadGraphNoteIdMap() {
+  if (graphNoteMapState.loaded) return Promise.resolve(graphNoteMapState)
+  if (graphNoteMapState.loading) return graphNoteMapState.loading
+
+  graphNoteMapState.loading = fetch(GRAPH_NOTE_ID_MAP_PATH, { headers: { Accept: "application/json" } })
+    .then(function (response) {
+      return response
+        .text()
+        .then(function (text) {
+          if (!text) return {}
+          try {
+            return JSON.parse(text)
+          } catch (e) {
+            return {}
+          }
+        })
+        .then(function (data) {
+          if (response.ok && data && typeof data === "object") {
+            graphNoteMapState.slugToId = data.slugToId || {}
+            graphNoteMapState.notes = data.notes || {}
+          }
+          return graphNoteMapState
+        })
+    })
+    .catch(function () {
+      graphNoteMapState.slugToId = graphNoteMapState.slugToId || {}
+      graphNoteMapState.notes = graphNoteMapState.notes || {}
+      return graphNoteMapState
+    })
+    .then(function (state) {
+      graphNoteMapState.loaded = true
+      graphNoteMapState.loading = null
+      return state
+    })
+
+  return graphNoteMapState.loading
 }
 
 function readingStateId(slug) {
@@ -55,12 +102,45 @@ function readingStateId(slug) {
   if (id === "/" || id === "") return "index"
   return trimSlash(id).replace(/\/index$/u, "") || "index"
 }
-function readingStateKey(action, slug) {
-  return READING_STATE_PREFIX + ":" + action + ":" + readingStateId(slug)
+function noteIdentityForSlug(slug) {
+  var id = readingStateId(slug)
+  var mappedId = graphNoteMapState.slugToId && graphNoteMapState.slugToId[id]
+  var noteId = readingStateId(mappedId || id)
+  var note = (graphNoteMapState.notes && graphNoteMapState.notes[noteId]) || {}
+  var rawAliases = [id, noteId, note.slug]
+  if (Array.isArray(note.aliases)) rawAliases = rawAliases.concat(note.aliases)
+
+  var seen = {}
+  var aliases = []
+  for (var i = 0; i < rawAliases.length; i++) {
+    var alias = readingStateId(rawAliases[i])
+    if (!alias || seen[alias]) continue
+    seen[alias] = true
+    aliases.push(alias)
+  }
+
+  return { slug: id, noteId: noteId, aliases: aliases }
+}
+function readingStateKey(action, noteId) {
+  return READING_STATE_PREFIX + ":" + action + ":" + noteId
+}
+function legacyReadingStateKey(action, slug) {
+  return READING_STATE_LEGACY_PREFIX + ":" + action + ":" + slug
 }
 function hasReadingState(action, slug) {
   try {
-    return localStorage.getItem(readingStateKey(action, slug)) !== null
+    var identity = noteIdentityForSlug(slug)
+    if (localStorage.getItem(readingStateKey(action, identity.noteId)) !== null) return true
+
+    for (var i = 0; i < identity.aliases.length; i++) {
+      var legacyValue = localStorage.getItem(legacyReadingStateKey(action, identity.aliases[i]))
+      if (legacyValue !== null) {
+        localStorage.setItem(readingStateKey(action, identity.noteId), legacyValue || new Date().toISOString())
+        return true
+      }
+    }
+
+    return false
   } catch (e) {
     return false
   }

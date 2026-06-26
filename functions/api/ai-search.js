@@ -480,11 +480,17 @@ function fieldText(chunk, field) {
 function prepareNoteGraph(index) {
   const notes = new Map()
   for (const note of Array.isArray(index.notes) ? index.notes : []) {
-    const id = String(note?.slug || "")
+    const id = String(note?.noteId || note?.id || note?.slug || "")
     if (!id) continue
     notes.set(id, {
       graphRank: Number(note.graphRank) || 0,
-      outgoing: new Set(Array.isArray(note.outgoing) ? note.outgoing : []),
+      outgoing: new Set(
+        Array.isArray(note.outgoingNoteIds)
+          ? note.outgoingNoteIds
+          : Array.isArray(note.outgoing)
+            ? note.outgoing
+            : [],
+      ),
       incoming: new Set(),
     })
   }
