@@ -41,6 +41,7 @@ async function renderGraph(container, fullSlug, renderId) {
   var hiddenTags = new Set((cfg.hiddenTags || []).map(normalizeGraphTag).filter(Boolean))
   var showTags = cfg.showTags
   var focusOnHover = cfg.focusOnHover
+  var progressGlow = cfg.progressGlow !== false
 
   var data
   try {
@@ -252,6 +253,7 @@ async function renderGraph(container, fullSlug, renderId) {
       centerCurrentNode: centerCurrentNode,
       enableRadial: enableRadial,
       focusOnHover: focusOnHover,
+      progressGlow: progressGlow,
     },
   })
 }

@@ -22,6 +22,7 @@
     hideFolderPages: false,
     showTags: true,
     hiddenTags: [],
+    progressGlow: true,
   }
   var liveKeys = {
     showArrows: true,
@@ -67,6 +68,7 @@
         { key: "textOpacity", label: "文本透明度", min: 0, max: 1.4, step: 0.05 },
         { key: "fontSize", label: "字体大小", min: 0.6, max: 1.5, step: 0.05 },
         { key: "nodeSize", label: "节点大小", min: 0.6, max: 2.2, step: 0.1 },
+        { key: "progressGlow", label: "荧光效果", type: "checkbox", scopes: ["global"] },
         { key: "linkWidth", label: "连线粗细", min: 0.5, max: 4, step: 0.25 },
         { key: "linkOpacity", label: "连线透明度", min: 0.2, max: 1.5, step: 0.05 },
       ],

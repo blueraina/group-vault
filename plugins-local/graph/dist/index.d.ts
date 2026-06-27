@@ -27,6 +27,7 @@ interface D3Config {
     showTags: boolean;
     focusOnHover?: boolean;
     enableRadial?: boolean;
+    progressGlow?: boolean;
 }
 interface GraphOptions {
     localGraph?: Partial<D3Config>;

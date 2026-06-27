@@ -18,7 +18,7 @@ async function setupPixiScene(ctx) {
   var o = ctx.opts
   var isGlobalGraph = container.classList && container.classList.contains("global-graph-container")
   var savedTheme = document.documentElement.getAttribute("saved-theme")
-  var enableProgressGlow = isGlobalGraph && (savedTheme === "dark" || savedTheme === "night")
+  var enableProgressGlow = isGlobalGraph && o.progressGlow !== false && (savedTheme === "dark" || savedTheme === "night")
 
   // --- theme colors ---
   var root = getComputedStyle(document.documentElement)
@@ -184,11 +184,11 @@ async function setupPixiScene(ctx) {
     if (color == null) return
 
     var r = rec.radius || currentRadiusOf(rec.node)
-    rec.glow.circle(0, 0, r * 5.4 + 12)
-    rec.glow.fill({ color: color, alpha: 0.055 })
-    rec.glow.circle(0, 0, r * 3.4 + 7)
-    rec.glow.fill({ color: color, alpha: 0.085 })
-    rec.glow.circle(0, 0, r * 1.9 + 3)
+    rec.glow.circle(0, 0, r * 2.8 + 7)
+    rec.glow.fill({ color: color, alpha: 0.04 })
+    rec.glow.circle(0, 0, r * 2 + 4)
+    rec.glow.fill({ color: color, alpha: 0.07 })
+    rec.glow.circle(0, 0, r * 1.35 + 2)
     rec.glow.fill({ color: color, alpha: 0.11 })
   }
 
