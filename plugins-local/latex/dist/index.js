@@ -99,32 +99,46 @@ const tikzJaxScript = String.raw`
 (() => {
   const tikzJaxUrl = "${TIKZJAX_SCRIPT_URL}"
   let renderQueue = Promise.resolve()
+  let tikzJaxPromise
+  let tikzRenderer
 
   function hasTikzBlocks() {
     return document.querySelector('script[type="text/tikz"]') !== null
   }
 
   function loadTikzJax() {
-    return new Promise((resolve, reject) => {
+    if (tikzJaxPromise) return tikzJaxPromise
+
+    tikzJaxPromise = new Promise((resolve, reject) => {
+      const previousOnload = window.onload
       const script = document.createElement("script")
       script.src = tikzJaxUrl
       script.async = true
-      script.onload = resolve
-      script.onerror = reject
+      script.onload = () => {
+        const tikzOnload = window.onload
+        if (typeof tikzOnload === "function" && tikzOnload !== previousOnload) {
+          tikzRenderer = tikzOnload
+          window.onload = previousOnload
+        }
+        resolve()
+      }
+      script.onerror = () => {
+        tikzJaxPromise = undefined
+        reject(new Error("Unable to load TikZJax from " + tikzJaxUrl))
+      }
       document.head.appendChild(script)
     })
+
+    return tikzJaxPromise
   }
 
   async function renderTikzBlocks() {
     if (!hasTikzBlocks()) return
 
-    const previousOnload = window.onload
     await loadTikzJax()
-    const tikzOnload = window.onload
 
-    if (typeof tikzOnload === "function" && tikzOnload !== previousOnload) {
-      await Promise.resolve(tikzOnload.call(window))
-      window.onload = previousOnload
+    if (typeof tikzRenderer === "function") {
+      await Promise.resolve(tikzRenderer.call(window))
     }
   }
 
