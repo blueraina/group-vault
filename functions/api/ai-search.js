@@ -9,15 +9,17 @@ const fusedRecallLimit = 30
 const finalLimit = 8
 const rerankDocumentMaxChars = 1800
 const maxQueryVariants = 6
+const maxScopePrefixes = 80
+const maxScopePrefixLength = 220
 const bm25K1 = 1.2
 const rrfK = 60
 const rateWindowMs = 60 * 1000
 const rateMaxRequests = 10
 const rateBuckets = new Map()
 
-let cachedIndex = null
-let cachedIndexAt = 0
-const indexCacheTtlMs = 5 * 60 * 1000
+let cachedManifest = null
+let cachedManifestAt = 0
+const manifestCacheTtlMs = 5 * 60 * 1000
 
 const systemPrompt = `你是一个数学笔记学习导航助手，面向正在学习数学概念的学生。
 你只能基于提供的候选笔记生成推荐，不能编造不存在的笔记、链接、标题或结论。
@@ -65,6 +67,58 @@ async function readJsonBody(request) {
     throw httpError("请求体必须是 JSON", 400, "INVALID_JSON")
   }
   return body
+}
+
+function normalizeIndexPath(value) {
+  let path = String(value || "").trim()
+  try {
+    path = decodeURIComponent(path)
+  } catch {}
+  path = path
+    .replace(/\\/gu, "/")
+    .replace(/^\/+/u, "")
+    .replace(/\/+/gu, "/")
+    .replace(/\.md$/iu, "")
+    .replace(/\.html$/iu, "")
+    .replace(/\/index$/iu, "")
+    .trim()
+  return path === "index" ? "" : path.replace(/\/+$/u, "")
+}
+
+function normalizeScopePrefixes(value) {
+  if (!Array.isArray(value)) return []
+  const prefixes = []
+  const seen = new Set()
+
+  for (const item of value) {
+    const prefix = normalizeIndexPath(item).slice(0, maxScopePrefixLength)
+    if (!prefix || seen.has(prefix)) continue
+    seen.add(prefix)
+    prefixes.push(prefix)
+    if (prefixes.length >= maxScopePrefixes) break
+  }
+
+  prefixes.sort((a, b) => a.length - b.length)
+  return prefixes.filter((prefix, index) => {
+    for (let i = 0; i < index; i += 1) {
+      const parent = prefixes[i]
+      if (prefix === parent || prefix.startsWith(parent + "/")) return false
+    }
+    return true
+  })
+}
+
+function pathMatchesScope(path, scopePrefixes) {
+  if (scopePrefixes.length === 0) return true
+  const normalized = normalizeIndexPath(path)
+  return scopePrefixes.some((prefix) => normalized === prefix || normalized.startsWith(prefix + "/"))
+}
+
+function chunkMatchesScope(chunk, scopePrefixes) {
+  if (scopePrefixes.length === 0) return true
+  return [chunk?.noteId, chunk?.slug, chunk?.filePath, chunk?.url].some((value) =>
+    pathMatchesScope(value, scopePrefixes),
+  )
 }
 
 async function requireUser(request, env) {
@@ -356,51 +410,55 @@ async function readIndexJson(request, env, pathname) {
   return response.json().catch(() => null)
 }
 
-async function loadIndex(request, env) {
+async function loadSearchManifest(request, env) {
   const now = Date.now()
-  if (cachedIndex && now - cachedIndexAt < indexCacheTtlMs) return cachedIndex
-
-  const response = await fetchIndexFromAssets(request, env)
-  if (!response.ok) {
-    throw httpError("AI 搜索索引不存在，请先运行构建索引", 503, "INDEX_NOT_FOUND")
-  }
-
-  const index = await response.json().catch(() => null)
-  if (!index?.enabled || !Array.isArray(index.chunks) || index.chunks.length === 0) {
-    throw httpError("AI 搜索索引未启用或为空", 503, "INDEX_DISABLED")
-  }
-
-  cachedIndex = index
-  cachedIndexAt = now
-  return index
-}
-
-async function loadSearchIndex(request, env) {
-  const now = Date.now()
-  if (cachedIndex && now - cachedIndexAt < indexCacheTtlMs) return cachedIndex
+  if (cachedManifest && now - cachedManifestAt < manifestCacheTtlMs) return cachedManifest
 
   const manifest = await readIndexJson(request, env, indexPath)
-  const chunks = []
-
-  if (Array.isArray(manifest?.chunks)) {
-    chunks.push(...manifest.chunks)
-  } else if (Array.isArray(manifest?.shards)) {
-    for (const shard of manifest.shards) {
-      const shardPath = String(shard?.path || "")
-      if (!shardPath) continue
-      const shardIndex = await readIndexJson(request, env, shardPath)
-      if (Array.isArray(shardIndex?.chunks)) chunks.push(...shardIndex.chunks)
-    }
+  if (!manifest) {
+    throw httpError("AI 搜索索引不存在，请先运行构建索引", 503, "INDEX_NOT_FOUND")
   }
-
-  const index = manifest ? { ...manifest, chunks } : null
-  if (!index?.enabled || !Array.isArray(index.chunks) || index.chunks.length === 0) {
+  if (!manifest?.enabled) {
     throw httpError("AI search index is disabled or empty", 503, "INDEX_DISABLED")
   }
 
-  cachedIndex = index
-  cachedIndexAt = now
-  return index
+  const hasInlineChunks = Array.isArray(manifest.chunks) && manifest.chunks.length > 0
+  const hasShards = Array.isArray(manifest.shards) && manifest.shards.some((shard) => shard?.path)
+  if (!hasInlineChunks && !hasShards) {
+    throw httpError("AI search index is disabled or empty", 503, "INDEX_DISABLED")
+  }
+
+  cachedManifest = manifest
+  cachedManifestAt = now
+  return manifest
+}
+
+async function loadShardIndex(request, env, manifest, shard) {
+  if (!shard) return { ...manifest, chunks: Array.isArray(manifest.chunks) ? manifest.chunks : [] }
+
+  const shardPath = String(shard?.path || "")
+  if (!shardPath) return { ...manifest, chunks: [] }
+
+  const shardIndex = await readIndexJson(request, env, shardPath)
+  return {
+    ...manifest,
+    chunks: Array.isArray(shardIndex?.chunks) ? shardIndex.chunks : [],
+  }
+}
+
+function searchShards(manifest) {
+  if (Array.isArray(manifest?.shards) && manifest.shards.some((shard) => shard?.path)) {
+    return manifest.shards.filter((shard) => shard?.path)
+  }
+  return [null]
+}
+
+function scopedIndex(index, scopePrefixes) {
+  if (scopePrefixes.length === 0) return index
+  return {
+    ...index,
+    chunks: (index.chunks || []).filter((chunk) => chunkMatchesScope(chunk, scopePrefixes)),
+  }
 }
 
 function cosineSimilarity(a, b) {
@@ -713,6 +771,47 @@ function recallHybridChunks(index, queryEmbeddings, queryVariants) {
   ])
 }
 
+async function recallHybridFromShards(request, env, manifest, queryEmbeddings, queryVariants, scopePrefixes) {
+  const lists = []
+  const stats = {
+    shardFiles: 0,
+    chunksScanned: 0,
+    chunksInScope: 0,
+  }
+
+  const shards = searchShards(manifest)
+  for (let index = 0; index < shards.length; index += 1) {
+    const shard = shards[index]
+    const shardIndex = await loadShardIndex(request, env, manifest, shard)
+    const shardChunks = Array.isArray(shardIndex.chunks) ? shardIndex.chunks : []
+    stats.shardFiles += shard ? 1 : 0
+    stats.chunksScanned += shardChunks.length
+
+    const filteredIndex = scopedIndex(shardIndex, scopePrefixes)
+    const filteredChunks = Array.isArray(filteredIndex.chunks) ? filteredIndex.chunks : []
+    stats.chunksInScope += filteredChunks.length
+    if (filteredChunks.length === 0) continue
+
+    const candidates = recallHybridChunks(filteredIndex, queryEmbeddings, queryVariants)
+    if (candidates.length > 0) {
+      lists.push({
+        name: shard ? `shard-${index}` : "index",
+        weight: 1,
+        candidates,
+      })
+    }
+  }
+
+  if (scopePrefixes.length > 0 && stats.chunksInScope === 0) {
+    throw httpError("选择的检索范围内没有可用笔记", 400, "SCOPE_EMPTY")
+  }
+
+  return {
+    candidates: lists.length > 0 ? fuseRankedLists(lists, fusedRecallLimit) : [],
+    stats,
+  }
+}
+
 function rerankConfigured(env) {
   return (
     envValue(env, "AI_RERANK_BASE_URL") &&
@@ -1004,14 +1103,23 @@ async function generateReport(env, query, queryVariants, candidates, weakMatch) 
 async function handlePost(request, env) {
   const body = await readJsonBody(request)
   const query = normalizeQuery(body.query)
+  const scopePrefixes = normalizeScopePrefixes(body.folderPrefixes || body.scopePrefixes)
   const user = await requireUser(request, env)
   checkRateLimit(user, request)
   requireAiConfig(env)
 
-  const index = await loadSearchIndex(request, env)
+  const manifest = await loadSearchManifest(request, env)
   const queryVariants = await rewriteQueryVariants(env, query)
   const queryEmbeddings = await createEmbeddings(env, queryVariants)
-  const recalled = recallHybridChunks(index, queryEmbeddings, queryVariants)
+  const recalledResult = await recallHybridFromShards(
+    request,
+    env,
+    manifest,
+    queryEmbeddings,
+    queryVariants,
+    scopePrefixes,
+  )
+  const recalled = recalledResult.candidates
   const reranked = await maybeRerank(env, query, recalled)
   const candidates = uniqueNoteCandidates(reranked, finalLimit)
   const weakMatch = Math.max(candidates[0]?.score || 0, candidates[0]?.denseScore || 0) < 0.18
@@ -1022,6 +1130,8 @@ async function handlePost(request, env) {
     items: report.items,
     sources: sourcesFromCandidates(candidates),
     queryVariants,
+    scopePrefixes,
+    searchStats: recalledResult.stats,
   })
 }
 

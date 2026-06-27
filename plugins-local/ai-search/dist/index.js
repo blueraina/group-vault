@@ -125,6 +125,89 @@ const styles = `.ai-note-search {
   outline: none;
 }
 
+.ai-note-search-scope {
+  margin-top: 0.75rem;
+  border: 1px solid var(--lightgray);
+  border-radius: 6px;
+  padding: 0.6rem 0.7rem;
+}
+
+.ai-note-search-scope-summary {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  color: var(--dark);
+  font-weight: 700;
+  list-style: none;
+}
+
+.ai-note-search-scope-summary::-webkit-details-marker {
+  display: none;
+}
+
+.ai-note-search-scope-count {
+  color: var(--gray);
+  font-size: 0.86rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.ai-note-search-scope-body {
+  display: grid;
+  gap: 0.55rem;
+  margin-top: 0.65rem;
+}
+
+.ai-note-search-scope-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--dark);
+  font-size: 0.92rem;
+}
+
+.ai-note-search-folder-tree {
+  display: grid;
+  gap: 0.28rem;
+  max-height: 12rem;
+  overflow: auto;
+  border-top: 1px solid var(--lightgray);
+  padding-top: 0.55rem;
+}
+
+.ai-note-search-folder-tree[hidden] {
+  display: none;
+}
+
+.ai-note-search-folder-item {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
+  color: var(--darkgray);
+  font-size: 0.9rem;
+}
+
+.ai-note-search-folder-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ai-note-search-folder-count {
+  color: var(--gray);
+  font-size: 0.78rem;
+  margin-left: auto;
+}
+
+.ai-note-search-folder-empty {
+  color: var(--gray);
+  font-size: 0.9rem;
+}
+
 .ai-note-search-actions {
   display: flex;
   align-items: center;
@@ -284,7 +367,7 @@ const styles = `.ai-note-search {
 }`
 
 const script = `(() => {
-  const scriptVersion = "2026-06-20-ai-math-render"
+  const scriptVersion = "2026-06-27-ai-scope-search"
   const bootKey = "__groupVaultAiSearchBootVersion"
   const latestRequestKey = "__groupVaultAiSearchLatestRequest"
 
@@ -292,7 +375,9 @@ const script = `(() => {
   window[bootKey] = scriptVersion
 
   const lastResultKey = "group-vault.ai-note-search.last-result"
+  const scopeSelectionKey = "group-vault.ai-note-search.scope"
   const katexState = { promise: null }
+  const scopeFolderState = { promise: null, folders: [] }
 
   function currentReturnTo() {
     return window.location.pathname + window.location.search + window.location.hash
@@ -487,6 +572,216 @@ const script = `(() => {
     }
   }
 
+  function normalizeScopePath(value) {
+    let path = String(value || "").trim()
+    try {
+      path = decodeURIComponent(path)
+    } catch {}
+    path = path
+      .split("\\\\")
+      .join("/")
+      .replace(/^\\/+/u, "")
+      .replace(/\\/+/gu, "/")
+      .replace(/\\.md$/iu, "")
+      .replace(/\\.html$/iu, "")
+      .replace(/\\/index$/iu, "")
+      .replace(/\\/+$/u, "")
+    return path === "index" ? "" : path
+  }
+
+  function notePath(note) {
+    return normalizeScopePath(
+      (note && (note.relativePath || note.noteId || note.slug || note.url)) || "",
+    )
+  }
+
+  function folderPrefixesForNote(note) {
+    const path = notePath(note)
+    if (!path) return []
+    const parts = path.split("/").filter(Boolean)
+    if (parts.length <= 1) return []
+    const folders = []
+    for (let depth = 1; depth < parts.length && depth <= 3; depth += 1) {
+      folders.push(parts.slice(0, depth).join("/"))
+    }
+    return folders
+  }
+
+  function loadScopeFolders() {
+    if (scopeFolderState.promise) return scopeFolderState.promise
+    scopeFolderState.promise = fetch("/static/ai-search-index.json", {
+      headers: { Accept: "application/json" },
+    })
+      .then(function (response) {
+        if (!response.ok) throw new Error("index unavailable")
+        return response.json()
+      })
+      .then(function (index) {
+        const folders = new Map()
+        const notes = Array.isArray(index && index.notes) ? index.notes : []
+        for (const note of notes) {
+          for (const prefix of folderPrefixesForNote(note)) {
+            if (!folders.has(prefix)) {
+              const parts = prefix.split("/")
+              folders.set(prefix, {
+                path: prefix,
+                name: parts[parts.length - 1],
+                depth: parts.length,
+                count: 0,
+              })
+            }
+            folders.get(prefix).count += 1
+          }
+        }
+        scopeFolderState.folders = Array.from(folders.values()).sort(function (a, b) {
+          return a.path.localeCompare(b.path, "zh-Hans", { numeric: true })
+        })
+        return scopeFolderState.folders
+      })
+      .catch(function () {
+        scopeFolderState.folders = []
+        return []
+      })
+    return scopeFolderState.promise
+  }
+
+  function readScopeSelection() {
+    try {
+      const raw = window.localStorage.getItem(scopeSelectionKey)
+      if (!raw) return { all: true, folders: [] }
+      const parsed = JSON.parse(raw)
+      if (!parsed || typeof parsed !== "object") return { all: true, folders: [] }
+      const folders = Array.isArray(parsed && parsed.folders)
+        ? parsed.folders.map(normalizeScopePath).filter(Boolean)
+        : []
+      return { all: parsed.all !== false, folders: reduceFolderPrefixes(folders) }
+    } catch {
+      return { all: true, folders: [] }
+    }
+  }
+
+  function reduceFolderPrefixes(folders) {
+    const unique = Array.from(new Set((folders || []).map(normalizeScopePath).filter(Boolean)))
+    unique.sort(function (a, b) {
+      return a.length - b.length || a.localeCompare(b, "zh-Hans", { numeric: true })
+    })
+    return unique.filter(function (prefix, index) {
+      for (let i = 0; i < index; i += 1) {
+        const parent = unique[i]
+        if (prefix === parent || prefix.indexOf(parent + "/") === 0) return false
+      }
+      return true
+    })
+  }
+
+  function saveScopeSelection(selection) {
+    try {
+      window.localStorage.setItem(scopeSelectionKey, JSON.stringify(selection))
+    } catch {}
+  }
+
+  function selectedFolderPrefixes(root) {
+    const all = root.querySelector(".ai-note-search-scope-all-input")
+    if (!all || all.checked) return []
+    const checked = Array.from(root.querySelectorAll(".ai-note-search-folder-input:checked"))
+    return reduceFolderPrefixes(checked.map(function (input) {
+      return input.dataset.folderPrefix
+    }))
+  }
+
+  function updateScopeSummary(root) {
+    const all = root.querySelector(".ai-note-search-scope-all-input")
+    const tree = root.querySelector(".ai-note-search-folder-tree")
+    const count = root.querySelector(".ai-note-search-scope-count")
+    if (!all || !tree || !count) return
+
+    const folders = selectedFolderPrefixes(root)
+    tree.hidden = all.checked
+    count.textContent = all.checked ? "全部笔记" : folders.length > 0 ? "已选 " + folders.length + " 个文件夹" : "未选择"
+  }
+
+  function storeScopeFromDom(root) {
+    const all = root.querySelector(".ai-note-search-scope-all-input")
+    const selection = {
+      all: !all || all.checked,
+      folders: selectedFolderPrefixes(root),
+    }
+    saveScopeSelection(selection)
+    updateScopeSummary(root)
+  }
+
+  function renderFolderTree(root, folders) {
+    const tree = root.querySelector(".ai-note-search-folder-tree")
+    if (!tree) return
+    const selection = readScopeSelection()
+    const selected = new Set(selection.folders)
+    clear(tree)
+
+    if (folders.length === 0) {
+      const empty = document.createElement("div")
+      empty.className = "ai-note-search-folder-empty"
+      empty.textContent = "暂时无法读取文件夹列表。"
+      tree.appendChild(empty)
+      updateScopeSummary(root)
+      return
+    }
+
+    for (const folder of folders) {
+      const label = document.createElement("label")
+      label.className = "ai-note-search-folder-item"
+      label.style.paddingLeft = String((folder.depth - 1) * 0.85) + "rem"
+
+      const input = document.createElement("input")
+      input.className = "ai-note-search-folder-input"
+      input.type = "checkbox"
+      input.dataset.folderPrefix = folder.path
+      input.checked = selected.has(folder.path)
+      input.addEventListener("change", function () {
+        storeScopeFromDom(root)
+      })
+
+      const name = document.createElement("span")
+      name.className = "ai-note-search-folder-name"
+      name.textContent = folder.name
+      name.title = folder.path
+
+      const count = document.createElement("span")
+      count.className = "ai-note-search-folder-count"
+      count.textContent = String(folder.count)
+
+      label.appendChild(input)
+      label.appendChild(name)
+      label.appendChild(count)
+      tree.appendChild(label)
+    }
+
+    updateScopeSummary(root)
+  }
+
+  function setupScopeControls(root) {
+    const all = root.querySelector(".ai-note-search-scope-all-input")
+    const tree = root.querySelector(".ai-note-search-folder-tree")
+    if (!all || !tree) return
+
+    const selection = readScopeSelection()
+    all.checked = selection.all
+    tree.hidden = all.checked
+    if (!tree.dataset.loaded) {
+      tree.dataset.loaded = "true"
+      tree.textContent = "正在读取文件夹..."
+      loadScopeFolders().then(function (folders) {
+        renderFolderTree(root, folders)
+      })
+    } else {
+      renderFolderTree(root, scopeFolderState.folders)
+    }
+
+    all.addEventListener("change", function () {
+      storeScopeFromDom(root)
+    })
+    updateScopeSummary(root)
+  }
+
   function setStatus(root, message, type) {
     const status = root.querySelector(".ai-note-search-status")
     if (!status) return
@@ -512,6 +807,7 @@ const script = `(() => {
     if (data && data.code === "MODEL_NOT_CONFIGURED") return "模型未配置，请检查 Cloudflare 环境变量。"
     if (data && data.code === "INDEX_NOT_FOUND") return "AI 搜索索引不存在，请先构建索引。"
     if (data && data.code === "INDEX_DISABLED") return "AI 搜索索引未启用或为空。"
+    if (data && data.code === "SCOPE_EMPTY") return "选择的检索范围内没有可用笔记。"
     if (data && data.code === "RATE_LIMITED") return "请求太频繁，请稍后再试。"
     if (data && data.error) return String(data.error)
     return "网络失败或后端暂时不可用。"
@@ -621,6 +917,7 @@ const script = `(() => {
     let activeController = null
 
     if (previousQuery) input.value = previousQuery
+    setupScopeControls(root)
     restoreLastResult(root, input)
     if (wasOpen) {
       overlay.classList.add("active")
@@ -689,6 +986,12 @@ const script = `(() => {
         input.focus()
         return
       }
+      const allScope = root.querySelector(".ai-note-search-scope-all-input")
+      const folderPrefixes = selectedFolderPrefixes(root)
+      if (allScope && !allScope.checked && folderPrefixes.length === 0) {
+        setStatus(root, "请选择至少一个文件夹，或勾选全部笔记。", "error")
+        return
+      }
 
       inFlight = true
       requestSeq += 1
@@ -707,7 +1010,7 @@ const script = `(() => {
           headers: { "content-type": "application/json" },
           credentials: "same-origin",
           signal: activeController.signal,
-          body: JSON.stringify({ query: query }),
+          body: JSON.stringify({ query: query, folderPrefixes: folderPrefixes }),
         })
         const data = await readJson(response)
         if (requestId !== requestSeq) return
@@ -814,6 +1117,31 @@ const AISearchComponent = ({ displayClass }) =>
             placeholder: "例如：我想学习一下同时对角化的内容，我该看哪些笔记？",
             "aria-label": "学习目标",
           }),
+          h("details", { class: "ai-note-search-scope" }, [
+            h("summary", { class: "ai-note-search-scope-summary" }, [
+              h("span", null, "检索范围"),
+              h("span", { class: "ai-note-search-scope-count" }, "全部笔记"),
+            ]),
+            h("div", { class: "ai-note-search-scope-body" }, [
+              h("label", { class: "ai-note-search-scope-all" }, [
+                h("input", {
+                  class: "ai-note-search-scope-all-input",
+                  type: "checkbox",
+                  checked: true,
+                }),
+                h("span", null, "全部笔记"),
+              ]),
+              h(
+                "div",
+                {
+                  class: "ai-note-search-folder-tree",
+                  "aria-label": "选择检索文件夹",
+                  hidden: true,
+                },
+                "正在读取文件夹...",
+              ),
+            ]),
+          ]),
           h("div", { class: "ai-note-search-actions" }, [
             h("div", { class: "ai-note-search-status", role: "status", "aria-live": "polite" }),
             h(
