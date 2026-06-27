@@ -168,6 +168,131 @@ const tikzJaxStyles = String.raw`
   max-width: 100%;
   height: auto;
 }
+
+:root[saved-theme="dark"] .tikzjax-container,
+:root[saved-theme="night"] .tikzjax-container {
+  color: var(--darkgray);
+}
+
+:root[saved-theme="dark"] .tikzjax-container svg,
+:root[saved-theme="night"] .tikzjax-container svg {
+  color: var(--darkgray);
+}
+
+:root[saved-theme="dark"] .tikzjax-container svg :where(
+  [stroke="black" i],
+  [stroke="#000" i],
+  [stroke="#000000" i],
+  [stroke="rgb(0,0,0)" i],
+  [style*="stroke:black" i],
+  [style*="stroke: black" i],
+  [style*="stroke:#000;" i],
+  [style*="stroke: #000;" i],
+  [style$="stroke:#000" i],
+  [style$="stroke: #000" i],
+  [style*="stroke:#000000" i],
+  [style*="stroke: #000000" i],
+  [style*="stroke:rgb(0,0,0)" i],
+  [style*="stroke: rgb(0,0,0)" i],
+  [style*="stroke:rgb(0, 0, 0)" i],
+  [style*="stroke: rgb(0, 0, 0)" i],
+  [style*="stroke:rgb(0%,0%,0%)" i],
+  [style*="stroke: rgb(0%,0%,0%)" i],
+  [style*="stroke:rgb(0%, 0%, 0%)" i],
+  [style*="stroke: rgb(0%, 0%, 0%)" i]
+),
+:root[saved-theme="night"] .tikzjax-container svg :where(
+  [stroke="black" i],
+  [stroke="#000" i],
+  [stroke="#000000" i],
+  [stroke="rgb(0,0,0)" i],
+  [style*="stroke:black" i],
+  [style*="stroke: black" i],
+  [style*="stroke:#000;" i],
+  [style*="stroke: #000;" i],
+  [style$="stroke:#000" i],
+  [style$="stroke: #000" i],
+  [style*="stroke:#000000" i],
+  [style*="stroke: #000000" i],
+  [style*="stroke:rgb(0,0,0)" i],
+  [style*="stroke: rgb(0,0,0)" i],
+  [style*="stroke:rgb(0, 0, 0)" i],
+  [style*="stroke: rgb(0, 0, 0)" i],
+  [style*="stroke:rgb(0%,0%,0%)" i],
+  [style*="stroke: rgb(0%,0%,0%)" i],
+  [style*="stroke:rgb(0%, 0%, 0%)" i],
+  [style*="stroke: rgb(0%, 0%, 0%)" i]
+) {
+  stroke: var(--darkgray) !important;
+}
+
+:root[saved-theme="dark"] .tikzjax-container svg :where(
+  [fill="black" i],
+  [fill="#000" i],
+  [fill="#000000" i],
+  [fill="rgb(0,0,0)" i],
+  [style*="fill:black" i],
+  [style*="fill: black" i],
+  [style*="fill:#000;" i],
+  [style*="fill: #000;" i],
+  [style$="fill:#000" i],
+  [style$="fill: #000" i],
+  [style*="fill:#000000" i],
+  [style*="fill: #000000" i],
+  [style*="fill:rgb(0,0,0)" i],
+  [style*="fill: rgb(0,0,0)" i],
+  [style*="fill:rgb(0, 0, 0)" i],
+  [style*="fill: rgb(0, 0, 0)" i],
+  [style*="fill:rgb(0%,0%,0%)" i],
+  [style*="fill: rgb(0%,0%,0%)" i],
+  [style*="fill:rgb(0%, 0%, 0%)" i],
+  [style*="fill: rgb(0%, 0%, 0%)" i]
+),
+:root[saved-theme="night"] .tikzjax-container svg :where(
+  [fill="black" i],
+  [fill="#000" i],
+  [fill="#000000" i],
+  [fill="rgb(0,0,0)" i],
+  [style*="fill:black" i],
+  [style*="fill: black" i],
+  [style*="fill:#000;" i],
+  [style*="fill: #000;" i],
+  [style$="fill:#000" i],
+  [style$="fill: #000" i],
+  [style*="fill:#000000" i],
+  [style*="fill: #000000" i],
+  [style*="fill:rgb(0,0,0)" i],
+  [style*="fill: rgb(0,0,0)" i],
+  [style*="fill:rgb(0, 0, 0)" i],
+  [style*="fill: rgb(0, 0, 0)" i],
+  [style*="fill:rgb(0%,0%,0%)" i],
+  [style*="fill: rgb(0%,0%,0%)" i],
+  [style*="fill:rgb(0%, 0%, 0%)" i],
+  [style*="fill: rgb(0%, 0%, 0%)" i]
+) {
+  fill: var(--darkgray) !important;
+}
+
+:root[saved-theme="dark"] .tikzjax-container svg :where(
+  [color="black" i],
+  [color="#000" i],
+  [color="#000000" i],
+  [style*="color:black" i],
+  [style*="color: black" i],
+  [style*="color:#000" i],
+  [style*="color: #000" i]
+),
+:root[saved-theme="night"] .tikzjax-container svg :where(
+  [color="black" i],
+  [color="#000" i],
+  [color="#000000" i],
+  [style*="color:black" i],
+  [style*="color: black" i],
+  [style*="color:#000" i],
+  [style*="color: #000" i]
+) {
+  color: var(--darkgray) !important;
+}
 `
 
 function splitLinePrefix(line) {
