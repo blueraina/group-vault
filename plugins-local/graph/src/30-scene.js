@@ -16,6 +16,9 @@ async function setupPixiScene(ctx) {
   }
   var adjacency = ctx.adjacency
   var o = ctx.opts
+  var isGlobalGraph = container.classList && container.classList.contains("global-graph-container")
+  var savedTheme = document.documentElement.getAttribute("saved-theme")
+  var enableProgressGlow = isGlobalGraph && (savedTheme === "dark" || savedTheme === "night")
 
   // --- theme colors ---
   var root = getComputedStyle(document.documentElement)
@@ -29,6 +32,9 @@ async function setupPixiScene(ctx) {
   var colorRead = resolveColor(GRAPH_PROGRESS_COLORS.read, "#2a9d8f")
   var colorFavorite = resolveColor(GRAPH_PROGRESS_COLORS.favorite, "#e9b44c")
   var colorBoth = resolveColor(GRAPH_PROGRESS_COLORS.both, "#e84a5f")
+  var colorReadGlow = resolveColor("#19ffdc", "rgb(25, 255, 220)")
+  var colorFavoriteGlow = resolveColor("#ffd637", "rgb(255, 214, 55)")
+  var colorBothGlow = resolveColor("#ff3669", "rgb(255, 54, 105)")
   var fontFamily = root.getPropertyValue("--bodyFont").trim() || "sans-serif"
 
   function toHex(rgb) {
@@ -46,6 +52,9 @@ async function setupPixiScene(ctx) {
   var hexRead = toHex(colorRead)
   var hexFavorite = toHex(colorFavorite)
   var hexBoth = toHex(colorBoth)
+  var hexReadGlow = toHex(colorReadGlow)
+  var hexFavoriteGlow = toHex(colorFavoriteGlow)
+  var hexBothGlow = toHex(colorBothGlow)
 
   function colorForNode(node) {
     if (!node.isTag) {
@@ -56,6 +65,13 @@ async function setupPixiScene(ctx) {
     if (node.id === slug) return hexCurrent
     if (node.isTag) return hexVisited
     return hexDefault
+  }
+  function glowColorForNode(node) {
+    if (!enableProgressGlow || node.isTag) return null
+    if (node.readingState === "both") return hexBothGlow
+    if (node.readingState === "favorite") return hexFavoriteGlow
+    if (node.readingState === "read") return hexReadGlow
+    return null
   }
   function currentRadiusOf(node) {
     return baseRadiusOf(node) * (o.nodeSize || 1)
@@ -130,9 +146,11 @@ async function setupPixiScene(ctx) {
   var stage = new PIXI.Container()
   app.stage.addChild(stage)
   var linkLayer = new PIXI.Container()
+  var glowLayer = new PIXI.Container()
   var nodeLayer = new PIXI.Container()
   var labelLayer = new PIXI.Container()
   stage.addChild(linkLayer)
+  stage.addChild(glowLayer)
   stage.addChild(nodeLayer)
   stage.addChild(labelLayer)
 
@@ -159,9 +177,25 @@ async function setupPixiScene(ctx) {
   var introT = 0 // 0..1 fade-in
   var settleTimer = null
 
+  function drawGlow(rec) {
+    if (!rec.glow) return
+    rec.glow.clear()
+    var color = glowColorForNode(rec.node)
+    if (color == null) return
+
+    var r = rec.radius || currentRadiusOf(rec.node)
+    rec.glow.circle(0, 0, r * 5.4 + 12)
+    rec.glow.fill({ color: color, alpha: 0.055 })
+    rec.glow.circle(0, 0, r * 3.4 + 7)
+    rec.glow.fill({ color: color, alpha: 0.085 })
+    rec.glow.circle(0, 0, r * 1.9 + 3)
+    rec.glow.fill({ color: color, alpha: 0.11 })
+  }
+
   function drawNode(rec) {
     var r = currentRadiusOf(rec.node)
     rec.radius = r
+    drawGlow(rec)
     rec.gfx.clear()
     rec.gfx.circle(0, 0, r)
     rec.gfx.fill({ color: rec.baseColor })
@@ -204,13 +238,17 @@ async function setupPixiScene(ctx) {
     label.scale.set(1 / o.baseScale)
     labelLayer.addChild(label)
 
+    var glow = new PIXI.Graphics()
+    glow.eventMode = "none"
+    glowLayer.addChild(glow)
+
     var gfx = new PIXI.Graphics()
     gfx.eventMode = "static"
     gfx.cursor = "pointer"
     gfx.__id = node.id
     nodeLayer.addChild(gfx)
 
-    var rec = { node: node, gfx: gfx, label: label, radius: r, baseColor: fill, focus: 0, targetFocus: 1 }
+    var rec = { node: node, glow: glow, gfx: gfx, label: label, radius: r, baseColor: fill, focus: 0, targetFocus: 1 }
     drawNode(rec)
     nodeGfx.push(rec)
     bindHover(rec)

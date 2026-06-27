@@ -182,6 +182,11 @@ function wireInteractionsAndLoop(s) {
       rec.gfx.scale.set(intro)
       var dimNodes = o.focusOnHover && hover !== null && !draggingNow
       rec.gfx.alpha = (dimNodes ? rec.focus : 1) * intro
+      if (rec.glow) {
+        rec.glow.position.set(n.x + cx, n.y + cy)
+        rec.glow.scale.set(intro)
+        rec.glow.alpha = (dimNodes ? rec.focus : 1) * intro
+      }
 
       // label: visible on hover (this node + neighbors) or when zoomed in
       rec.label.position.set(n.x + cx, n.y + cy + rec.radius + 1.5)
