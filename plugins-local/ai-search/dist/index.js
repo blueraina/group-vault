@@ -55,8 +55,8 @@ const styles = `.ai-note-search {
 
 .ai-note-search-panel {
   box-sizing: border-box;
-  width: min(92vw, 760px);
-  margin: 12vh auto 8vh;
+  width: min(94vw, 980px);
+  margin: 9vh auto 8vh;
   border: 1px solid var(--lightgray);
   border-radius: 7px;
   background: var(--light);
@@ -102,8 +102,25 @@ const styles = `.ai-note-search {
   outline: none;
 }
 
-.ai-note-search-form {
+.ai-note-search-body {
+  display: grid;
+  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+  min-height: 24rem;
+}
+
+.ai-note-search-sidebar {
+  min-width: 0;
+  border-right: 1px solid var(--lightgray);
+  background: color-mix(in srgb, var(--light) 90%, var(--lightgray));
   padding: 1rem;
+}
+
+.ai-note-search-main {
+  min-width: 0;
+}
+
+.ai-note-search-form {
+  padding: 1rem 1rem 0.85rem;
 }
 
 .ai-note-search-input {
@@ -126,18 +143,18 @@ const styles = `.ai-note-search {
 }
 
 .ai-note-search-scope {
-  margin-top: 0.75rem;
-  border: 1px solid var(--lightgray);
-  border-radius: 6px;
-  padding: 0.6rem 0.7rem;
+  border: 0;
+  border-radius: 0;
+  margin: 0;
+  padding: 0;
 }
 
 .ai-note-search-scope-summary {
   cursor: pointer;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 0.75rem;
+  gap: 0.5rem;
   color: var(--dark);
   font-weight: 700;
   list-style: none;
@@ -148,33 +165,54 @@ const styles = `.ai-note-search {
 }
 
 .ai-note-search-scope-count {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--lightgray);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--light) 86%, var(--secondary));
   color: var(--gray);
-  font-size: 0.86rem;
+  font-size: 0.75rem;
   font-weight: 500;
+  line-height: 1.2;
+  max-width: 9rem;
+  overflow: hidden;
+  padding: 0.16rem 0.45rem;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .ai-note-search-scope-body {
   display: grid;
-  gap: 0.55rem;
-  margin-top: 0.65rem;
+  gap: 0.65rem;
+  margin-top: 0.8rem;
 }
 
 .ai-note-search-scope-all {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: 0.5rem;
+  border: 1px solid var(--lightgray);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--light) 94%, var(--lightgray));
   color: var(--dark);
   font-size: 0.92rem;
+  min-height: 2.1rem;
+  padding: 0.35rem 0.5rem;
+}
+
+.ai-note-search-scope-all input,
+.ai-note-search-folder-item input {
+  accent-color: var(--secondary);
+  flex: 0 0 auto;
+  margin: 0;
 }
 
 .ai-note-search-folder-tree {
   display: grid;
-  gap: 0.28rem;
-  max-height: 12rem;
+  gap: 0.18rem;
+  max-height: 20rem;
   overflow: auto;
-  border-top: 1px solid var(--lightgray);
-  padding-top: 0.55rem;
+  padding-right: 0.25rem;
 }
 
 .ai-note-search-folder-tree[hidden] {
@@ -184,13 +222,21 @@ const styles = `.ai-note-search {
 .ai-note-search-folder-item {
   display: flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: 0.5rem;
   min-width: 0;
+  border-radius: 5px;
   color: var(--darkgray);
   font-size: 0.9rem;
+  min-height: 1.75rem;
+  padding: 0.12rem 0.35rem;
+}
+
+.ai-note-search-folder-item:hover {
+  background: color-mix(in srgb, var(--secondary) 11%, transparent);
 }
 
 .ai-note-search-folder-name {
+  flex: 1 1 auto;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -198,9 +244,14 @@ const styles = `.ai-note-search {
 }
 
 .ai-note-search-folder-count {
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--light) 82%, var(--lightgray));
   color: var(--gray);
   font-size: 0.78rem;
   margin-left: auto;
+  min-width: 1.3rem;
+  padding: 0.02rem 0.34rem;
+  text-align: center;
 }
 
 .ai-note-search-folder-empty {
@@ -356,6 +407,19 @@ const styles = `.ai-note-search {
     margin-top: 8vh;
   }
 
+  .ai-note-search-body {
+    grid-template-columns: 1fr;
+  }
+
+  .ai-note-search-sidebar {
+    border-right: 0;
+    border-bottom: 1px solid var(--lightgray);
+  }
+
+  .ai-note-search-folder-tree {
+    max-height: 12rem;
+  }
+
   .ai-note-search-actions {
     align-items: stretch;
     flex-direction: column;
@@ -367,7 +431,7 @@ const styles = `.ai-note-search {
 }`
 
 const script = `(() => {
-  const scriptVersion = "2026-06-27-ai-scope-search"
+  const scriptVersion = "2026-06-27-ai-scope-sidebar"
   const bootKey = "__groupVaultAiSearchBootVersion"
   const latestRequestKey = "__groupVaultAiSearchLatestRequest"
 
@@ -1108,53 +1172,59 @@ const AISearchComponent = ({ displayClass }) =>
             "×",
           ),
         ]),
-        h("form", { class: "ai-note-search-form" }, [
-          h("textarea", {
-            class: "ai-note-search-input",
-            name: "query",
-            maxlength: "500",
-            minlength: "2",
-            placeholder: "例如：我想学习一下同时对角化的内容，我该看哪些笔记？",
-            "aria-label": "学习目标",
-          }),
-          h("details", { class: "ai-note-search-scope" }, [
-            h("summary", { class: "ai-note-search-scope-summary" }, [
-              h("span", null, "检索范围"),
-              h("span", { class: "ai-note-search-scope-count" }, "全部笔记"),
-            ]),
-            h("div", { class: "ai-note-search-scope-body" }, [
-              h("label", { class: "ai-note-search-scope-all" }, [
-                h("input", {
-                  class: "ai-note-search-scope-all-input",
-                  type: "checkbox",
-                  checked: true,
-                }),
-                h("span", null, "全部笔记"),
+        h("div", { class: "ai-note-search-body" }, [
+          h("aside", { class: "ai-note-search-sidebar" }, [
+            h("details", { class: "ai-note-search-scope", open: true }, [
+              h("summary", { class: "ai-note-search-scope-summary" }, [
+                h("span", null, "检索范围"),
+                h("span", { class: "ai-note-search-scope-count" }, "全部笔记"),
               ]),
-              h(
-                "div",
-                {
-                  class: "ai-note-search-folder-tree",
-                  "aria-label": "选择检索文件夹",
-                  hidden: true,
-                },
-                "正在读取文件夹...",
-              ),
+              h("div", { class: "ai-note-search-scope-body" }, [
+                h("label", { class: "ai-note-search-scope-all" }, [
+                  h("input", {
+                    class: "ai-note-search-scope-all-input",
+                    type: "checkbox",
+                    checked: true,
+                  }),
+                  h("span", null, "全部笔记"),
+                ]),
+                h(
+                  "div",
+                  {
+                    class: "ai-note-search-folder-tree",
+                    "aria-label": "选择检索文件夹",
+                    hidden: true,
+                  },
+                  "正在读取文件夹...",
+                ),
+              ]),
             ]),
           ]),
-          h("div", { class: "ai-note-search-actions" }, [
-            h("div", { class: "ai-note-search-status", role: "status", "aria-live": "polite" }),
-            h(
-              "button",
-              {
-                class: "ai-note-search-submit",
-                type: "submit",
-              },
-              "生成报告",
-            ),
+          h("div", { class: "ai-note-search-main" }, [
+            h("form", { class: "ai-note-search-form" }, [
+              h("textarea", {
+                class: "ai-note-search-input",
+                name: "query",
+                maxlength: "500",
+                minlength: "2",
+                placeholder: "例如：我想学习一下同时对角化的内容，我该看哪些笔记？",
+                "aria-label": "学习目标",
+              }),
+              h("div", { class: "ai-note-search-actions" }, [
+                h("div", { class: "ai-note-search-status", role: "status", "aria-live": "polite" }),
+                h(
+                  "button",
+                  {
+                    class: "ai-note-search-submit",
+                    type: "submit",
+                  },
+                  "生成报告",
+                ),
+              ]),
+            ]),
+            h("div", { class: "ai-note-search-results", "aria-live": "polite" }),
           ]),
         ]),
-        h("div", { class: "ai-note-search-results", "aria-live": "polite" }),
       ]),
     ),
   ])
