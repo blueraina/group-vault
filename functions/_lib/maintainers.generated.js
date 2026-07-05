@@ -8,6 +8,7 @@ export const generatedMaintainerLogins = [
   "libinyam",
   "llc-byte",
   "vesperazephyr",
+  "xkbz0809",
   "yiran-frank-mao",
 ]
 

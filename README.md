@@ -203,6 +203,15 @@ node scripts/update-collaborators.mjs
   <sub><b>@VesperaZephyr</b></sub>
 </td>
 <td align="center">
+  <a href="https://github.com/xkbz0809">
+    <img src="content/assets/collaborators/xkbz0809.png" width="64" height="64" alt="@xkbz0809" />
+  </a>
+  <br />
+  <sub><b>@xkbz0809</b></sub>
+</td>
+</tr>
+<tr>
+<td align="center">
   <a href="https://github.com/yiran-frank-mao">
     <img src="content/assets/collaborators/yiran-frank-mao.png" width="64" height="64" alt="@yiran-frank-mao" />
   </a>
