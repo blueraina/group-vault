@@ -1,11 +1,12 @@
 import { h } from "preact"
 
 const style = `.shortlink {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  margin: 0.25rem 0 0.8rem;
-  font-size: 0.9rem;
+  margin: 0.45rem 0.45rem 1.1rem 0;
+  vertical-align: top;
+  font-size: 0.92rem;
 }
 
 .shortlink-btn {

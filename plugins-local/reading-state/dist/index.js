@@ -1,11 +1,12 @@
 import { h } from "preact"
 
 const style = `.reading-state {
-  display: flex;
+  display: inline-flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem;
   margin: 0.45rem 0 1.1rem;
+  vertical-align: top;
   font-size: 0.92rem;
 }
 
