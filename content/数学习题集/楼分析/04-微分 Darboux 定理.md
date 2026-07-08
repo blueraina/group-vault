@@ -1,4 +1,6 @@
 ---
+noteId: "楼分析/04-微分-darboux-定理"
+shortId: 787
 chapter: 4
 title: "04-微分 Darboux 定理"
 type: 讲义

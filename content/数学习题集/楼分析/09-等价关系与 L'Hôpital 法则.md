@@ -1,4 +1,6 @@
 ---
+noteId: "楼分析/09-等价关系与-l'hôpital-法则"
+shortId: 792
 chapter: 9
 title: "09-等价关系与 L'Hôpital 法则"
 type: 讲义

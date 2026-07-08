@@ -169,6 +169,12 @@ plugins:
     layout:
       position: beforeBody
       priority: 20
+  - source: ./plugins-local/shortlink
+    enabled: true
+    layout:
+      position: beforeBody
+      priority: 21
+      condition: not-index
   - source: ./plugins-local/reading-state
     enabled: true
     layout:

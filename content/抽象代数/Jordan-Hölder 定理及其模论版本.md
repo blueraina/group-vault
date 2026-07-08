@@ -1,4 +1,6 @@
 ---
+noteId: "抽象代数/jordan-hölder-定理及其模论版本"
+shortId: 1
 title: Jordan-Hölder 定理及其模论版本
 created: 2026-06-09
 updated: 2026-06-09

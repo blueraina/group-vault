@@ -1,4 +1,6 @@
 ---
+noteId: "数学习题集/谢惠民数学分析/15-第十五章-fourier-级数"
+shortId: 810
 chapter: 15
 title: "15-第十五章 Fourier 级数"
 type: 讲义

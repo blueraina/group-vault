@@ -653,6 +653,7 @@ async function collectChunks() {
     notes.push({
       id: record.noteId,
       noteId: record.noteId,
+      shortId: record.shortId,
       title: record.title,
       slug: record.slug,
       url: record.url,
