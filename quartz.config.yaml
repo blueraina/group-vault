@@ -129,6 +129,7 @@ plugins:
         removeNodes:
           - 其他信息/维护时间线
           - 其他信息/评论管理
+          - 其他信息/协作者
       globalGraph:
         showTags: false
         hideFolderPages: true
