@@ -81,6 +81,11 @@ plugins:
     enabled: true
     options:
       renderEngine: katex
+      customMacros:
+        "\\Var": "\\operatorname{Var}"
+        "\\Cov": "\\operatorname{Cov}"
+        "\\Corr": "\\operatorname{Corr}"
+        "\\iiiint": "\\mathop{\\int\\!\\!\\!\\int\\!\\!\\!\\int\\!\\!\\!\\int}\\limits"
     order: 45
   - source: ./plugins-local/table-of-contents
     enabled: true
