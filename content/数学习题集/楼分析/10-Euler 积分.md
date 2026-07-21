@@ -1,4 +1,6 @@
 ---
+noteId: "楼分析/10-euler-积分"
+shortId: 793
 chapter: 10
 title: "10-Euler 积分"
 type: 讲义

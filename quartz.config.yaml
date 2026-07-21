@@ -74,10 +74,18 @@ plugins:
   - source: github:quartz-community/github-flavored-markdown
     enabled: true
     order: 40
+  - source: ./plugins-local/soft-line-breaks
+    enabled: true
+    order: 44
   - source: ./plugins-local/latex
     enabled: true
     options:
       renderEngine: katex
+      customMacros:
+        "\\Var": "\\operatorname{Var}"
+        "\\Cov": "\\operatorname{Cov}"
+        "\\Corr": "\\operatorname{Corr}"
+        "\\iiiint": "\\mathop{\\int\\!\\!\\!\\int\\!\\!\\!\\int\\!\\!\\!\\int}\\limits"
     order: 45
   - source: ./plugins-local/table-of-contents
     enabled: true
@@ -129,6 +137,7 @@ plugins:
         removeNodes:
           - 其他信息/维护时间线
           - 其他信息/评论管理
+          - 其他信息/协作者
       globalGraph:
         showTags: false
         hideFolderPages: true
@@ -169,6 +178,12 @@ plugins:
     layout:
       position: beforeBody
       priority: 20
+  - source: ./plugins-local/shortlink
+    enabled: true
+    layout:
+      position: beforeBody
+      priority: 21
+      condition: not-index
   - source: ./plugins-local/reading-state
     enabled: true
     layout:

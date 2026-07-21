@@ -20,11 +20,7 @@ function classList(node) {
 function propertyLanguage(node) {
   const props = node?.properties ?? {}
   return String(
-    props.dataLanguage ??
-      props["data-language"] ??
-      props.language ??
-      props.lang ??
-      "",
+    props.dataLanguage ?? props["data-language"] ?? props.language ?? props.lang ?? "",
   ).toLowerCase()
 }
 
@@ -408,6 +404,53 @@ function normalizeObsidianDisplayMath(src) {
   return out.join("\n")
 }
 
+function normalizeObsidianMathSyntax(value) {
+  return value
+    .replace(
+      /\\(overline|underline)\s*\{\s*\\lim\s*_\s*\{([^{}]*)\}\s*\}/g,
+      (_, decoration, subscript) => `\\mathop{\\${decoration}{\\lim}}\\limits_{${subscript}}`,
+    )
+    .replace(
+      /\\(overline|underline)\s*\{\s*\\lim\s*\}\s*(?:\\limits\s*)?_\s*\{([^{}]*)\}/g,
+      (_, decoration, subscript) => `\\mathop{\\${decoration}{\\lim}}\\limits_{${subscript}}`,
+    )
+    .replace(/\\int\s*_\s*\\sqrt\s*\{([^{}]*)\}/g, String.raw`\int_{\sqrt{$1}}`)
+    .replace(/\\multicolumn\s*\{\s*1\s*\}\s*\{[^{}]*\}\s*\{([^{}]*)\}/g, "$1")
+    .replace(
+      /\\sum\s*_\s*\{\s*([A-Za-z]+)\s*\\\\\s*(?:\[[^\]]*\])?\s*&?\s*=\s*([^{}]+?)\s*\}/g,
+      (_, index, lowerBound) => `\\sum_{${index} = ${lowerBound}}`,
+    )
+}
+
+function remarkObsidianMathCompatibility() {
+  return (tree) => {
+    function normalizeCachedMath(node) {
+      if (!node || typeof node !== "object") return
+
+      if (node.type === "text" && typeof node.value === "string") {
+        node.value = normalizeObsidianMathSyntax(node.value)
+      }
+
+      if (!Array.isArray(node.children)) return
+      for (const child of node.children) normalizeCachedMath(child)
+    }
+
+    function walk(node) {
+      if (!node || typeof node !== "object") return
+
+      if ((node.type === "math" || node.type === "inlineMath") && typeof node.value === "string") {
+        node.value = normalizeObsidianMathSyntax(node.value)
+        for (const child of node.data?.hChildren ?? []) normalizeCachedMath(child)
+      }
+
+      if (!Array.isArray(node.children)) return
+      for (const child of node.children) walk(child)
+    }
+
+    walk(tree)
+  }
+}
+
 export const Latex = (opts = {}) => {
   const macros = opts.customMacros ?? {}
 
@@ -417,10 +460,13 @@ export const Latex = (opts = {}) => {
       return normalizeObsidianDisplayMath(src)
     },
     markdownPlugins() {
-      return [remarkMath]
+      return [remarkMath, remarkObsidianMathCompatibility]
     },
     htmlPlugins() {
-      return [[rehypeKatex, { output: "html", macros, ...(opts.katexOptions ?? {}) }], rehypeTikzJax]
+      return [
+        [rehypeKatex, { output: "html", macros, ...(opts.katexOptions ?? {}) }],
+        rehypeTikzJax,
+      ]
     },
     externalResources() {
       return {

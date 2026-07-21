@@ -1,4 +1,6 @@
 ---
+noteId: "楼分析/02-euler-公式"
+shortId: 785
 chapter: 2
 title: "02-Euler 公式"
 type: 讲义

@@ -1,4 +1,6 @@
 ---
+noteId: "index"
+shortId: 827
 title: 群知识库
 created: 2026-06-02
 updated: 2026-06-15

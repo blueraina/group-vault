@@ -1,0 +1,27 @@
+{
+  "name": "@group-vault/quartz-soft-line-breaks",
+  "version": "0.1.0",
+  "description": "Render Markdown soft line endings as explicit line breaks in Quartz",
+  "type": "module",
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.js",
+  "sideEffects": false,
+  "quartz": {
+    "name": "soft-line-breaks",
+    "displayName": "Soft Line Breaks",
+    "category": "transformer",
+    "version": "0.1.0",
+    "quartzVersion": ">=5.0.0",
+    "requiresInstall": false,
+    "dependencies": [],
+    "defaultOrder": 44,
+    "defaultEnabled": true,
+    "defaultOptions": {}
+  }
+}

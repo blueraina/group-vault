@@ -1,4 +1,6 @@
 ---
+noteId: "obsidian使用与同步教程"
+shortId: 10
 title: Obsidian 使用与同步教程
 created: 2026-06-04
 updated: 2026-06-04

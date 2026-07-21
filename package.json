@@ -17,8 +17,10 @@
     "check": "tsc --noEmit && npx prettier . --check",
     "format": "npx prettier . --write",
     "test": "tsx --test",
+    "note:ids": "node scripts/sync-note-frontmatter-ids.mjs",
+    "note:ids:check": "node scripts/sync-note-frontmatter-ids.mjs --check",
     "ai:index": "node scripts/build-ai-search-index.mjs",
-    "build": "npm run ai:index && npx quartz build",
+    "build": "npm run note:ids && npm run ai:index && npx quartz build",
     "profile": "0x -D prof ./quartz/bootstrap-cli.mjs build --concurrency=1",
     "install-plugins": "npx tsx ./quartz/plugins/loader/install-plugins.ts",
     "prebuild": "npm run install-plugins"

@@ -1,4 +1,6 @@
 ---
+noteId: "复变函数/runge逼近定理"
+shortId: 3
 title: Runge逼近定理
 created: 2026-06-13
 updated: 2026-06-13

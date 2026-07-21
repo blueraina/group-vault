@@ -1,4 +1,6 @@
 ---
+noteId: "组合数学——ramsay数"
+shortId: 826
 title: 组合数学——Ramsay数
 created: 2026-06-04
 updated: 2026-06-04
