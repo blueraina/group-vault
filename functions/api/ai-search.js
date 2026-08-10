@@ -1,4 +1,4 @@
-import { getCurrentUser, json, missingEnv } from "../_lib/auth.js"
+import { database, getCurrentUser, json, missingEnv } from "../_lib/auth.js"
 
 const indexPath = "/static/ai-search-index.json"
 const maxQueryLength = 500
@@ -15,6 +15,8 @@ const bm25K1 = 1.2
 const rrfK = 60
 const rateWindowMs = 60 * 1000
 const rateMaxRequests = 10
+const dailyRateMaxRequests = 200
+const japanUtcOffsetMs = 9 * 60 * 60 * 1000
 const rateBuckets = new Map()
 
 let cachedManifest = null
@@ -137,6 +139,48 @@ function checkRateLimit(user, request) {
   }
   bucket.push(now)
   rateBuckets.set(key, bucket)
+}
+
+export function dailyUsageDate(now = Date.now()) {
+  return new Date(now + japanUtcOffsetMs).toISOString().slice(0, 10)
+}
+
+export async function checkDailyRateLimit(env, user, now = Date.now()) {
+  const login = String(user?.login || "")
+    .trim()
+    .toLowerCase()
+  if (!login) throw httpError("无法识别当前登录用户", 401, "LOGIN_REQUIRED")
+
+  const usageDate = dailyUsageDate(now)
+  const updatedAt = new Date(now).toISOString()
+  const row = await database(env)
+    .prepare(
+      `INSERT INTO ai_daily_usage
+        (github_login, usage_date, request_count, updated_at)
+       VALUES (?, ?, 1, ?)
+       ON CONFLICT(github_login, usage_date) DO UPDATE SET
+         request_count = ai_daily_usage.request_count + 1,
+         updated_at = excluded.updated_at
+       WHERE ai_daily_usage.request_count < ?
+       RETURNING request_count`,
+    )
+    .bind(login, usageDate, updatedAt, dailyRateMaxRequests)
+    .first()
+
+  if (!row) {
+    throw httpError(
+      `今天的 AI 搜索次数已用完（每天最多 ${dailyRateMaxRequests} 次）`,
+      429,
+      "DAILY_RATE_LIMITED",
+    )
+  }
+
+  return {
+    limit: dailyRateMaxRequests,
+    used: Number(row.request_count),
+    remaining: Math.max(0, dailyRateMaxRequests - Number(row.request_count)),
+    usageDate,
+  }
 }
 
 function requireAiConfig(env) {
@@ -1107,6 +1151,7 @@ async function handlePost(request, env) {
   const user = await requireUser(request, env)
   checkRateLimit(user, request)
   requireAiConfig(env)
+  await checkDailyRateLimit(env, user)
 
   const manifest = await loadSearchManifest(request, env)
   const queryVariants = await rewriteQueryVariants(env, query)

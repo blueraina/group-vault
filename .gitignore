@@ -20,6 +20,7 @@ quartz/cli/tui/dist/
 .idea/
 
 # Local runtime and environment files
+.wrangler/
 .env
 .env.*
 !.env.example
