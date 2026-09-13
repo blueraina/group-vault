@@ -37,7 +37,7 @@ jobs:
 
       - name: Update collaborators
         env:
-          GITHUB_TOKEN: ${{ secrets.COLLABORATORS_TOKEN || github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
         run: node scripts/update-collaborators.mjs
 
       - name: Commit collaborator list
