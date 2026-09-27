@@ -191,11 +191,11 @@ node scripts/update-collaborators.mjs
   <sub><b>@libinyam</b></sub>
 </td>
 <td align="center">
-  <a href="https://github.com/llc-byte">
-    <img src="content/assets/collaborators/llc-byte.png" width="64" height="64" alt="@llc-byte" />
+  <a href="https://github.com/qingxiao-xj">
+    <img src="content/assets/collaborators/qingxiao-xj.png" width="64" height="64" alt="@qingxiao-xj" />
   </a>
   <br />
-  <sub><b>@llc-byte</b></sub>
+  <sub><b>@qingxiao-xj</b></sub>
 </td>
 <td align="center">
   <a href="https://github.com/VesperaZephyr">

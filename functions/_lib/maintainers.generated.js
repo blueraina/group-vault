@@ -6,7 +6,7 @@ export const generatedMaintainerLogins = [
   "blueraina",
   "hanfengqaq",
   "libinyam",
-  "llc-byte",
+  "qingxiao-xj",
   "vesperazephyr",
   "xkbz0809",
   "yiran-frank-mao",
